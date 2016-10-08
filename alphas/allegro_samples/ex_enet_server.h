@@ -15,7 +15,7 @@
 #define EX_ENET_SERVER_H
 
 
-int start_server(int port);
+int start_server(char* listen, int port);
 
 #endif /* EX_ENET_SERVER_H */
 

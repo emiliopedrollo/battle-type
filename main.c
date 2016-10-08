@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
     }
     
     if (is_server){
-        start_server(port);
+        start_server("0.0.0.0", port);
     } else {
         init_client(host, port);
     }

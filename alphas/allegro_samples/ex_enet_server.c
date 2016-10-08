@@ -67,7 +67,7 @@ static void send_receive(ENetHost *server)
          case ENET_EVENT_TYPE_NONE:
             break;
          case ENET_EVENT_TYPE_CONNECT:
-            printf("Server: A new client connected from %x:%u.\n",
+            printf("Server: A new client connected from %x:%hu.\n",
                event.peer->address.host,
                event.peer->address.port);
 
@@ -160,16 +160,17 @@ static void update_players(ENetHost *server, float time)
    }
 }
 
-static ENetHost* create_server(int port)
+static ENetHost* create_server(ENetAddress address)
 {
-   ENetAddress address;
+   
    ENetHost *server;
    /* Bind the server to the default localhost.     */
    /* A specific host address can be specified by   */
    /* enet_address_set_host (&address, "x.x.x.x"); */
-   address.host = ENET_HOST_ANY;
+   //address.host = ENET_HOST_ANY;
    /* Bind the server to port 1234. */
-   address.port = port;
+   //address.port = port;
+   
    server = enet_host_create(&address /* the address to bind the server host to */,
       32      /* allow up to 32 clients and/or outgoing connections */,
       2      /* allow up to 2 channels to be used, 0 and 1 */,
@@ -183,11 +184,12 @@ static ENetHost* create_server(int port)
    return server;
 }
 
-int start_server(int port)
+int start_server(char* listen, int port)
 {
    ALLEGRO_TIMER *timer;
    ALLEGRO_EVENT_QUEUE *queue;
    ALLEGRO_EVENT event;
+   ENetAddress address;
    double last_time; // time of last update
    double cur_time;  // time of this update
    srand(time(NULL));
@@ -212,7 +214,10 @@ int start_server(int port)
    al_register_event_source(queue, al_get_timer_event_source(timer));
    al_start_timer(timer);
 
-   server = create_server(port);
+   enet_address_set_host(&address, listen);
+   address.port = port;
+   
+   server = create_server(address);
 
    last_time = al_get_time();
 
