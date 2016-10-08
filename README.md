@@ -1,3 +1,3 @@
-# battle-type
+# BattleType
 
 Um projeto de faculdade
