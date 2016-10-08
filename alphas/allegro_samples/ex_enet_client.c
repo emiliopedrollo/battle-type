@@ -57,12 +57,12 @@ static void disconnect_client(ENetHost *client, ENetPeer *server)
    enet_peer_reset(server);
 }
 
-static ENetPeer* connect_client(ENetHost *client, int port)
+static ENetPeer* connect_client(ENetHost *client, ENetAddress address, int port)
 {
-   ENetAddress address;
+   //ENetAddress address;
    ENetEvent event;
    ENetPeer *server;
-   enet_address_set_host(&address, "localhost");
+   //enet_address_set_host(&address, "localhost");
    address.port = port;
    /* Initiate the connection, allocating the two channels 0 and 1. */
    server = enet_host_connect(client, &address, 2, 0);
@@ -126,12 +126,13 @@ static void send_receive(ENetHost *client)
    }
 }
 
-int init_client(int port)
+int init_client(char* host, int port)
 {
    ALLEGRO_DISPLAY *display;
    ALLEGRO_TIMER *timer;
    ALLEGRO_EVENT_QUEUE *queue;
    ALLEGRO_EVENT event;
+   ENetAddress address;
    ENetHost *client;
    ENetPeer *server;
    bool update = true; // when true, update positions and render
@@ -167,8 +168,10 @@ int init_client(int port)
    if (enet_initialize() != 0)
       printf("An error occurred while initializing ENet.\n");
 
+   enet_address_set_host(&address, host);
+   
    client = create_client();
-   server = connect_client(client, port);
+   server = connect_client(client, address, port);
 
    // --- game loop ---
    bool direction_changed = false;

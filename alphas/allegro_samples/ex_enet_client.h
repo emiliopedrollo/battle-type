@@ -14,7 +14,7 @@
 #ifndef EX_ENET_CLIENT_H
 #define EX_ENET_CLIENT_H
 
-int init_client(int port);
+int init_client(char* host, int port);
 
 #endif /* EX_ENET_CLIENT_H */
 

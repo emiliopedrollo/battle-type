@@ -25,12 +25,14 @@
 int main(int argc, char** argv) {
   
     bool is_server = false;
+    char* host = "localhost";
     int port = 0;
     
     int c;
     static struct option long_options[] = {
         {"server",  optional_argument, 0,  0 },
         {"port",    required_argument, 0,  0 },
+        {"host",    required_argument, 0,  0 },
         {0,         0,                 0,  0 }
     };
     
@@ -48,6 +50,8 @@ int main(int argc, char** argv) {
                     is_server = true;
                 } else if (long_options[option_index].name == "port") {
                     port = atoi(optarg);
+                } else if (long_options[option_index].name == "host") {
+                    host = optarg;
                 }
                 break;
             default:
@@ -59,7 +63,7 @@ int main(int argc, char** argv) {
     if (is_server){
         start_server(port);
     } else {
-        init_client(port);
+        init_client(host, port);
     }
         
     //show_screen();
