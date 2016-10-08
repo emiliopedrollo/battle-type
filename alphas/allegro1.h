@@ -14,7 +14,11 @@
 #ifndef ALLEGRO1_H
 #define ALLEGRO1_H
 
+#include <allegro5/allegro.h>
+#include <allegro5/allegro_image.h>
+
 void show_screen();
+void show_ships(ALLEGRO_DISPLAY *display);
 
 #endif /* ALLEGRO1_H */
 
