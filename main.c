@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
     
     int c;
     static struct option long_options[] = {
-        {"server",  optional_argument, 0,  0 },
+        {"server",  no_argument,       0,  0 },
         {"port",    required_argument, 0,  0 },
         {"host",    required_argument, 0,  0 },
         {0,         0,                 0,  0 }
@@ -54,8 +54,6 @@ int main(int argc, char** argv) {
                     host = optarg;
                 }
                 break;
-            default:
-                printf("?? getopt returned character code 0%o ??\n", c);
         }
                 
     }

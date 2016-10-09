@@ -11,10 +11,34 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <enet/enet.h>
+#include <pthread.h>
 #include "allegro5/allegro.h"
 #include "allegro5/allegro_primitives.h"
 
 #include "enet_common.h"
+#include "ex_enet_client.h"
+
+void *send_receive(void *arguments){
+    //long tid;    
+    //tid = ((SEND_RECEIVE_THREAD_ARGS) arguments).tid;   
+        
+    struct Client_Thread_Args *args = (struct Client_Thread_Args*)arguments;
+    
+    ENetHost *cli;    
+    cli = (*args).client;
+    
+    thread_done = false;
+        
+    printf("Thread Run\n");
+    
+    while(!thread_done){
+        do_send_receive(cli);
+    }
+    
+    printf("Thread Exiting\n");
+    
+    pthread_exit(NULL);
+}
 
 static ENetHost* create_client(void)
 {
@@ -89,41 +113,60 @@ static ENetPeer* connect_client(ENetHost *client, ENetAddress address, int port)
    return server;
 }
 
-static void send_receive(ENetHost *client)
+void do_send_receive(ENetHost *client)
 {
-   ENetEvent event;
-   ServerMessage *msg;
+    ENetEvent event;
+        ServerMessage *msg;
 
-   // Check if we have any queued incoming messages, but do not wait otherwise.
-   // This also sends outgoing messages queued with enet_peer_send.
-   while (enet_host_service(client, &event, 0) > 0) {
-      // clients only care about incoming packets, they will not receive
-      // connect/disconnect events.
-      if (event.type == ENET_EVENT_TYPE_RECEIVE) {
-         msg = (ServerMessage*)event.packet->data;
+        // Check if we have any queued incoming messages, but do not wait otherwise.
+        // This also sends outgoing messages queued with enet_peer_send.
+        while (enet_host_service(client, &event, 0) > 0) {
+           // clients only care about incoming packets, they will not receive
+           // connect/disconnect events.
+           if (event.type == ENET_EVENT_TYPE_RECEIVE) {
+              msg = (ServerMessage*)event.packet->data;
 
-         switch (msg->type) {
-            case POSITION_UPDATE:
-               players[msg->player_id].x = msg->x;
-               players[msg->player_id].y = msg->y;
-               break;
-            case PLAYER_JOIN:
-               printf("Client: player #%d joined\n", msg->player_id);
-               players[msg->player_id].active = true;
-               players[msg->player_id].x = msg->x;
-               players[msg->player_id].y = msg->y;
-               players[msg->player_id].color = msg->color;
-               break;
-            case PLAYER_LEAVE:
-               printf("Client: player #%d left\n", msg->player_id);
-               players[msg->player_id].active = false;
-               break;
-         }
+              switch (msg->type) {
+                 case POSITION_UPDATE:
+                    players[msg->player_id].x = msg->x;
+                    players[msg->player_id].y = msg->y;
+                    break;
+                 case PLAYER_JOIN:
+                    printf("Client: player #%d joined\n", msg->player_id);
+                    players[msg->player_id].active = true;
+                    players[msg->player_id].x = msg->x;
+                    players[msg->player_id].y = msg->y;
+                    players[msg->player_id].color = msg->color;
+                    break;
+                 case PLAYER_LEAVE:
+                    printf("Client: player #%d left\n", msg->player_id);
+                    players[msg->player_id].active = false;
+                    break;
+              }
 
-         /* Clean up the packet now that we're done using it. */
-         enet_packet_destroy(event.packet);
-      }
-   }
+              /* Clean up the packet now that we're done using it. */
+              enet_packet_destroy(event.packet);
+           }
+        }
+}
+
+pthread_t init_thread(ENetHost *client){
+    
+    //pthread_t threads;
+    int rc;
+    struct Client_Thread_Args *args;
+    
+    pthread_t cmp_thread = malloc(sizeof(pthread_t));
+    args = malloc(sizeof(struct Client_Thread_Args));
+    (*args).client = client;
+    
+    printf("Creating server comms thread.\n");
+    rc = pthread_create(&cmp_thread, NULL, send_receive, (void *) args);
+    if (rc) {
+        printf("ERROR; return code from pthread_create() is %d\n", rc);
+    }
+    
+    return cmp_thread;
 }
 
 int init_client(char* host, int port)
@@ -135,6 +178,7 @@ int init_client(char* host, int port)
    ENetAddress address;
    ENetHost *client;
    ENetPeer *server;
+   pthread_t comm_thread;
    bool update = true; // when true, update positions and render
    bool done = false;  // when true, client exits
    int dx = 0, dy = 0; // movement direction
@@ -173,6 +217,8 @@ int init_client(char* host, int port)
    client = create_client();
    server = connect_client(client, address, port);
 
+   comm_thread = init_thread(client);   
+   
    // --- game loop ---
    bool direction_changed = false;
    while (!done) {
@@ -231,7 +277,7 @@ int init_client(char* host, int port)
 
          // this will send our queued direction message if we have one, and get
          // position updates for other clients
-         send_receive(client);
+         //send_receive(client);
 
          // draw each player
          al_clear_to_color(al_map_rgb_f(0, 0, 0));
@@ -247,6 +293,9 @@ int init_client(char* host, int port)
       }
    }
 
+   thread_done = true;
+   pthread_join(comm_thread,NULL);
+   
    disconnect_client(client, server);
    enet_host_destroy(client);
    enet_deinitialize();
