@@ -43,7 +43,7 @@ void show_ship(ALLEGRO_DISPLAY *display){
     double t1;
     int j,i,x=1,y=1;
     
-    filename = "resources/alpha/BSFShips1680x1050.jpg";
+    filename = "resources/alpha/battleship.png";
     background = "resources/alpha/background.jpg";
     
     al_install_mouse();
@@ -65,7 +65,7 @@ void show_ship(ALLEGRO_DISPLAY *display){
         return;
     }
     
-    al_convert_mask_to_alpha(bitmap,al_map_rgb(255,234,0));
+    //al_convert_mask_to_alpha(bitmap,al_map_rgb(0,0,2));
     
     if (!back) {
         fprintf(stderr,"failed to create background!\n");
