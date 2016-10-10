@@ -21,6 +21,7 @@
         <itemPath>resources/alpha/background.jpg</itemPath>
         <itemPath>resources/alpha/battleship.png</itemPath>
       </logicalFolder>
+      <itemPath>resources/font.h</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
@@ -131,6 +132,8 @@
       </item>
       <item path="resources/alpha/battleship.png" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="resources/font.h" ex="false" tool="3" flavor2="0">
+      </item>
     </conf>
     <conf name="Release" type="1">
       <toolsSet>
@@ -218,6 +221,8 @@
       <item path="resources/alpha/background.jpg" ex="false" tool="3" flavor2="0">
       </item>
       <item path="resources/alpha/battleship.png" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="resources/font.h" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>
