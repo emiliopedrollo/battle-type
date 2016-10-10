@@ -51,7 +51,7 @@ int show_screen(){
     load_bitmap(&bmp_battleship,"resources/alpha/battleship.png");
     
     ALLEGRO_FILE* main_font_file = al_open_memfile(VT323_ttf,VT323_ttf_len,"r");    
-    load_font(&main_font,&main_font_file,32,ALLEGRO_TTF_MONOCHROME);
+    load_font(&main_font,&main_font_file,40,ALLEGRO_TTF_MONOCHROME);
     
     init_menu_buttons();
 
