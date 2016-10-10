@@ -17,13 +17,17 @@ void show_screen(){
     if(!display) {
        fprintf(stderr, "failed to create display!\n");
        return -1;
-    }
+    }    
+    
+    al_install_mouse();
+    al_install_keyboard();
+    al_init_image_addon();  
 
     al_clear_to_color(al_map_rgb(255,255,255));  
     al_flip_display();   
 
-    bmp_background = load_bitmap("resources/alpha/background.png");
-    bmp_battleship = load_bitmap("resources/alpha/battleship.jpg");
+    bmp_background = load_bitmap("resources/alpha/background.jpg");
+    bmp_battleship = load_bitmap("resources/alpha/battleship.png");
 
     do_the_loop(display);
 
@@ -65,11 +69,7 @@ void do_the_loop(ALLEGRO_DISPLAY *display){
     ALLEGRO_TIMER *timer;
     ALLEGRO_EVENT_QUEUE *queue;
     bool redraw = true;
-    bool done = false;
-    
-    al_install_mouse();
-    al_install_keyboard();
-    al_init_image_addon();    
+    bool done = false;  
     
     al_set_window_title(display, "BattleType");
     
