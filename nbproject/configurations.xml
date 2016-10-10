@@ -17,9 +17,9 @@
                    displayName="Resource Files"
                    projectFiles="true">
       <logicalFolder name="alpha" displayName="alpha" projectFiles="true">
-        <itemPath>resources/alpha/BSFShips1680x1050.jpg</itemPath>
-        <itemPath>resources/alpha/BSFShips1680x1050a2.jpg</itemPath>
+        <itemPath>resources/alpha/VT323.ttf</itemPath>
         <itemPath>resources/alpha/background.jpg</itemPath>
+        <itemPath>resources/alpha/battleship.png</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
@@ -125,17 +125,11 @@
       </item>
       <item path="main.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="resources/alpha/BSFShips1680x1050.jpg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="resources/alpha/BSFShips1680x1050a2.jpg"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="resources/alpha/VT323.ttf" ex="false" tool="3" flavor2="0">
       </item>
       <item path="resources/alpha/background.jpg" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="resources/alpha/battleship.png" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="1">
@@ -219,17 +213,11 @@
       </item>
       <item path="main.c" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="resources/alpha/BSFShips1680x1050.jpg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="resources/alpha/BSFShips1680x1050a2.jpg"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="resources/alpha/VT323.ttf" ex="false" tool="3" flavor2="0">
       </item>
       <item path="resources/alpha/background.jpg" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="resources/alpha/battleship.png" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>
