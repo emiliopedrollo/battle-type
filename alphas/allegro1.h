@@ -17,8 +17,7 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 
-void show_screen();
-void show_ships(ALLEGRO_DISPLAY *display);
+int show_screen();
 
 #endif /* ALLEGRO1_H */
 

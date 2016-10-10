@@ -18,6 +18,8 @@
 #include "enet_common.h"
 #include "ex_enet_client.h"
 
+void do_send_receive(ENetHost *client);
+
 void *send_receive(void *arguments){
     //long tid;    
     //tid = ((SEND_RECEIVE_THREAD_ARGS) arguments).tid;   
@@ -156,17 +158,17 @@ pthread_t init_thread(ENetHost *client){
     int rc;
     struct Client_Thread_Args *args;
     
-    pthread_t cmp_thread = malloc(sizeof(pthread_t));
+    pthread_t *cmp_thread = malloc(sizeof(pthread_t));
     args = malloc(sizeof(struct Client_Thread_Args));
     (*args).client = client;
     
     printf("Creating server comms thread.\n");
-    rc = pthread_create(&cmp_thread, NULL, send_receive, (void *) args);
+    rc = pthread_create(cmp_thread, NULL, send_receive, (void *) args);
     if (rc) {
         printf("ERROR; return code from pthread_create() is %d\n", rc);
     }
     
-    return cmp_thread;
+    return *cmp_thread;
 }
 
 int init_client(char* host, int port)

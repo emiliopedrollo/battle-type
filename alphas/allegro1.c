@@ -1,51 +1,83 @@
 #include <stdio.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
+#include <allegro5/allegro_primitives.h>
+#include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
 #include "allegro1.h"
 
 ALLEGRO_BITMAP *bmp_battleship, *bmp_background;
+ALLEGRO_FONT *main_font;
 
 int DISPLAY_H = 800;
 int DISPLAY_W = 500;
 
-void show_screen(){
+void load_font(ALLEGRO_FONT* font, char* filename,int size, int flags);
+void load_bitmap(ALLEGRO_BITMAP* *bitmap, char* filename);
+void do_the_loop(ALLEGRO_DISPLAY *display);
+
+int show_screen(){
     
     ALLEGRO_DISPLAY *display = NULL;
 
     if(!al_init()) {
        fprintf(stderr, "failed to initialize allegro!\n");
-       return -1;
+       return EXIT_FAILURE;
     }
 
     display = al_create_display(DISPLAY_W, DISPLAY_H);
     if(!display) {
        fprintf(stderr, "failed to create display!\n");
-       return -1;
+       return EXIT_FAILURE;
     }    
     
     al_install_mouse();
     al_install_keyboard();
     al_init_image_addon();  
+    al_init_primitives_addon();
+    al_init_font_addon();
+    if (!al_init_ttf_addon()) fprintf(stderr,"failed to load ttf addon!");
+    
 
     al_clear_to_color(al_map_rgb(255,255,255));  
     al_flip_display();   
 
-    bmp_background = load_bitmap("resources/alpha/background.jpg");
-    bmp_battleship = load_bitmap("resources/alpha/battleship.png");
+    load_bitmap(&bmp_background,"resources/alpha/background.jpg");
+    load_bitmap(&bmp_battleship,"resources/alpha/battleship.png");
+    load_font(main_font,"resources/alpha/VT23.ttf",32,ALLEGRO_TTF_MONOCHROME);
 
     do_the_loop(display);
+    
+    al_destroy_bitmap(bmp_background);
+    al_destroy_bitmap(bmp_battleship);
+    al_destroy_font(main_font);
 
-    al_rest(10.0);
+    
+    al_shutdown_ttf_addon();
+    al_shutdown_font_addon();
+    al_shutdown_primitives_addon();
+    al_shutdown_image_addon();
+    al_uninstall_keyboard();
+    al_uninstall_mouse();
+    
     al_destroy_display(display);
-    return 0;
+    
+    return EXIT_SUCCESS;
     
 }
 
-void load_bitmap(char* filename){  
-    ALLEGRO_BITMAP *bitmap;
-    bitmap=al_load_bitmap(filename);
+void load_font(ALLEGRO_FONT* font, char* filename,int size, int flags){
+    font = al_load_ttf_font(filename,size,flags);
+    if (!font) {
+        fprintf(stderr,"failed to load font resource: %s!\n",filename);
+        //exit(EXIT_FAILURE);
+    }   
+}
+
+void load_bitmap(ALLEGRO_BITMAP* *bitmap, char* filename){  
+    *bitmap = al_load_bitmap(filename);
     if (!bitmap) {
-        fprintf(stderr,"failed to load resource: %s!\n",filename);
+        fprintf(stderr,"failed to load bitmap resource: %s!\n",filename);
         exit(EXIT_FAILURE);
     }
 }
@@ -67,11 +99,45 @@ void draw_background(ALLEGRO_DISPLAY *display){
 }
 
 void draw_ship(ALLEGRO_DISPLAY *display){
-    float dx,dy;
-    for(int i=(int)dx; i <= al_get_display_width(display)-(al_get_bitmap_width(bmp_battleship)+5); i++){
-        al_draw_bitmap(bmp_battleship, i, dy, 0);
-    }
-    al_draw_scaled_rotated_bitmap(bmp_battleship, 0, 0, 0, 0, 1, 1, 0, 0);
+    static float dx = 0,dy = 0;
+    static float vx = 1.0;
+    
+    dx = dx + vx;
+    
+    al_draw_bitmap(bmp_battleship, dx, dy, 0);
+    
+    //for(int i=(int)dx; i <= al_get_display_width(display)-(al_get_bitmap_width(bmp_battleship)+5); i++){
+        
+    //}
+    //al_draw_scaled_rotated_bitmap(bmp_battleship, 0, 0, 0, 0, 1, 1, 0, 0);
+}
+
+void draw_menu(ALLEGRO_DISPLAY *display){
+    float bx, by, bw, bh, br, margin;
+    //ALLEGRO_PATH *path = al_get_standard_path(ALLEGRO_RESOURCES_PATH);
+    ALLEGRO_COLOR btn_color = al_map_rgba(63,81,181,230);
+    ALLEGRO_COLOR font_color = al_map_rgb(158,158,158);
+        
+    
+    bh = 60;
+    bw = 300;
+    bx = (DISPLAY_W/2.0)-(bw/2.0);
+    br = 2;
+    margin = 20;
+    
+    //draw single-player button
+    by = DISPLAY_H - ((bh+margin) * 4);
+    al_draw_filled_rounded_rectangle(bx,by,bx+bw,by+bh,br,br,btn_color);
+    //al_draw_text(main_font,font_color,(DISPLAY_W/2),((bh+margin) * 4),ALLEGRO_ALIGN_CENTER,"SINGLE PLAYER");
+    
+    //draw multi-player button
+    by = DISPLAY_H - ((bh+margin) * 3);
+    al_draw_filled_rounded_rectangle(bx,by,bx+bw,by+bh,br,br,btn_color);
+    
+    //draw exit;
+    by = DISPLAY_H - ((bh+margin) * 2);
+    al_draw_filled_rounded_rectangle(bx,by,bx+bw,by+bh,br,br,btn_color);
+    
 }
 
 void do_the_loop(ALLEGRO_DISPLAY *display){
@@ -101,7 +167,7 @@ void do_the_loop(ALLEGRO_DISPLAY *display){
             case ALLEGRO_EVENT_KEY_CHAR:
                 if (event.keyboard.keycode == ALLEGRO_KEY_ESCAPE)
                     done = true;                
-                printf("Keycode: %d | Modifier %d\n",event.keyboard.keycode,event.keyboard.modifiers);
+                printf("Keycode: %d | Modifier %o\n",event.keyboard.keycode,event.keyboard.modifiers);
                 break;
             case ALLEGRO_EVENT_TIMER:
                 redraw = true;
@@ -115,6 +181,7 @@ void do_the_loop(ALLEGRO_DISPLAY *display){
             
             draw_background(display);
             draw_ship(display);
+            draw_menu(display);
 
             al_flip_display();
         }

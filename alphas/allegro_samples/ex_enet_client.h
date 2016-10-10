@@ -20,7 +20,6 @@
 int init_client(char* host, int port);
 
 struct Client_Thread_Args{
-    int tid;
     ENetHost *client;
 };
 
