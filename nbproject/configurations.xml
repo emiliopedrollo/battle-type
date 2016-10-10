@@ -91,7 +91,7 @@
             <linkerOptionItem>`pkg-config --libs allegro_primitives-5`</linkerOptionItem>
             <linkerOptionItem>`pkg-config --libs allegro_ttf-5`</linkerOptionItem>
           </linkerLibItems>
-          <commandLine>-lallegro -lenet</commandLine>
+          <commandLine>-lallegro -lenet -lm</commandLine>
         </linkerTool>
       </compileType>
       <item path="alphas/allegro1.c" ex="false" tool="0" flavor2="0">

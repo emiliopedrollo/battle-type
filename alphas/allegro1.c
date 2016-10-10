@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include "allegro1.h"
@@ -35,7 +36,6 @@ void show_screen(){
 
     do_the_loop(display);
 
-    al_rest(10.0);
     al_destroy_display(display);
     return 0;
     
@@ -67,11 +67,22 @@ void draw_background(ALLEGRO_DISPLAY *display){
 }
 
 void draw_ship(ALLEGRO_DISPLAY *display){
-    float dx,dy;
-    for(int i=(int)dx; i <= al_get_display_width(display)-(al_get_bitmap_width(bmp_battleship)+5); i++){
-        al_draw_bitmap(bmp_battleship, i, dy, 0);
+    static int dx,dy,vx=1;
+    int bsw = al_get_bitmap_width(bmp_battleship);
+    int bsh = al_get_bitmap_height(bmp_battleship);
+    const float pedroso = -89.03036879;
+    float test;
+    float mod=(rand()%60)/100.0;
+    if(vx>0){
+        test=exp(((DISPLAY_W-(dx+bsw)))/pedroso)+mod;
+    }else{
+        test=exp(((dx))/pedroso)+mod;
     }
-    al_draw_scaled_rotated_bitmap(bmp_battleship, 0, 0, 0, 0, 1, 1, 0, 0);
+    printf("%f\n",mod);
+    vx=(test>=1.0)?vx*(-1):vx;
+    
+    dx+=vx;
+    al_draw_bitmap(bmp_battleship,dx,dy, 0);    
 }
 
 void do_the_loop(ALLEGRO_DISPLAY *display){
@@ -83,7 +94,7 @@ void do_the_loop(ALLEGRO_DISPLAY *display){
     
     al_set_window_title(display, "BattleType");
     
-    timer = al_create_timer(1.0 / 30); 
+    timer = al_create_timer(1.0 / 60); 
     queue = al_create_event_queue();
     al_register_event_source(queue, al_get_keyboard_event_source()); 
     al_register_event_source(queue, al_get_display_event_source(display));

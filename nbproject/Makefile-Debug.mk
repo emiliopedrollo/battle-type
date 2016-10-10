@@ -63,7 +63,7 @@ LDLIBSOPTIONS=`pkg-config --libs allegro-5.0` `pkg-config --libs allegro_acodec-
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/battletype: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/battletype ${OBJECTFILES} ${LDLIBSOPTIONS} -lallegro -lenet
+	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/battletype ${OBJECTFILES} ${LDLIBSOPTIONS} -lallegro -lenet -lm
 
 ${OBJECTDIR}/alphas/allegro1.o: alphas/allegro1.c 
 	${MKDIR} -p ${OBJECTDIR}/alphas
