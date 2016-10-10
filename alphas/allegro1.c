@@ -100,22 +100,30 @@ void draw_background(ALLEGRO_DISPLAY *display){
 }
 
 void draw_ship(ALLEGRO_DISPLAY *display){
-    static int dx,dy,vx=1;
+    static int dx,dy=40,vx=2,vy=1,temp=0;
     int bsw = al_get_bitmap_width(bmp_battleship);
     int bsh = al_get_bitmap_height(bmp_battleship);
-    const float pedroso = -89.03036879;
-    float test;
-    float mod=(rand()%60)/100.0;
-    if(vx>0){
-        test=exp(((DISPLAY_W-(dx+bsw)))/pedroso)+mod;
-    }else{
-        test=exp(((dx))/pedroso)+mod;
-    }
-    printf("%f\n",mod);
-    vx=(test>=1.0)?vx*(-1):vx;
+    const float n = -89.03036879;
+    float test,mod=((rand()%100)/100.0)+0.01;
     
-    dx+=vx;
-    al_draw_bitmap(bmp_battleship,dx,dy, 0);    
+    
+    test=(vx>0)? (exp((DISPLAY_W-(dx+bsw))/n))/mod : (exp(dx/n))/mod;
+    
+    vy=((vy>0 && (bsh+dy)==DISPLAY_H-40)||(vy<0 && dy==40))?vy*(-1):vy;
+    
+    if(temp<=0){
+        vx=(test>=1.0)?vx*(-1):vx;
+        temp=(test>=1.0)?57:50;
+    }else if(temp>0){
+        temp--;
+    }
+    
+    if(temp<50){
+        dx+=vx;
+        dy+=vy;
+    }
+    
+    al_draw_bitmap(bmp_battleship,dx,dy, 0);
 }
 
 void draw_menu(ALLEGRO_DISPLAY *display){
