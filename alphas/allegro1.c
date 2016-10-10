@@ -2,77 +2,76 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 
+ALLEGRO_BITMAP *bmp_battleship, *bmp_background;
+
 void show_screen(){
     
     ALLEGRO_DISPLAY *display = NULL;
 
-   if(!al_init()) {
-      fprintf(stderr, "failed to initialize allegro!\n");
-      return -1;
-   }
+    if(!al_init()) {
+       fprintf(stderr, "failed to initialize allegro!\n");
+       return -1;
+    }
 
-   display = al_create_display(500, 800);
-   if(!display) {
-      fprintf(stderr, "failed to create display!\n");
-      return -1;
-   }
+    display = al_create_display(500, 800);
+    if(!display) {
+       fprintf(stderr, "failed to create display!\n");
+       return -1;
+    }
 
-   al_clear_to_color(al_map_rgb(255,255,255));  
-   al_flip_display();
-   
-   show_ship(display);
-   
-   al_rest(10.0);
-   al_destroy_display(display);
-   return 0;
+    al_clear_to_color(al_map_rgb(255,255,255));  
+    al_flip_display();   
+
+    bmp_background = load_bitmap("resources/alpha/background.png");
+    bmp_battleship = load_bitmap("resources/alpha/battleship.jpg");
+
+    do_the_loop(display);
+
+    al_rest(10.0);
+    al_destroy_display(display);
+    return 0;
     
 }
 
-void show_ship(ALLEGRO_DISPLAY *display){
-    const char *filename;
-    const char *background;
+void load_bitmap(char* filename){  
     ALLEGRO_BITMAP *bitmap;
-    ALLEGRO_BITMAP *back;
+    bitmap=al_load_bitmap(filename);
+    if (!bitmap) {
+        fprintf(stderr,"failed to load resource: %s!\n",filename);
+        exit(EXIT_FAILURE);
+    }
+}
+void draw_background(ALLEGRO_DISPLAY *display){
+    static int x=1,y=1;
+    int i,j;
+    x=(x < -al_get_bitmap_width(bmp_background) ||x > al_get_display_width(display))?1:x;
+    y=(y < -al_get_bitmap_height(bmp_background)||y > al_get_display_height(display))?1:y;
+    x--;
+    y--;
+    for(i=x; i<al_get_display_width(display); i+=al_get_bitmap_width(bmp_background)){
+        al_draw_bitmap(bmp_background,i,j,0);
+        for(j=y; j<al_get_display_height(display); j+=al_get_bitmap_height(bmp_background)){
+            al_draw_bitmap(bmp_background,i,j,0);
+        }                    
+    }
+}
+
+void draw_ship(){
+    al_draw_scaled_rotated_bitmap(bmp_battleship, 0, 0, 0, 0, 1, 1, 0, 0);
+}
+
+void do_the_loop(ALLEGRO_DISPLAY *display){
+    
     ALLEGRO_TIMER *timer;
     ALLEGRO_EVENT_QUEUE *queue;
     bool redraw = true;
-    double zoom = 1;
-    float angle = 0;
-    float cx,cy,dx,dy;
-    double t0;
-    double t1;
-    int j,i,x=1,y=1;
-    
-    filename = "resources/alpha/battleship.png";
-    background = "resources/alpha/background.jpg";
+    bool done = false;
     
     al_install_mouse();
     al_install_keyboard();
+    al_init_image_addon();    
     
-    
-    al_init_image_addon();
-    
-    
-    al_set_window_title(display, filename);
-    
-    t0 = al_get_time();
-    back=al_load_bitmap(background);
-    bitmap=al_load_bitmap(filename);
-    t1 = al_get_time();
-    
-    if (!bitmap) {
-        fprintf(stderr, "failed to create display!\n");
-        return;
-    }
-    
-    //al_convert_mask_to_alpha(bitmap,al_map_rgb(0,0,2));
-    
-    if (!back) {
-        fprintf(stderr,"failed to create background!\n");
-        return;
-    }
-    
-    printf("Loading took %.4f seconds\n", t1 - t0);
+    al_set_window_title(display, "BattleType");
     
     timer = al_create_timer(1.0 / 30); 
     queue = al_create_event_queue();
@@ -81,76 +80,38 @@ void show_ship(ALLEGRO_DISPLAY *display){
     al_register_event_source(queue, al_get_timer_event_source(timer));
     al_start_timer(timer);
     
-    while (1) {
+    while (!done) {
         ALLEGRO_EVENT event;
         al_wait_for_event(queue, &event); // Wait for and get an event.
-        if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
-            break;
-        /* Use keyboard to zoom image in and out.
-         * 1: Reset zoom.
-         * +: Zoom in 10%
-         * -: Zoom out 10%
-         * f: Zoom to width of window
-         */
-        if (event.type == ALLEGRO_EVENT_KEY_CHAR) {
-            if (event.keyboard.keycode == ALLEGRO_KEY_ESCAPE)
-                break; // Break the loop and quite on escape key.
-            if (event.keyboard.unichar == '1')
-                zoom = 1;
-            if (event.keyboard.unichar == '+')
-                zoom *= 1.1;
-            if (event.keyboard.unichar == '-')
-                zoom /= 1.1;
-            if (event.keyboard.unichar == 'f')
-                zoom = (double)al_get_display_width(display) /
-                    al_get_bitmap_width(bitmap);
-            if (event.keyboard.keycode == 82 && event.keyboard.modifiers == 512)
-                dx -= 1;
-            if (event.keyboard.keycode == 83 && event.keyboard.modifiers == 512)
-                dx += 1;
-            if (event.keyboard.keycode == 84 && event.keyboard.modifiers == 512)
-                dy -= 1;
-            if (event.keyboard.keycode == 85 && event.keyboard.modifiers == 512)
-                dy += 1;
-            
-            if (event.keyboard.keycode == 82 && event.keyboard.modifiers == 513)
-                angle -= 0.1;
-            if (event.keyboard.keycode == 83 && event.keyboard.modifiers == 513)
-                angle += 0.1;
-            
-            printf("Keycode: %d | Modifier %d\n",event.keyboard.keycode,event.keyboard.modifiers);
+        
+        switch (event.type){
+            case ALLEGRO_EVENT_DISPLAY_CLOSE:
+                done = true;
+                break;
+            case ALLEGRO_EVENT_KEY_CHAR:
+                if (event.keyboard.keycode == ALLEGRO_KEY_ESCAPE)
+                    done = true;                
+                printf("Keycode: %d | Modifier %d\n",event.keyboard.keycode,event.keyboard.modifiers);
+                break;
+            case ALLEGRO_EVENT_TIMER:
+                redraw = true;
+                break;
         }
-
-        // Trigger a redraw on the timer event
-        if (event.type == ALLEGRO_EVENT_TIMER)
-            redraw = true;
             
         // Redraw, but only if the event queue is empty
         if (redraw && al_is_event_queue_empty(queue)) {
             redraw = false;
-            // Clear so we don't get trippy artifacts left after zoom.
             al_clear_to_color(al_map_rgb_f(0, 0, 0));
-            x=(x < -al_get_bitmap_width(back) ||x > al_get_display_width(display))?1:x;
-            y=(y < -al_get_bitmap_height(back)||y > al_get_display_height(display))?1:y;
-            x--;
-            y--;
-            if (zoom == 1 && angle == 0){
-                for(i=x; i<al_get_display_width(display); i+=al_get_bitmap_width(back)){
-                    al_draw_bitmap(back,i,j,0);
-                    for(j=y; j<al_get_display_height(display); j+=al_get_bitmap_height(back)){
-                        al_draw_bitmap(back,i,j,0);
-                    }                    
-                }
-                al_draw_bitmap(bitmap, dx, dy, 0);
-            } else
-                al_draw_scaled_rotated_bitmap(
-                    bitmap, 0, 0, dx, dy, zoom, zoom, angle, 0);
+            
+            draw_background(display);
+            draw_ship(display);
+
             al_flip_display();
         }
     }
 
-    al_destroy_bitmap(back);
+    al_destroy_bitmap(bmp_background);
+    al_destroy_bitmap(bmp_battleship);
     al_destroy_event_queue(queue);
-    al_destroy_bitmap(bitmap);
     
 }
