@@ -141,7 +141,9 @@ void show_ship(ALLEGRO_DISPLAY *display){
                         al_draw_bitmap(back,i,j,0);
                     }                    
                 }
-                al_draw_bitmap(bitmap, dx, dy, 0);
+                for(i=(int)dx; i <= al_get_display_width(display)-(al_get_bitmap_width(bitmap)+5); i++){
+                    al_draw_bitmap(bitmap, i, dy, 0);
+                }
             } else
                 al_draw_scaled_rotated_bitmap(
                     bitmap, 0, 0, dx, dy, zoom, zoom, angle, 0);
