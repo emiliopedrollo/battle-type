@@ -180,6 +180,7 @@ void draw_menu(ALLEGRO_DISPLAY *display){
     fh = al_get_font_line_height(main_font);
     
     for (i = 0; i < count_menu_itens; i++){
+        if (!menu_buttons[i].visible) continue;
         al_draw_filled_rounded_rectangle(
                 menu_buttons[i].x,menu_buttons[i].y,
                 menu_buttons[i].x+menu_buttons[i].w,
@@ -198,7 +199,8 @@ bool is_mouse_over_button(int x, int y){
     bool is_over_button = false;
     
     for (i = 0; i < count_menu_itens; i++){
-        if (x > menu_buttons[i].x && x < menu_buttons[i].x+menu_buttons[i].w &&
+        if (menu_buttons[i].visible &&
+                x > menu_buttons[i].x && x < menu_buttons[i].x+menu_buttons[i].w &&
                 y > menu_buttons[i].y && y < menu_buttons[i].y+menu_buttons[i].h){
             menu_buttons[i].hover = true;
             is_over_button = true;
@@ -213,6 +215,14 @@ void on_mouse_up(){
     for (i = 0; i < count_menu_itens; i++){
         if (menu_buttons[i].hover) {
             switch (i){
+                case (0):
+                    menu_buttons[0].visible = false;
+                    //menu_buttons[1].visible = false;
+                    //menu_buttons[2].visible = false;
+                    break;
+                case 1:
+                    menu_buttons[0].visible = true;
+                    break;                    
                 case (2): //Exit
                     exiting = true;
                     break;
