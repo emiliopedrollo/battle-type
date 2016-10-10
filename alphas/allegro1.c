@@ -38,10 +38,10 @@ void show_ship(ALLEGRO_DISPLAY *display){
     bool redraw = true;
     double zoom = 1;
     float angle = 0;
-    float cx,cy,dx,dy/*,x,y*/;
+    float cx,cy,dx,dy;
     double t0;
     double t1;
-    int j=0,i=0;
+    int j,i,x=1,y=1;
     
     filename = "resources/alpha/BSFShips1680x1050.jpg";
     background = "resources/alpha/background.jpg";
@@ -128,11 +128,14 @@ void show_ship(ALLEGRO_DISPLAY *display){
             redraw = false;
             // Clear so we don't get trippy artifacts left after zoom.
             al_clear_to_color(al_map_rgb_f(0, 0, 0));
-                        
+            x=(x < -al_get_bitmap_width(back) ||x > al_get_display_width(display))?1:x;
+            y=(y < -al_get_bitmap_height(back)||y > al_get_display_height(display))?1:y;
+            x--;
+            y--;
             if (zoom == 1 && angle == 0){
-                for(i=0; i<al_get_display_width(display); i+=al_get_bitmap_width(back)){
+                for(i=x; i<al_get_display_width(display); i+=al_get_bitmap_width(back)){
                     al_draw_bitmap(back,i,j,0);
-                    for(j=0; j<al_get_display_height(display); j+=al_get_bitmap_height(back)){
+                    for(j=y; j<al_get_display_height(display); j+=al_get_bitmap_height(back)){
                         al_draw_bitmap(back,i,j,0);
                     }                    
                 }
