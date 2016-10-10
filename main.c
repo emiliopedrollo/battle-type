@@ -61,10 +61,10 @@ int main(int argc, char** argv) {
     if (is_server){
         start_server("0.0.0.0", port);
     } else {
-        init_client(host, port);
+  //      init_client(host, port);
     }
         
-    //show_screen();
+    show_screen();
     return (EXIT_SUCCESS);
 }
 

@@ -11,7 +11,7 @@ void show_screen(){
       return -1;
    }
 
-   display = al_create_display(640, 480);
+   display = al_create_display(500, 800);
    if(!display) {
       fprintf(stderr, "failed to create display!\n");
       return -1;
@@ -30,17 +30,21 @@ void show_screen(){
 
 void show_ship(ALLEGRO_DISPLAY *display){
     const char *filename;
+    const char *background;
     ALLEGRO_BITMAP *bitmap;
+    ALLEGRO_BITMAP *back;
     ALLEGRO_TIMER *timer;
     ALLEGRO_EVENT_QUEUE *queue;
     bool redraw = true;
     double zoom = 1;
     float angle = 0;
-    float cx,cy,dx,dy;
+    float cx,cy,dx,dy/*,x,y*/;
     double t0;
     double t1;
+    int j=0,i=0;
     
     filename = "resources/alpha/BSFShips1680x1050.jpg";
+    background = "resources/alpha/background.jpg";
     
     al_install_mouse();
     al_install_keyboard();
@@ -52,11 +56,17 @@ void show_ship(ALLEGRO_DISPLAY *display){
     al_set_window_title(display, filename);
     
     t0 = al_get_time();
-    bitmap = al_load_bitmap(filename);
+    back=al_load_bitmap(background);
+    bitmap=al_load_bitmap(filename);
     t1 = al_get_time();
     
     if (!bitmap) {
         fprintf(stderr, "failed to create display!\n");
+        return;
+    }
+    
+    if (!back) {
+        fprintf(stderr,"failed to create background!\n");
         return;
     }
     
@@ -72,27 +82,6 @@ void show_ship(ALLEGRO_DISPLAY *display){
     while (1) {
         ALLEGRO_EVENT event;
         al_wait_for_event(queue, &event); // Wait for and get an event.
-        if (event.type == ALLEGRO_EVENT_DISPLAY_ORIENTATION) {
-            int o = event.display.orientation;
-            if (o == ALLEGRO_DISPLAY_ORIENTATION_0_DEGREES) {
-                printf("0 degrees\n");
-            }
-            else if (o == ALLEGRO_DISPLAY_ORIENTATION_90_DEGREES) {
-                printf("90 degrees\n");
-            }
-            else if (o == ALLEGRO_DISPLAY_ORIENTATION_180_DEGREES) {
-                printf("180 degrees\n");
-            }
-            else if (o == ALLEGRO_DISPLAY_ORIENTATION_270_DEGREES) {
-                printf("270 degrees\n");
-            }
-            else if (o == ALLEGRO_DISPLAY_ORIENTATION_FACE_UP) {
-                printf("Face up\n");
-            }
-            else if (o == ALLEGRO_DISPLAY_ORIENTATION_FACE_DOWN) {
-                printf("Face down\n");
-            }
-        }
         if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
             break;
         /* Use keyboard to zoom image in and out.
@@ -139,8 +128,15 @@ void show_ship(ALLEGRO_DISPLAY *display){
             redraw = false;
             // Clear so we don't get trippy artifacts left after zoom.
             al_clear_to_color(al_map_rgb_f(0, 0, 0));
-            if (zoom == 1 && angle == 0)
-                al_draw_bitmap(bitmap, dx, dy, 0);
+                        
+            if (zoom == 1 && angle == 0){
+                for(i=0; i<al_get_display_width(display); i+=al_get_bitmap_width(back)){
+                    al_draw_bitmap(back,i,j,0);
+                    for(j=0; j<al_get_display_height(display); j+=al_get_bitmap_height(back)){
+                        al_draw_bitmap(back,i,j,0);
+                    }                    
+                }
+                al_draw_bitmap(bitmap, dx, dy, 0);}
             else
                 al_draw_scaled_rotated_bitmap(
                     bitmap, 0, 0, dx, dy, zoom, zoom, angle, 0);
