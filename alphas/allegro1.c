@@ -65,6 +65,8 @@ void show_ship(ALLEGRO_DISPLAY *display){
         return;
     }
     
+    al_convert_mask_to_alpha(bitmap,al_map_rgb(255,234,0));
+    
     if (!back) {
         fprintf(stderr,"failed to create background!\n");
         return;
@@ -136,14 +138,16 @@ void show_ship(ALLEGRO_DISPLAY *display){
                         al_draw_bitmap(back,i,j,0);
                     }                    
                 }
-                al_draw_bitmap(bitmap, dx, dy, 0);}
-            else
+                al_draw_bitmap(bitmap, dx, dy, 0);
+            } else
                 al_draw_scaled_rotated_bitmap(
                     bitmap, 0, 0, dx, dy, zoom, zoom, angle, 0);
             al_flip_display();
         }
     }
 
+    al_destroy_bitmap(back);
+    al_destroy_event_queue(queue);
     al_destroy_bitmap(bitmap);
     
 }
