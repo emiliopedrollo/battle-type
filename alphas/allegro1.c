@@ -1,8 +1,12 @@
 #include <stdio.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
+#include "allegro1.h"
 
 ALLEGRO_BITMAP *bmp_battleship, *bmp_background;
+
+int DISPLAY_H = 800;
+int DISPLAY_W = 500;
 
 void show_screen(){
     
@@ -13,7 +17,7 @@ void show_screen(){
        return -1;
     }
 
-    display = al_create_display(500, 800);
+    display = al_create_display(DISPLAY_W, DISPLAY_H);
     if(!display) {
        fprintf(stderr, "failed to create display!\n");
        return -1;
@@ -47,22 +51,25 @@ void load_bitmap(char* filename){
 }
 void draw_background(ALLEGRO_DISPLAY *display){
     static int x=1,y=1;
+    int bgw = al_get_bitmap_width(bmp_background);
+    int bgh = al_get_bitmap_height(bmp_background);
     int i,j;
-    x=(x < -al_get_bitmap_width(bmp_background) ||x > al_get_display_width(display))?1:x;
-    y=(y < -al_get_bitmap_height(bmp_background)||y > al_get_display_height(display))?1:y;
+    x=(x < -bgw ||x > DISPLAY_W)?1:x;
+    y=(y < -bgh ||y > DISPLAY_H)?1:y;
     x--;
     y--;
-    for(i=x; i<al_get_display_width(display); i+=al_get_bitmap_width(bmp_background)){
+    for(i=x; i<DISPLAY_W; i+=bgw){
         al_draw_bitmap(bmp_background,i,j,0);
-        for(j=y; j<al_get_display_height(display); j+=al_get_bitmap_height(bmp_background)){
+        for(j=y; j<DISPLAY_H; j+=bgh){
             al_draw_bitmap(bmp_background,i,j,0);
         }                    
     }
 }
 
-void draw_ship(){
-    for(i=(int)dx; i <= al_get_display_width(display)-(al_get_bitmap_width(bitmap)+5); i++){
-        al_draw_bitmap(bitmap, i, dy, 0);
+void draw_ship(ALLEGRO_DISPLAY *display){
+    float dx,dy;
+    for(int i=(int)dx; i <= al_get_display_width(display)-(al_get_bitmap_width(bmp_battleship)+5); i++){
+        al_draw_bitmap(bmp_battleship, i, dy, 0);
     }
     al_draw_scaled_rotated_bitmap(bmp_battleship, 0, 0, 0, 0, 1, 1, 0, 0);
 }
