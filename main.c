@@ -64,7 +64,6 @@ int main(int argc, char** argv) {
   //      init_client(host, port);
     }
         
-    show_screen();
-    return (EXIT_SUCCESS);
+    return show_screen();
 }
 

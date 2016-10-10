@@ -19,5 +19,15 @@
 
 int show_screen();
 
+static int count_menu_itens = 3;
+
+struct {
+    bool visible;
+    int x, y, h, w, r;
+    char* text;
+    ALLEGRO_COLOR fill_color, fill_hover_color, text_color, text_hover_color;
+    bool hover;
+} menu_buttons[3];
+
 #endif /* ALLEGRO1_H */
 
