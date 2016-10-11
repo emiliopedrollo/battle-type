@@ -8,11 +8,17 @@
 #include <allegro5/allegro_memfile.h>
 #include "allegro1.h"
 #include "../resources/font.h"
+#include "buttons.h"
 
+
+ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_BITMAP *bmp_battleship, *bmp_background;
 ALLEGRO_FONT *main_font;
-bool exiting = false, start_sp = false;
-
+start_sp = false;
+bool exiting = false;
+bool is_mouse_down = false;
+bool is_mouse_down_on_button = false;
+Button buttons[3];
 
 int DISPLAY_H = 800;
 int DISPLAY_W = 500;
@@ -23,8 +29,6 @@ void load_bitmap(ALLEGRO_BITMAP* *bitmap, char* filename);
 void do_the_loop(ALLEGRO_DISPLAY *display);
 
 int show_screen(){
-    
-    ALLEGRO_DISPLAY *display = NULL;
 
     if(!al_init()) {
        fprintf(stderr, "failed to initialize allegro!\n");
@@ -79,51 +83,16 @@ int show_screen(){
 }
 
 void init_menu_buttons(){  
-    float bx, by, bw, bh, br, margin;  
-    int fh, i;
-    ALLEGRO_COLOR fill_color = al_map_rgba(63,81,181,230);
-    ALLEGRO_COLOR fill_hover_color = al_map_rgb(244,67,54);
-    ALLEGRO_COLOR text_color = al_map_rgb(158,158,158);
-    ALLEGRO_COLOR text_hover_color = al_map_rgb(255,255,255);
+    float cx, cy;
     
-    bh = 60;
-    bw = 300;
-    bx = (DISPLAY_W/2.0)-(bw/2.0);
-    by = 0;
-    br = 2;    
-    margin = 20;
+    init_button_colors();
     
-    for (i = 0; i < count_menu_itens; i++){
-        
-        if (i < 3){ //main menu
-            by = DISPLAY_H - ((bh+margin) * (4-i));            
-        } 
-        
-        menu_buttons[i].visible = true;
-        menu_buttons[i].x = bx;
-        menu_buttons[i].y = by;
-        menu_buttons[i].w = bw;
-        menu_buttons[i].h = bh;
-        menu_buttons[i].r = br;
-        menu_buttons[i].fill_color = fill_color;
-        menu_buttons[i].fill_hover_color = fill_hover_color;        
-        menu_buttons[i].text_color = text_color;        
-        menu_buttons[i].text_hover_color = text_hover_color;     
-        menu_buttons[i].hover = false;
-        
-        switch (i){
-            case 0:
-                menu_buttons[i].text = "Single Player";  
-                break;
-            case 1:
-                menu_buttons[i].text = "Multi Player";  
-                break;
-            case 2:
-                menu_buttons[i].text = "Exit";  
-                break;                
-        }     
-    }
-    
+    cx = (DISPLAY_W/2.0);
+    cy = DISPLAY_H - 280;
+
+    buttons[0] = init_button(main_font,"Single Player",cx,cy);
+    buttons[1] = init_button(main_font,"Multi Player",cx,cy+80);
+    buttons[2] = init_button(main_font,"Sair",cx,cy+160);    
     
 }
 
@@ -134,6 +103,7 @@ void load_font(ALLEGRO_FONT* *font, ALLEGRO_FILE* *file,int size, int flags){
         //exit(EXIT_FAILURE);
     }   
 }
+
 void load_bitmap(ALLEGRO_BITMAP* *bitmap, char* filename){  
     *bitmap = al_load_bitmap(filename);
     if (!bitmap) {
@@ -141,6 +111,7 @@ void load_bitmap(ALLEGRO_BITMAP* *bitmap, char* filename){
         exit(EXIT_FAILURE);
     }
 }
+
 void draw_background(ALLEGRO_DISPLAY *display){
     static int x=1,y=1;
     int bgw = al_get_bitmap_width(bmp_background);
@@ -157,6 +128,7 @@ void draw_background(ALLEGRO_DISPLAY *display){
         }                    
     }
 }
+
 void draw_ship(ALLEGRO_DISPLAY *display){
     static int dx,dy=40,vx=4,vy=1,temp=0;
     int bsw = al_get_bitmap_width(bmp_battleship);
@@ -202,63 +174,93 @@ void draw_ship(ALLEGRO_DISPLAY *display){
     al_draw_bitmap(bmp_battleship,dx,dy, 0);
 }
 
-void draw_menu(ALLEGRO_DISPLAY *display){
-    int fh, i;
+void draw_menu(ALLEGRO_DISPLAY *display){    
     
-    fh = al_get_font_line_height(main_font);
+    ALLEGRO_COLOR color = al_map_rgba(180,180,180,230);
+    ALLEGRO_COLOR color2 = al_map_rgba(120,120,120,230);
     
-    for (i = 0; i < count_menu_itens; i++){
-        if (!menu_buttons[i].visible) continue;
-        al_draw_filled_rounded_rectangle(
-                menu_buttons[i].x,menu_buttons[i].y,
-                menu_buttons[i].x+menu_buttons[i].w,
-                menu_buttons[i].y+menu_buttons[i].h,
-                menu_buttons[i].r,menu_buttons[i].r,
-                (menu_buttons[i].hover)?menu_buttons[i].fill_hover_color:menu_buttons[i].fill_color);        
-        al_draw_text(main_font,
-                (menu_buttons[i].hover)?menu_buttons[i].text_hover_color:menu_buttons[i].text_color,
-                (DISPLAY_W/2),menu_buttons[i].y+(menu_buttons[i].h/2)-(fh/2)-3,
-                ALLEGRO_ALIGN_CENTER,menu_buttons[i].text);
-    } 
+    al_draw_filled_rectangle(50,DISPLAY_H-360,DISPLAY_W-50,DISPLAY_H-40,color);
+    al_draw_rectangle(50,DISPLAY_H-360,DISPLAY_W-50,DISPLAY_H-40,color2,4);
+    
+    int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
+    for (int i = 0; i < total_buttons; i++){
+        draw_button(buttons[i]);        
+    }
+    
 }
 
-bool is_mouse_over_button(int x, int y){
+void on_button_click(int index){    
+    switch (index){
+        case (0):
+            buttons[0].visible = false;
+            //menu_buttons[1].visible = false;
+            //menu_buttons[2].visible = false;
+            start_sp = true;
+            break;
+        case 1:
+            buttons[0].visible = true;
+            break;                    
+        case (2): //Exit
+            exiting = true;
+            break;
+    }
+}
+
+void on_mouse_move(int x, int y){
     int i;
     bool is_over_button = false;
     
-    for (i = 0; i < count_menu_itens; i++){
-        if (menu_buttons[i].visible &&
-                x > menu_buttons[i].x && x < menu_buttons[i].x+menu_buttons[i].w &&
-                y > menu_buttons[i].y && y < menu_buttons[i].y+menu_buttons[i].h){
-            menu_buttons[i].hover = true;
-            is_over_button = true;
-        } else menu_buttons[i].hover = false;
+    if (!is_mouse_down){
+        int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
+        for (int i = 0; i < total_buttons; i++){
+            if (!buttons[i].visible) continue;
+            if (is_coordenate_inside_button(buttons[i],x,y)){
+                is_over_button = true;
+                buttons[i].state = (buttons[i].state != BUTTON_STATE_ACTIVE)?BUTTON_STATE_HOVER:buttons[i].state;
+            } else 
+                buttons[i].state = (buttons[i].state == BUTTON_STATE_HOVER)?BUTTON_STATE_NORMAL:buttons[i].state;
+        }
     }
-        
-    return is_over_button;
+    
+    if (is_over_button || is_mouse_down_on_button)
+        al_set_system_mouse_cursor(display,ALLEGRO_SYSTEM_MOUSE_CURSOR_ALT_SELECT);
+    else 
+        al_set_system_mouse_cursor(display,ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
 }
 
-void on_mouse_up(){    
-    int i;
-    for (i = 0; i < count_menu_itens; i++){
-        if (menu_buttons[i].hover) {
-            switch (i){
-                case (0):
-                    menu_buttons[0].visible = false;
-                    //menu_buttons[1].visible = false;
-                    //menu_buttons[2].visible = false;
-			start_sp = true;//Start single player
-                    break;
-                case 1:
-                    menu_buttons[0].visible = true;
-                    break;                    
-                case (2): //Exit
-                    exiting = true;
-                break;
-            }
+void on_mouse_down(int x, int y){
+    
+    int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
+    for (int i = 0; i < total_buttons; i++){
+        if (is_coordenate_inside_button(buttons[i],x,y)){
+            is_mouse_down_on_button = true;
+            buttons[i].state = BUTTON_STATE_ACTIVE;
             break;
         }
     }
+    is_mouse_down = true;
+    
+}
+
+void on_mouse_up(int x, int y){    
+    int i;   
+    
+    int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
+    for (int i = 0; i < total_buttons; i++){
+        if (buttons[i].state == BUTTON_STATE_ACTIVE){
+            if (is_coordenate_inside_button(buttons[i],x,y)){
+                buttons[i].state = BUTTON_STATE_HOVER;
+                on_button_click(i);
+            } else {
+                buttons[i].state = BUTTON_STATE_NORMAL;
+            }
+            break;
+        }
+    }    
+    is_mouse_down = false;
+    is_mouse_down_on_button = false;
+    
+    on_mouse_move(x,y);
 }
 
 void do_the_loop(ALLEGRO_DISPLAY *display){
@@ -294,15 +296,13 @@ void do_the_loop(ALLEGRO_DISPLAY *display){
                 redraw = true;
                 break;
             case ALLEGRO_EVENT_MOUSE_AXES:
-                if (is_mouse_over_button(event.mouse.x,event.mouse.y))
-                    al_set_system_mouse_cursor(event.mouse.display,ALLEGRO_SYSTEM_MOUSE_CURSOR_ALT_SELECT);
-                else 
-                    al_set_system_mouse_cursor(event.mouse.display,ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
+                on_mouse_move(event.mouse.x,event.mouse.y);
                 break;
             case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
+                on_mouse_down(event.mouse.x,event.mouse.y);
                 break;
             case ALLEGRO_EVENT_MOUSE_BUTTON_UP:
-                on_mouse_up();
+                on_mouse_up(event.mouse.x,event.mouse.y);
                 break;
         }
             
