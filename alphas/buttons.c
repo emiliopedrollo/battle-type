@@ -33,8 +33,8 @@ Button init_button(ALLEGRO_FONT* font, char* text, int cx, int cy){
     btn.text = text; 
     btn.font = font;
     
-    btn.w = 300;
-    btn.h = 60;    
+    btn.w = 380;
+    btn.h = 70;    
     
     btn.x = cx - btn.w/2;
     btn.y = cy - btn.h/2;
