@@ -83,17 +83,21 @@ int show_screen(){
 }
 
 void init_menu_buttons(){  
-    float cx, cy;
     int margin = 20;
+    RectangleCoordinate coord;
     
     init_button_colors();
-    
-    cx = (DISPLAY_W/2.0);
-    cy = DISPLAY_H - 280;
 
-    buttons[0] = init_button(main_font,"Single Player",cx,cy);
-    buttons[1] = init_button(main_font,"Multi Player",cx,buttons[0].y+buttons[0].h*3/2+margin);
-    buttons[2] = init_button(main_font,"Sair",cx,buttons[1].y+buttons[1].h*3/2+margin);    
+    buttons[0] = init_button(main_font,"Single Player",
+            DISPLAY_W/2.0,DISPLAY_H - 280);
+    coord = get_button_coordinate(buttons[0]);
+    
+    buttons[1] = init_button(main_font,"Multi Player",
+            DISPLAY_W/2.0,coord.y2+buttons[0].h/2+margin);
+    coord = get_button_coordinate(buttons[1]);
+    
+    buttons[2] = init_button(main_font,"Sair",
+            DISPLAY_W/2.0,coord.y2+buttons[1].h/2+margin);    
     
 }
 
@@ -211,16 +215,20 @@ void on_mouse_move(int x, int y){
             if (!buttons[i].visible) continue;
             if (is_coordenate_inside_button(buttons[i],x,y)){
                 is_over_button = true;
-                buttons[i].state = (buttons[i].state != BUTTON_STATE_ACTIVE)?BUTTON_STATE_HOVER:buttons[i].state;
+                buttons[i].state = (buttons[i].state != BUTTON_STATE_ACTIVE)?
+                    BUTTON_STATE_HOVER:buttons[i].state;
             } else 
-                buttons[i].state = (buttons[i].state == BUTTON_STATE_HOVER)?BUTTON_STATE_NORMAL:buttons[i].state;
+                buttons[i].state = (buttons[i].state == BUTTON_STATE_HOVER)?
+                    BUTTON_STATE_NORMAL:buttons[i].state;
         }
     }
     
     if (is_over_button || is_mouse_down_on_button)
-        al_set_system_mouse_cursor(display,ALLEGRO_SYSTEM_MOUSE_CURSOR_ALT_SELECT);
+        al_set_system_mouse_cursor(display,
+                ALLEGRO_SYSTEM_MOUSE_CURSOR_ALT_SELECT);
     else 
-        al_set_system_mouse_cursor(display,ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
+        al_set_system_mouse_cursor(display,
+                ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
 }
 
 void on_mouse_down(int x, int y){
@@ -285,7 +293,8 @@ void do_the_loop(ALLEGRO_DISPLAY *display){
             case ALLEGRO_EVENT_KEY_CHAR:
                 if (event.keyboard.keycode == ALLEGRO_KEY_ESCAPE)
                     exiting = true;                
-                printf("Keycode: %d | Modifier %o\n",event.keyboard.keycode,event.keyboard.modifiers);
+                printf("Keycode: %d | Modifier %o\n",
+                        event.keyboard.keycode,event.keyboard.modifiers);
                 break;
             case ALLEGRO_EVENT_TIMER:
                 redraw = true;
