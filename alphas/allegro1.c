@@ -165,7 +165,8 @@ void draw_ship(ALLEGRO_DISPLAY *display){
         dy=(dy > 358)?dy-1:dy;
     }else if((dx==205 && dy==358) || center == true){
         center = true;
-        dy-=pow(1.1,++vy);
+        if(dy!=-bsh)
+            dy-=pow(1.1,++vy);
     }
     
     //Bagunçado mas funcional :)
