@@ -14,7 +14,7 @@
 ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_BITMAP *bmp_battleship, *bmp_background;
 ALLEGRO_FONT *main_font;
-start_sp = false;
+bool start_sp = false;
 bool exiting = false;
 bool is_mouse_down = false;
 bool is_mouse_down_on_button = false;
