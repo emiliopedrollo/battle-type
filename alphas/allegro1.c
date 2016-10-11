@@ -193,13 +193,15 @@ void draw_ship(ALLEGRO_DISPLAY *display){
         dy=(dy > 358)?dy-1:dy;
     }else if((dx==205 && dy==358) || center == true){
         center = true;
-        dy-=pow(1.1,++vy);
+        if(dy!=-bsh)
+            dy-=pow(1.1,++vy);
     }
     
     //Bagunçado mas funcional :)
     
     al_draw_bitmap(bmp_battleship,dx,dy, 0);
 }
+
 void draw_menu(ALLEGRO_DISPLAY *display){
     int fh, i;
     
