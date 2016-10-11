@@ -14,7 +14,7 @@
 ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_BITMAP *bmp_battleship, *bmp_background;
 ALLEGRO_FONT *main_font;
-start_sp = false;
+bool start_sp = false;
 bool exiting = false;
 bool is_mouse_down = false;
 bool is_mouse_down_on_button = false;
@@ -56,7 +56,7 @@ int show_screen(){
     load_bitmap(&bmp_battleship,"resources/alpha/battleship.png");
     
     ALLEGRO_FILE* main_font_file = al_open_memfile(VT323_ttf,VT323_ttf_len,"r");    
-    load_font(&main_font,&main_font_file,40,ALLEGRO_TTF_MONOCHROME);
+    load_font(&main_font,&main_font_file,45,ALLEGRO_TTF_MONOCHROME);
     
     init_menu_buttons();
 
@@ -84,6 +84,7 @@ int show_screen(){
 
 void init_menu_buttons(){  
     float cx, cy;
+    int margin = 20;
     
     init_button_colors();
     
@@ -91,8 +92,8 @@ void init_menu_buttons(){
     cy = DISPLAY_H - 280;
 
     buttons[0] = init_button(main_font,"Single Player",cx,cy);
-    buttons[1] = init_button(main_font,"Multi Player",cx,cy+80);
-    buttons[2] = init_button(main_font,"Sair",cx,cy+160);    
+    buttons[1] = init_button(main_font,"Multi Player",cx,buttons[0].y+buttons[0].h*3/2+margin);
+    buttons[2] = init_button(main_font,"Sair",cx,buttons[1].y+buttons[1].h*3/2+margin);    
     
 }
 
@@ -175,12 +176,6 @@ void draw_ship(ALLEGRO_DISPLAY *display){
 }
 
 void draw_menu(ALLEGRO_DISPLAY *display){    
-    
-    /*ALLEGRO_COLOR color = al_map_rgba(180,180,180,230);
-    ALLEGRO_COLOR color2 = al_map_rgba(120,120,120,230);
-    
-    al_draw_filled_rectangle(50,DISPLAY_H-360,DISPLAY_W-50,DISPLAY_H-40,color);
-    al_draw_rectangle(50,DISPLAY_H-360,DISPLAY_W-50,DISPLAY_H-40,color2,4);*/
     
     int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
     for (int i = 0; i < total_buttons; i++){
