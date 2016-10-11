@@ -23,77 +23,145 @@ Button buttons[3];
 int DISPLAY_H = 800;
 int DISPLAY_W = 500;
 
+int show_screen();
+ALLEGRO_EVENT_QUEUE* create_queue();
+
+void init_display();
+void destroy_display();
+void load_resources();
+void unload_resources();
 void init_menu_buttons();
 void load_font(ALLEGRO_FONT* *font, ALLEGRO_FILE* *file,int size, int flags);
 void load_bitmap(ALLEGRO_BITMAP* *bitmap, char* filename);
-void do_the_loop(ALLEGRO_DISPLAY *display);
+void draw_background();
+void draw_ship();
+void draw_menu();
+void on_button_click(int index);
+void on_mouse_move(int x, int y);
+void on_mouse_down(int x, int y);
+void on_mouse_up(int x, int y);
+void on_redraw();
+void do_the_loop(ALLEGRO_EVENT_QUEUE *queue);
 
 int show_screen(){
-
-    if(!al_init()) {
-       fprintf(stderr, "failed to initialize allegro!\n");
-       return EXIT_FAILURE;
-    }
-
-    display = al_create_display(DISPLAY_W, DISPLAY_H);
-    if(!display) {
-       fprintf(stderr, "failed to create display!\n");
-       return EXIT_FAILURE;
-    }    
+    ALLEGRO_EVENT_QUEUE *queue;
     
-    al_install_mouse();
-    al_install_keyboard();
-    al_init_image_addon();  
-    al_init_primitives_addon();
-    al_init_font_addon();
-    if (!al_init_ttf_addon()) fprintf(stderr,"failed to load ttf addon!");
-    
-
-    al_clear_to_color(al_map_rgb(255,255,255));  
-    al_flip_display();   
-
-    load_bitmap(&bmp_background,"resources/alpha/background.jpg");
-    load_bitmap(&bmp_battleship,"resources/alpha/battleship.png");
-    
-    ALLEGRO_FILE* main_font_file = al_open_memfile(VT323_ttf,VT323_ttf_len,"r");    
-    load_font(&main_font,&main_font_file,45,ALLEGRO_TTF_MONOCHROME);
-    
+    init_display();  
+    load_resources();
     init_menu_buttons();
-
-    do_the_loop(display);
     
-   
-    al_destroy_bitmap(bmp_background);
-    al_destroy_bitmap(bmp_battleship);
-    al_destroy_font(main_font);
-    //al_fclose(main_font_file); //crash
-
+    queue = create_queue();
     
-    al_shutdown_ttf_addon();
-    al_shutdown_font_addon();
-    al_shutdown_primitives_addon();
-    al_shutdown_image_addon();
-    al_uninstall_keyboard();
-    al_uninstall_mouse();
+    do_the_loop(queue);
     
-    al_destroy_display(display);
+    al_destroy_event_queue(queue);
+    
+    unload_resources();
+    destroy_display();
     
     return EXIT_SUCCESS;
     
 }
 
+ALLEGRO_EVENT_QUEUE* create_queue(){    
+    ALLEGRO_TIMER *timer;
+    ALLEGRO_EVENT_QUEUE *queue;
+    
+    timer = al_create_timer(1.0 / 60); 
+    queue = al_create_event_queue();
+    al_register_event_source(queue, al_get_keyboard_event_source()); 
+    al_register_event_source(queue, al_get_display_event_source(display));
+    al_register_event_source(queue, al_get_timer_event_source(timer));
+    al_register_event_source(queue, al_get_mouse_event_source());
+    al_start_timer(timer);
+    
+    return queue;    
+}
+
+void init_display(){
+    
+    // Carrega Allegro
+    if(!al_init()) {
+       fprintf(stderr, "failed to initialize allegro!\n");
+       exit(EXIT_FAILURE);
+    }
+
+    // Cria Tela
+    display = al_create_display(DISPLAY_W, DISPLAY_H);
+    if(!display) {
+       fprintf(stderr, "failed to create display!\n");
+       exit(EXIT_FAILURE);
+    }    
+    
+    // Define titulo da Tela
+    al_set_window_title(display, "BattleType");
+    
+    // Instala os drivers das entradas
+    al_install_mouse();
+    al_install_keyboard();    
+    
+    // Inicializa addons do Allegro
+    al_init_image_addon();  
+    al_init_primitives_addon();
+    al_init_font_addon();
+    al_init_ttf_addon();
+    
+    // Limpa a tela
+    al_clear_to_color(al_map_rgb(255,255,255));  
+    al_flip_display(); 
+    
+}
+
+void destroy_display(){
+    
+    // Descarrega os addons do Allegro
+    al_shutdown_ttf_addon();
+    al_shutdown_font_addon();
+    al_shutdown_primitives_addon();
+    al_shutdown_image_addon();
+    
+    // Desinstala os drivers das entradas
+    al_uninstall_keyboard();
+    al_uninstall_mouse();
+    
+    // Fecha tela
+    al_destroy_display(display);
+}
+
+void load_resources(){
+    
+    // Carrega as imagens necessárias para a tela do menu
+    load_bitmap(&bmp_background,"resources/alpha/background.jpg");
+    load_bitmap(&bmp_battleship,"resources/alpha/battleship.png");
+    
+    // Carrega a fonte principal da aplicação
+    ALLEGRO_FILE* memfile = al_open_memfile(VT323_ttf,VT323_ttf_len,"r");    
+    load_font(&main_font,&memfile,45,ALLEGRO_TTF_MONOCHROME);
+    
+}
+
+void unload_resources(){    
+    al_destroy_bitmap(bmp_background);
+    al_destroy_bitmap(bmp_battleship);
+    al_destroy_font(main_font);
+}
+
 void init_menu_buttons(){  
-    float cx, cy;
     int margin = 20;
+    RectangleCoordinate coord;
     
     init_button_colors();
-    
-    cx = (DISPLAY_W/2.0);
-    cy = DISPLAY_H - 280;
 
-    buttons[0] = init_button(main_font,"Single Player",cx,cy);
-    buttons[1] = init_button(main_font,"Multi Player",cx,buttons[0].y+buttons[0].h*3/2+margin);
-    buttons[2] = init_button(main_font,"Sair",cx,buttons[1].y+buttons[1].h*3/2+margin);    
+    buttons[0] = init_button(main_font,"Single Player",
+            DISPLAY_W/2.0,DISPLAY_H - 280);
+    coord = get_button_coordinate(buttons[0]);
+    
+    buttons[1] = init_button(main_font,"Multi Player",
+            DISPLAY_W/2.0,coord.y2+buttons[0].h/2+margin);
+    coord = get_button_coordinate(buttons[1]);
+    
+    buttons[2] = init_button(main_font,"Sair",
+            DISPLAY_W/2.0,coord.y2+buttons[1].h/2+margin);    
     
 }
 
@@ -101,7 +169,7 @@ void load_font(ALLEGRO_FONT* *font, ALLEGRO_FILE* *file,int size, int flags){
     *font = al_load_ttf_font_f(*file,NULL,size,flags);
     if (!font) {
         fprintf(stderr,"failed to load font resource!\n");
-        //exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }   
 }
 
@@ -113,7 +181,7 @@ void load_bitmap(ALLEGRO_BITMAP* *bitmap, char* filename){
     }
 }
 
-void draw_background(ALLEGRO_DISPLAY *display){
+void draw_background(){
     static int x=1,y=1;
     int bgw = al_get_bitmap_width(bmp_background);
     int bgh = al_get_bitmap_height(bmp_background);
@@ -178,7 +246,7 @@ void draw_ship(ALLEGRO_DISPLAY *display){
     al_draw_bitmap(bmp_battleship,dx,dy, 0);
 }
 
-void draw_menu(ALLEGRO_DISPLAY *display){    
+void draw_menu(){    
     
     int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
     for (int i = 0; i < total_buttons; i++){
@@ -214,16 +282,20 @@ void on_mouse_move(int x, int y){
             if (!buttons[i].visible) continue;
             if (is_coordenate_inside_button(buttons[i],x,y)){
                 is_over_button = true;
-                buttons[i].state = (buttons[i].state != BUTTON_STATE_ACTIVE)?BUTTON_STATE_HOVER:buttons[i].state;
+                buttons[i].state = (buttons[i].state != BUTTON_STATE_ACTIVE)?
+                    BUTTON_STATE_HOVER:buttons[i].state;
             } else 
-                buttons[i].state = (buttons[i].state == BUTTON_STATE_HOVER)?BUTTON_STATE_NORMAL:buttons[i].state;
+                buttons[i].state = (buttons[i].state == BUTTON_STATE_HOVER)?
+                    BUTTON_STATE_NORMAL:buttons[i].state;
         }
     }
     
     if (is_over_button || is_mouse_down_on_button)
-        al_set_system_mouse_cursor(display,ALLEGRO_SYSTEM_MOUSE_CURSOR_ALT_SELECT);
+        al_set_system_mouse_cursor(display,
+                ALLEGRO_SYSTEM_MOUSE_CURSOR_ALT_SELECT);
     else 
-        al_set_system_mouse_cursor(display,ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
+        al_set_system_mouse_cursor(display,
+                ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
 }
 
 void on_mouse_down(int x, int y){
@@ -261,24 +333,22 @@ void on_mouse_up(int x, int y){
     on_mouse_move(x,y);
 }
 
-void do_the_loop(ALLEGRO_DISPLAY *display){
+void on_redraw(){
+    al_clear_to_color(al_map_rgb_f(0, 0, 0));  
     
-    ALLEGRO_TIMER *timer;
-    ALLEGRO_EVENT_QUEUE *queue;
+    draw_background();
+    draw_ship();
+    draw_menu();
+    
+    al_flip_display();
+}
+
+void do_the_loop(ALLEGRO_EVENT_QUEUE *queue){
+    
+    ALLEGRO_EVENT event;
     bool redraw = true;
     
-    al_set_window_title(display, "BattleType");
-    
-    timer = al_create_timer(1.0 / 60); 
-    queue = al_create_event_queue();
-    al_register_event_source(queue, al_get_keyboard_event_source()); 
-    al_register_event_source(queue, al_get_display_event_source(display));
-    al_register_event_source(queue, al_get_timer_event_source(timer));
-    al_register_event_source(queue, al_get_mouse_event_source());
-    al_start_timer(timer);
-    
     while (!exiting) {
-        ALLEGRO_EVENT event;
         al_wait_for_event(queue, &event); // Wait for and get an event.
         
         switch (event.type){
@@ -288,7 +358,8 @@ void do_the_loop(ALLEGRO_DISPLAY *display){
             case ALLEGRO_EVENT_KEY_CHAR:
                 if (event.keyboard.keycode == ALLEGRO_KEY_ESCAPE)
                     exiting = true;                
-                printf("Keycode: %d | Modifier %o\n",event.keyboard.keycode,event.keyboard.modifiers);
+                printf("Keycode: %d | Modifier %o\n",
+                        event.keyboard.keycode,event.keyboard.modifiers);
                 break;
             case ALLEGRO_EVENT_TIMER:
                 redraw = true;
@@ -307,16 +378,8 @@ void do_the_loop(ALLEGRO_DISPLAY *display){
         // Redraw, but only if the event queue is empty
         if (redraw && al_is_event_queue_empty(queue)) {
             redraw = false;
-            al_clear_to_color(al_map_rgb_f(0, 0, 0));
-            
-            draw_background(display);
-            draw_ship(display);
-            draw_menu(display);
-
-            al_flip_display();
+            on_redraw();
         }
     }
-
-    al_destroy_event_queue(queue);
     
 }
