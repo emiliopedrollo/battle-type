@@ -176,12 +176,6 @@ void draw_ship(ALLEGRO_DISPLAY *display){
 
 void draw_menu(ALLEGRO_DISPLAY *display){    
     
-    ALLEGRO_COLOR color = al_map_rgba(180,180,180,230);
-    ALLEGRO_COLOR color2 = al_map_rgba(120,120,120,230);
-    
-    al_draw_filled_rectangle(50,DISPLAY_H-360,DISPLAY_W-50,DISPLAY_H-40,color);
-    al_draw_rectangle(50,DISPLAY_H-360,DISPLAY_W-50,DISPLAY_H-40,color2,4);
-    
     int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
     for (int i = 0; i < total_buttons; i++){
         draw_button(buttons[i]);        
