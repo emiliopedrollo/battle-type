@@ -163,12 +163,13 @@ void draw_ship(ALLEGRO_DISPLAY *display){
     int bsh = al_get_bitmap_height(bmp_battleship);
     const float n = -89.03036879;
     float test,mod=((rand()%100)/100.0)+0.01;
+    static bool center=false;
     
     if(!start_sp){
         test=(vx>0)? (exp((DISPLAY_W-(dx+bsw))/n))/mod : (exp(dx/n))/mod;
         vy=((vy>0 && (bsh+dy)==DISPLAY_H-40)||(vy<0 && dy==40))?vy*(-1):vy;
     
-        if(temp<=0 || dx<5 || (DISPLAY_W-(dx+bsw)<5)){
+        if(temp<=0 || dx<20 && temp<10 || (DISPLAY_W-(dx+bsw)<20 && temp<10)){
             vx=(test>=1.0)?vx*(-1):vx;
             temp=(test>=1.0)?30:10;
         }else if(temp>0){
@@ -185,10 +186,17 @@ void draw_ship(ALLEGRO_DISPLAY *display){
             dx+=-vx-(abs(vx)/-vx);
             dy+=vy;
         }
-    }else if(dx!=205 || 358!=dy){
-        dx=(dx < 205)?dx+1:dx-1;
-        dy=(dy < 358)?dy+1:dy-1;
+    }else if((dx!=205 || 358!=dy) && center == false){
+        dx=(dx < 205)?dx+1:dx;
+        dx=(dx > 205)?dx-1:dx;
+        dy=(dy < 358)?dy+1:dy;
+        dy=(dy > 358)?dy-1:dy;
+    }else if((dx==205 && dy==358) || center == true){
+        center = true;
+        dy-=pow(1.1,++vy);
     }
+    
+    //Bagunçado mas funcional :)
     
     al_draw_bitmap(bmp_battleship,dx,dy, 0);
 }
