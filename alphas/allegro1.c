@@ -14,6 +14,7 @@
 ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_BITMAP *bmp_battleship, *bmp_background;
 ALLEGRO_FONT *main_font;
+start_sp = false;
 bool exiting = false;
 bool is_mouse_down = false;
 bool is_mouse_down_on_button = false;
@@ -129,27 +130,36 @@ void draw_background(ALLEGRO_DISPLAY *display){
 }
 
 void draw_ship(ALLEGRO_DISPLAY *display){
-    static int dx,dy=40,vx=2,vy=1,temp=0;
+    static int dx,dy=40,vx=4,vy=1,temp=0;
     int bsw = al_get_bitmap_width(bmp_battleship);
     int bsh = al_get_bitmap_height(bmp_battleship);
     const float n = -89.03036879;
     float test,mod=((rand()%100)/100.0)+0.01;
     
+    if(!start_sp){
+        test=(vx>0)? (exp((DISPLAY_W-(dx+bsw))/n))/mod : (exp(dx/n))/mod;
+        vy=((vy>0 && (bsh+dy)==DISPLAY_H-40)||(vy<0 && dy==40))?vy*(-1):vy;
     
-    test=(vx>0)? (exp((DISPLAY_W-(dx+bsw))/n))/mod : (exp(dx/n))/mod;
+        if(temp<=0 || dx<5 || (DISPLAY_W-(dx+bsw)<5)){
+            vx=(test>=1.0)?vx*(-1):vx;
+            temp=(test>=1.0)?30:10;
+        }else if(temp>0){
+            temp--;
+        }
     
-    vy=((vy>0 && (bsh+dy)==DISPLAY_H-40)||(vy<0 && dy==40))?vy*(-1):vy;
-    
-    if(temp<=0){
-        vx=(test>=1.0)?vx*(-1):vx;
-        temp=(test>=1.0)?57:50;
-    }else if(temp>0){
-        temp--;
-    }
-    
-    if(temp<50){
-        dx+=vx;
-        dy+=vy;
+        if(temp<10){
+            dx+=vx;
+            dy+=vy;
+        }else if(temp>=10 && temp<14){
+            dx+=vx-(abs(vx)/-vx);
+            dy+=vy;
+        }else if(temp>=26 && temp<30){
+            dx+=-vx-(abs(vx)/-vx);
+            dy+=vy;
+        }
+    }else if(dx!=205 || 358!=dy){
+        dx=(dx < 205)?dx+1:dx-1;
+        dy=(dy < 358)?dy+1:dy-1;
     }
     
     al_draw_bitmap(bmp_battleship,dx,dy, 0);
@@ -176,6 +186,7 @@ void on_button_click(int index){
             buttons[0].visible = false;
             //menu_buttons[1].visible = false;
             //menu_buttons[2].visible = false;
+            start_sp = true;
             break;
         case 1:
             buttons[0].visible = true;
