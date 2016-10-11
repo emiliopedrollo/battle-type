@@ -131,47 +131,50 @@ void draw_background(ALLEGRO_DISPLAY *display){
 }
 
 void draw_ship(ALLEGRO_DISPLAY *display){
-    static int dx,dy=40,vx=4,vy=1,temp=0;
+    static int dx,dy,vx=4,vy=1,fps=0;
     int bsw = al_get_bitmap_width(bmp_battleship);
     int bsh = al_get_bitmap_height(bmp_battleship);
     const float n = -89.03036879;
-    float test,mod=((rand()%100)/100.0)+0.01;
-    static bool center=false;
+    float prob,mod=((rand()%100)/100.0)+0.01;
+    static bool position_center = false;
     
     if(!start_sp){
-        test=(vx>0)? (exp((DISPLAY_W-(dx+bsw))/n))/mod : (exp(dx/n))/mod;
-        vy=((vy>0 && (bsh+dy)==DISPLAY_H-40)||(vy<0 && dy==40))?vy*(-1):vy;
-    
-        if(temp<=0 || dx<20 && temp<10 || (DISPLAY_W-(dx+bsw)<20 && temp<10)){
-            vx=(test>=1.0)?vx*(-1):vx;
-            temp=(test>=1.0)?30:10;
-        }else if(temp>0){
-            temp--;
+        
+        prob=(vx>0)? (exp((DISPLAY_W-(dx+bsw))/n))/mod : (exp(dx/n))/mod;
+        vy=((vy>0 && (bsh+dy)==DISPLAY_H)||(vy<0 && dy==0))?vy*(-1):vy;
+        
+        if( fps<=0 || dx<20 && fps<10 || DISPLAY_W-(dx+bsw)<20 && fps<10 ){
+            vx=(prob>=1.0)?vx*(-1):vx;
+            fps=(prob>=1.0)?30:10;
+        }else if( fps>0 ){
+            fps--;
         }
-    
-        if(temp<10){
+        
+        if( fps<10 ){
             dx+=vx;
             dy+=vy;
-        }else if(temp>=10 && temp<14){
+        }else if( fps>=10 && fps<12 ){
             dx+=vx-(abs(vx)/-vx);
             dy+=vy;
-        }else if(temp>=26 && temp<30){
+        }else if( fps>=28 && fps<30 ){
             dx+=-vx-(abs(vx)/-vx);
             dy+=vy;
         }
-    }else if((dx!=205 || 316!=dy) && center == false){
-        dx=(dx < 205)?dx+1:dx;
-        dx=(dx > 205)?dx-1:dx;
-        dy=(dy < 316)?dy+1:dy;
-        dy=(dy > 316)?dy-1:dy;
-    }else if((dx==205 && dy==316) || center == true){
-        center = true;
-        if(dy!=-bsh)
-            dy-=pow(1.1,++vy);
+        
+    }else{
+        if((dx!=(DISPLAY_W-bsw)/2 || dy!=(DISPLAY_H-bsh)/2) && position_center == false){
+           dx=(dx < (DISPLAY_W-bsw)/2)?dx+1:dx;
+           dx=(dx > (DISPLAY_W-bsw)/2)?dx-1:dx;
+           dy=(dy < (DISPLAY_H-bsh)/2)?dy+1:dy;
+           dy=(dy > (DISPLAY_H-bsh)/2)?dy-1:dy; 
+        }else{
+            position_center = true;
+            if(dy!=-bsh)
+                dy-=pow(1.2,++vy);
+        }
+        
     }
-    
     //Bagunçado mas funcional :)
-    
     al_draw_bitmap(bmp_battleship,dx,dy, 0);
 }
 
