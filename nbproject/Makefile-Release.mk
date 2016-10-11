@@ -38,6 +38,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/alphas/allegro1.o \
 	${OBJECTDIR}/alphas/allegro_samples/ex_enet_client.o \
 	${OBJECTDIR}/alphas/allegro_samples/ex_enet_server.o \
+	${OBJECTDIR}/alphas/buttons.o \
 	${OBJECTDIR}/main.o
 
 
@@ -79,6 +80,11 @@ ${OBJECTDIR}/alphas/allegro_samples/ex_enet_server.o: alphas/allegro_samples/ex_
 	${MKDIR} -p ${OBJECTDIR}/alphas/allegro_samples
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 `pkg-config --cflags allegro-5.0` `pkg-config --cflags allegro_acodec-5.0` `pkg-config --cflags allegro_audio-5.0` `pkg-config --cflags allegro_color-5.0` `pkg-config --cflags allegro_dialog-5.0` `pkg-config --cflags allegro_font-5.0` `pkg-config --cflags allegro_image-5.0` `pkg-config --cflags allegro_main-5.0` `pkg-config --cflags allegro_memfile-5.0` `pkg-config --cflags allegro_physfs-5.0` `pkg-config --cflags allegro_primitives-5.0` `pkg-config --cflags allegro_ttf-5.0` `pkg-config --cflags allegro-5` `pkg-config --cflags allegro_acodec-5` `pkg-config --cflags allegro_audio-5` `pkg-config --cflags allegro_color-5` `pkg-config --cflags allegro_dialog-5` `pkg-config --cflags allegro_font-5` `pkg-config --cflags allegro_image-5` `pkg-config --cflags allegro_main-5` `pkg-config --cflags allegro_memfile-5` `pkg-config --cflags allegro_physfs-5` `pkg-config --cflags allegro_primitives-5` `pkg-config --cflags allegro_ttf-5`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/alphas/allegro_samples/ex_enet_server.o alphas/allegro_samples/ex_enet_server.c
+
+${OBJECTDIR}/alphas/buttons.o: alphas/buttons.c 
+	${MKDIR} -p ${OBJECTDIR}/alphas
+	${RM} "$@.d"
+	$(COMPILE.c) -O2 `pkg-config --cflags allegro-5.0` `pkg-config --cflags allegro_acodec-5.0` `pkg-config --cflags allegro_audio-5.0` `pkg-config --cflags allegro_color-5.0` `pkg-config --cflags allegro_dialog-5.0` `pkg-config --cflags allegro_font-5.0` `pkg-config --cflags allegro_image-5.0` `pkg-config --cflags allegro_main-5.0` `pkg-config --cflags allegro_memfile-5.0` `pkg-config --cflags allegro_physfs-5.0` `pkg-config --cflags allegro_primitives-5.0` `pkg-config --cflags allegro_ttf-5.0` `pkg-config --cflags allegro-5` `pkg-config --cflags allegro_acodec-5` `pkg-config --cflags allegro_audio-5` `pkg-config --cflags allegro_color-5` `pkg-config --cflags allegro_dialog-5` `pkg-config --cflags allegro_font-5` `pkg-config --cflags allegro_image-5` `pkg-config --cflags allegro_main-5` `pkg-config --cflags allegro_memfile-5` `pkg-config --cflags allegro_physfs-5` `pkg-config --cflags allegro_primitives-5` `pkg-config --cflags allegro_ttf-5`   -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/alphas/buttons.o alphas/buttons.c
 
 ${OBJECTDIR}/main.o: main.c 
 	${MKDIR} -p ${OBJECTDIR}

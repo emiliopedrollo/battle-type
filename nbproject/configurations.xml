@@ -11,6 +11,7 @@
           <itemPath>alphas/allegro_samples/ex_enet_server.h</itemPath>
         </logicalFolder>
         <itemPath>alphas/allegro1.h</itemPath>
+        <itemPath>alphas/buttons.h</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -34,6 +35,7 @@
           <itemPath>alphas/allegro_samples/ex_enet_server.c</itemPath>
         </logicalFolder>
         <itemPath>alphas/allegro1.c</itemPath>
+        <itemPath>alphas/buttons.c</itemPath>
       </logicalFolder>
       <itemPath>main.c</itemPath>
     </logicalFolder>
@@ -124,6 +126,10 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="alphas/buttons.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="alphas/buttons.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="main.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="resources/alpha/VT323.ttf" ex="false" tool="3" flavor2="0">
@@ -213,6 +219,10 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="alphas/buttons.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="alphas/buttons.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.c" ex="false" tool="0" flavor2="0">
       </item>
