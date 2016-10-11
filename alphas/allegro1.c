@@ -198,7 +198,7 @@ void draw_background(){
     }
 }
 
-void draw_ship(ALLEGRO_DISPLAY *display){
+void draw_ship(){
     static int dx,dy,vx=4,vy=1,fps=0;
     int bsw = al_get_bitmap_width(bmp_battleship);
     int bsh = al_get_bitmap_height(bmp_battleship);
