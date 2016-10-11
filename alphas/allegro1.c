@@ -158,12 +158,12 @@ void draw_ship(ALLEGRO_DISPLAY *display){
             dx+=-vx-(abs(vx)/-vx);
             dy+=vy;
         }
-    }else if((dx!=205 || 358!=dy) && center == false){
+    }else if((dx!=205 || 316!=dy) && center == false){
         dx=(dx < 205)?dx+1:dx;
         dx=(dx > 205)?dx-1:dx;
-        dy=(dy < 358)?dy+1:dy;
-        dy=(dy > 358)?dy-1:dy;
-    }else if((dx==205 && dy==358) || center == true){
+        dy=(dy < 316)?dy+1:dy;
+        dy=(dy > 316)?dy-1:dy;
+    }else if((dx==205 && dy==316) || center == true){
         center = true;
         if(dy!=-bsh)
             dy-=pow(1.1,++vy);
@@ -176,11 +176,11 @@ void draw_ship(ALLEGRO_DISPLAY *display){
 
 void draw_menu(ALLEGRO_DISPLAY *display){    
     
-    ALLEGRO_COLOR color = al_map_rgba(180,180,180,230);
+    /*ALLEGRO_COLOR color = al_map_rgba(180,180,180,230);
     ALLEGRO_COLOR color2 = al_map_rgba(120,120,120,230);
     
     al_draw_filled_rectangle(50,DISPLAY_H-360,DISPLAY_W-50,DISPLAY_H-40,color);
-    al_draw_rectangle(50,DISPLAY_H-360,DISPLAY_W-50,DISPLAY_H-40,color2,4);
+    al_draw_rectangle(50,DISPLAY_H-360,DISPLAY_W-50,DISPLAY_H-40,color2,4);*/
     
     int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
     for (int i = 0; i < total_buttons; i++){
