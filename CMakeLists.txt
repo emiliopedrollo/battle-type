@@ -2,8 +2,10 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 INCLUDE(FindPkgConfig)
 PROJECT(battle_type)
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-FIND_PACKAGE(Threads)
+# Define -std=C11 para o compilador
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
+
+# Define todos os fontes e cabeçalhos a serem compilados
 SET(SOURCE_FILES
     alphas/allegro_samples/enet_common.h
     alphas/allegro_samples/ex_enet_client.c
@@ -15,13 +17,14 @@ SET(SOURCE_FILES
     src/main.c
     src/menu_screen.c
     src/menu_screen.h)
+
+# Cria arquivo cabeçalho para cada recurso utilizado
 SET(RESOURCE_COMPILER "xxd")
 FILE(GLOB_RECURSE COMPILED_RESOURCES
         RELATIVE ${PROJECT_SOURCE_DIR}/src/resources
         "src/resources/img/*.png"
         "src/resources/img/*.jpg"
         "src/resources/font/*.ttf")
-
 FOREACH(INPUT_FILE ${COMPILED_RESOURCES})
     SET(OUTPUT_FILE ${INPUT_FILE}.h)
     ADD_CUSTOM_COMMAND(
@@ -32,18 +35,26 @@ FOREACH(INPUT_FILE ${COMPILED_RESOURCES})
     LIST (APPEND COMPILED_RESOURCES ${OUTPUT_FILE})
 ENDFOREACH()
 
-ADD_EXECUTABLE(battle_type ${SOURCE_FILES}  ${COMPILED_RESOURCES})
+# Adiciona target
+ADD_EXECUTABLE(battle_type ${SOURCE_FILES} ${COMPILED_RESOURCES})
+
+# Define diretório de build
 SET(EXECUTABLE_OUTPUT_PATH output)
 
+# Verifica se dependencias existem
 PKG_SEARCH_MODULE(REQUIRED liballegro)
 PKG_SEARCH_MODULE(REQUIRED lanet)
 
-TARGET_LINK_LIBRARIES(battle_type ${CMAKE_THREAD_LIBS_INIT})
-TARGET_LINK_LIBRARIES(battle_type m)
-TARGET_LINK_LIBRARIES(battle_type enet)
-TARGET_LINK_LIBRARIES(battle_type allegro)
-TARGET_LINK_LIBRARIES(battle_type allegro_image)
-TARGET_LINK_LIBRARIES(battle_type allegro_primitives)
-TARGET_LINK_LIBRARIES(battle_type allegro_font)
-TARGET_LINK_LIBRARIES(battle_type allegro_ttf)
-TARGET_LINK_LIBRARIES(battle_type allegro_memfile)
+# Procura pelo pacote Threads no sistema e define variaval CMAKE_THREAD_LIBS_INIT
+FIND_PACKAGE(Threads REQUIRED)
+
+# Define derivativas ao linker
+TARGET_LINK_LIBRARIES(battle_type ${CMAKE_THREAD_LIBS_INIT}) # -pthread ou equivalente
+TARGET_LINK_LIBRARIES(battle_type m) # -lm , para usar math.h
+TARGET_LINK_LIBRARIES(battle_type enet) # -lenet , camada de comunicação em rede via UDP
+TARGET_LINK_LIBRARIES(battle_type allegro) # -lallegro
+TARGET_LINK_LIBRARIES(battle_type allegro_image) # -lallegro_image
+TARGET_LINK_LIBRARIES(battle_type allegro_primitives) # -lallegro_primitives
+TARGET_LINK_LIBRARIES(battle_type allegro_font) # -lallegro_font
+TARGET_LINK_LIBRARIES(battle_type allegro_ttf) # -lallegro_ttf
+TARGET_LINK_LIBRARIES(battle_type allegro_memfile) # -lallegro_memfile
