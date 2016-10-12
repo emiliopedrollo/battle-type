@@ -209,7 +209,7 @@ void draw_ship(){
     if(!start_sp){
         
         prob=(vx>0)? (exp((DISPLAY_W-(dx+bsw))/n))/mod : (exp(dx/n))/mod;
-        vy=((vy>0 && (bsh+dy)==DISPLAY_H)||(vy<0 && dy==0))?vy*(-1):vy;
+        vy=((vy>0 && (bsh+dy)==DISPLAY_H-20)||(vy<0 && dy==20))?vy*(-1):vy;
         
         if( fps<=0 || dx<20 && fps<10 || DISPLAY_W-(dx+bsw)<20 && fps<10 ){
             vx=(prob>=1.0)?vx*(-1):vx;
