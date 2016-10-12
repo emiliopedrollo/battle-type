@@ -22,8 +22,7 @@ const int port = 9234;
 
 static float rand01(void) { return rand() / (float)RAND_MAX; }
 
-static int init_player(void)
-{
+static int init_player(void){
    int i;
    // find the first open player slot
    for (i = 0 ; i < MAX_PLAYER_COUNT ; ++i) {
@@ -42,8 +41,7 @@ static int init_player(void)
    return -1;
 }
 
-static ServerMessage create_join_message(int player_id)
-{
+static ServerMessage create_join_message(int player_id){
    ServerMessage msg_out;
    msg_out.type = PLAYER_JOIN;
    msg_out.player_id = player_id;
@@ -53,8 +51,7 @@ static ServerMessage create_join_message(int player_id)
    return msg_out;
 }
 
-static void send_receive(ENetHost *server)
-{
+static void send_receive(ENetHost *server){
    ClientMessage *msg_in;
    ServerMessage msg_out;
    ENetPacket *packet;
@@ -136,8 +133,7 @@ static void send_receive(ENetHost *server)
    }
 }
 
-static void update_players(ENetHost *server, float time)
-{
+static void update_players(ENetHost *server, float time){
    int i;
    for (i = 0 ; i < MAX_PLAYER_COUNT ; ++i) {
       if (!players[i].active) continue;
@@ -160,8 +156,7 @@ static void update_players(ENetHost *server, float time)
    }
 }
 
-static ENetHost* create_server(ENetAddress address)
-{
+static ENetHost* create_server(ENetAddress address){
    
    ENetHost *server;
    /* Bind the server to the default localhost.     */
@@ -184,8 +179,7 @@ static ENetHost* create_server(ENetAddress address)
    return server;
 }
 
-int start_server(char* listen, int port)
-{
+int start_server(char* listen, int port){
    ALLEGRO_TIMER *timer;
    ALLEGRO_EVENT_QUEUE *queue;
    ALLEGRO_EVENT event;

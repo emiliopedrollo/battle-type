@@ -26,7 +26,7 @@ void init_button_colors();
 RectangleCoordinate get_button_coordinate(Button button);
 Button init_button(ALLEGRO_FONT* font, char* text, int cx, int cy);
 void draw_button(Button button);
-bool is_coordenate_inside_button(Button button, int x, int y);
+bool is_coordinate_inside_button(Button button, int x, int y);
 
 #endif /* BUTTONS_H */
 

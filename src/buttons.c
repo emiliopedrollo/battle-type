@@ -1,9 +1,7 @@
 #include <stdbool.h>
 #include <allegro5/allegro.h>
-#include <allegro5/color.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_font.h>
-#include <allegro5/allegro_ttf.h>
 #include "buttons.h"
 
 ALLEGRO_COLOR btn_border_color;
@@ -212,7 +210,7 @@ void draw_button(Button button){
     
 }
 
-bool is_coordenate_inside_button(Button button, int x, int y){
+bool is_coordinate_inside_button(Button button, int x, int y){
     return x > button.x && x < button.x+button.w &&
            y > button.y && y < button.y+button.h;
 }

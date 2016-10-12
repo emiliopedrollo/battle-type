@@ -6,8 +6,9 @@
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_memfile.h>
-#include "allegro1.h"
-#include "../resources/font.h"
+#include "resources/font/VT323.ttf.h"
+#include "resources/img/background.jpg.h"
+#include "resources/img/battleship.png.h"
 #include "buttons.h"
 
 
@@ -23,7 +24,6 @@ Button buttons[3];
 int DISPLAY_H = 800;
 int DISPLAY_W = 500;
 
-int show_screen();
 ALLEGRO_EVENT_QUEUE* create_queue();
 
 void init_display();
@@ -32,7 +32,7 @@ void load_resources();
 void unload_resources();
 void init_menu_buttons();
 void load_font(ALLEGRO_FONT* *font, ALLEGRO_FILE* *file,int size, int flags);
-void load_bitmap(ALLEGRO_BITMAP* *bitmap, char* filename);
+void load_bitmap(ALLEGRO_BITMAP* *bitmap, ALLEGRO_FILE* *file, char* ident);
 void draw_background();
 void draw_ship();
 void draw_menu();
@@ -131,12 +131,15 @@ void destroy_display(){
 void load_resources(){
     
     // Carrega as imagens necessárias para a tela do menu
-    load_bitmap(&bmp_background,"resources/alpha/background.jpg");
-    load_bitmap(&bmp_battleship,"resources/alpha/battleship.png");
+    ALLEGRO_FILE* background_jpg = al_open_memfile(img_background_jpg,img_background_jpg_len,"r");
+    load_bitmap(&bmp_background,&background_jpg,".jpg");
+
+    ALLEGRO_FILE* battleship_png = al_open_memfile(img_battleship_png,img_battleship_png_len,"r");
+    load_bitmap(&bmp_battleship,&battleship_png,".png");
     
     // Carrega a fonte principal da aplicação
-    ALLEGRO_FILE* memfile = al_open_memfile(VT323_ttf,VT323_ttf_len,"r");    
-    load_font(&main_font,&memfile,45,ALLEGRO_TTF_MONOCHROME);
+    ALLEGRO_FILE* vt323_ttf = al_open_memfile(font_VT323_ttf,font_VT323_ttf_len,"r");
+    load_font(&main_font,&vt323_ttf,45,ALLEGRO_TTF_MONOCHROME);
     
 }
 
@@ -153,30 +156,30 @@ void init_menu_buttons(){
     init_button_colors();
 
     buttons[0] = init_button(main_font,"Single Player",
-            DISPLAY_W/2.0,DISPLAY_H - 280);
+                             DISPLAY_W/2,DISPLAY_H - 280);
     coord = get_button_coordinate(buttons[0]);
     
     buttons[1] = init_button(main_font,"Multi Player",
-            DISPLAY_W/2.0,coord.y2+buttons[0].h/2+margin);
+                             DISPLAY_W/2,coord.y2+buttons[0].h/2+margin);
     coord = get_button_coordinate(buttons[1]);
     
     buttons[2] = init_button(main_font,"Sair",
-            DISPLAY_W/2.0,coord.y2+buttons[1].h/2+margin);    
+                             DISPLAY_W/2,coord.y2+buttons[1].h/2+margin);
     
 }
 
 void load_font(ALLEGRO_FONT* *font, ALLEGRO_FILE* *file,int size, int flags){
     *font = al_load_ttf_font_f(*file,NULL,size,flags);
-    if (!font) {
+    if (!*font) {
         fprintf(stderr,"failed to load font resource!\n");
         exit(EXIT_FAILURE);
     }   
 }
 
-void load_bitmap(ALLEGRO_BITMAP* *bitmap, char* filename){  
-    *bitmap = al_load_bitmap(filename);
-    if (!bitmap) {
-        fprintf(stderr,"failed to load bitmap resource: %s!\n",filename);
+void load_bitmap(ALLEGRO_BITMAP* *bitmap, ALLEGRO_FILE* *file, char* ident){
+    *bitmap = al_load_bitmap_f(*file,ident);
+    if (!*bitmap) {
+        fprintf(stderr,"failed to load bitmap resource!\n");
         exit(EXIT_FAILURE);
     }
 }
@@ -202,8 +205,8 @@ void draw_ship(){
     static int dx,dy,vx=4,vy=1,fps=0;
     int bsw = al_get_bitmap_width(bmp_battleship);
     int bsh = al_get_bitmap_height(bmp_battleship);
-    const float n = -89.03036879;
-    float prob,mod=((rand()%100)/100.0)+0.01;
+    const double n = -89.03036879;
+    double prob,mod=((rand()%100)/100.0)+0.01;
     static bool position_center = false;
     
     if(!start_sp){
@@ -269,18 +272,19 @@ void on_button_click(int index){
         case (2): //Exit
             exiting = true;
             break;
+        default:
+            break;
     }
 }
 
 void on_mouse_move(int x, int y){
-    int i;
     bool is_over_button = false;
     
     if (!is_mouse_down){
         int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
         for (int i = 0; i < total_buttons; i++){
             if (!buttons[i].visible) continue;
-            if (is_coordenate_inside_button(buttons[i],x,y)){
+            if (is_coordinate_inside_button(buttons[i], x, y)){
                 is_over_button = true;
                 buttons[i].state = (buttons[i].state != BUTTON_STATE_ACTIVE)?
                     BUTTON_STATE_HOVER:buttons[i].state;
@@ -302,7 +306,7 @@ void on_mouse_down(int x, int y){
     
     int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
     for (int i = 0; i < total_buttons; i++){
-        if (is_coordenate_inside_button(buttons[i],x,y)){
+        if (is_coordinate_inside_button(buttons[i], x, y)){
             is_mouse_down_on_button = true;
             buttons[i].state = BUTTON_STATE_ACTIVE;
             break;
@@ -312,13 +316,12 @@ void on_mouse_down(int x, int y){
     
 }
 
-void on_mouse_up(int x, int y){    
-    int i;   
+void on_mouse_up(int x, int y){
     
     int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
     for (int i = 0; i < total_buttons; i++){
         if (buttons[i].state == BUTTON_STATE_ACTIVE){
-            if (is_coordenate_inside_button(buttons[i],x,y)){
+            if (is_coordinate_inside_button(buttons[i], x, y)){
                 buttons[i].state = BUTTON_STATE_HOVER;
                 on_button_click(i);
             } else {
@@ -372,6 +375,8 @@ void do_the_loop(ALLEGRO_EVENT_QUEUE *queue){
                 break;
             case ALLEGRO_EVENT_MOUSE_BUTTON_UP:
                 on_mouse_up(event.mouse.x,event.mouse.y);
+                break;
+            default:
                 break;
         }
             
