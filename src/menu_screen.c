@@ -6,7 +6,6 @@
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_memfile.h>
-#include "menu_screen.h"
 #include "resources/font/VT323.ttf.h"
 #include "resources/img/background.jpg.h"
 #include "resources/img/battleship.png.h"
@@ -25,7 +24,6 @@ Button buttons[3];
 int DISPLAY_H = 800;
 int DISPLAY_W = 500;
 
-int show_screen();
 ALLEGRO_EVENT_QUEUE* create_queue();
 
 void init_display();
@@ -286,7 +284,7 @@ void on_mouse_move(int x, int y){
         int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
         for (int i = 0; i < total_buttons; i++){
             if (!buttons[i].visible) continue;
-            if (is_coordenate_inside_button(buttons[i],x,y)){
+            if (is_coordinate_inside_button(buttons[i], x, y)){
                 is_over_button = true;
                 buttons[i].state = (buttons[i].state != BUTTON_STATE_ACTIVE)?
                     BUTTON_STATE_HOVER:buttons[i].state;
@@ -308,7 +306,7 @@ void on_mouse_down(int x, int y){
     
     int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
     for (int i = 0; i < total_buttons; i++){
-        if (is_coordenate_inside_button(buttons[i],x,y)){
+        if (is_coordinate_inside_button(buttons[i], x, y)){
             is_mouse_down_on_button = true;
             buttons[i].state = BUTTON_STATE_ACTIVE;
             break;
@@ -323,7 +321,7 @@ void on_mouse_up(int x, int y){
     int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
     for (int i = 0; i < total_buttons; i++){
         if (buttons[i].state == BUTTON_STATE_ACTIVE){
-            if (is_coordenate_inside_button(buttons[i],x,y)){
+            if (is_coordinate_inside_button(buttons[i], x, y)){
                 buttons[i].state = BUTTON_STATE_HOVER;
                 on_button_click(i);
             } else {
