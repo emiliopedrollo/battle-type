@@ -1,5 +1,5 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
-INCLUDE(FindPkgConfig)
+FIND_PACKAGE(PkgConfig REQUIRED)
 PROJECT(battle_type)
 
 # Define -std=C11 para o compilador
@@ -43,7 +43,7 @@ SET(EXECUTABLE_OUTPUT_PATH output)
 
 # Verifica se dependencias existem
 PKG_SEARCH_MODULE(REQUIRED liballegro)
-PKG_SEARCH_MODULE(REQUIRED lanet)
+PKG_SEARCH_MODULE(REQUIRED libenet)
 
 # Procura pelo pacote Threads no sistema e define variaval CMAKE_THREAD_LIBS_INIT
 FIND_PACKAGE(Threads REQUIRED)
