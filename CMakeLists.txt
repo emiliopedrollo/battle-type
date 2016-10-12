@@ -42,8 +42,8 @@ ADD_EXECUTABLE(battle_type ${SOURCE_FILES} ${COMPILED_RESOURCES})
 SET(EXECUTABLE_OUTPUT_PATH output)
 
 # Verifica se dependencias existem
-PKG_SEARCH_MODULE(REQUIRED liballegro)
-PKG_SEARCH_MODULE(REQUIRED libenet)
+PKG_SEARCH_MODULE(ALLEGRO REQUIRED allegro-5.0)
+PKG_SEARCH_MODULE(ENET REQUIRED libenet)
 
 # Procura pelo pacote Threads no sistema e define variaval CMAKE_THREAD_LIBS_INIT
 FIND_PACKAGE(Threads REQUIRED)
@@ -51,7 +51,7 @@ FIND_PACKAGE(Threads REQUIRED)
 # Define derivativas ao linker
 TARGET_LINK_LIBRARIES(battle_type ${CMAKE_THREAD_LIBS_INIT}) # -pthread ou equivalente
 TARGET_LINK_LIBRARIES(battle_type m) # -lm , para usar math.h
-TARGET_LINK_LIBRARIES(battle_type enet) # -lenet , camada de comunicação em rede via UDP
+TARGET_LINK_LIBRARIES(battle_type libenet.a) # -lenet , camada de comunicação em rede via UDP, static link
 TARGET_LINK_LIBRARIES(battle_type allegro) # -lallegro
 TARGET_LINK_LIBRARIES(battle_type allegro_image) # -lallegro_image
 TARGET_LINK_LIBRARIES(battle_type allegro_primitives) # -lallegro_primitives
