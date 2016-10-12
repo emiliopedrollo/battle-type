@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <stdbool.h>
-#include "alphas/allegro1.h"
-#include "alphas/allegro_samples/ex_enet_server.h"
-#include "alphas/allegro_samples/ex_enet_client.h"
+#include "menu_screen.h"
+//#include "alphas/allegro_samples/ex_enet_server.h"
+//#include "alphas/allegro_samples/ex_enet_client.h"
 
 /*
  * 
@@ -46,9 +46,9 @@ int main(int argc, char** argv) {
     }
     
     if (is_server){
-        start_server("0.0.0.0", port);
+        //start_server("0.0.0.0", port);
     } else {
-  //      init_client(host, port);
+        //init_client(host, port);
     }
         
     return show_screen();

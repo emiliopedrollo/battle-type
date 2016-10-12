@@ -42,8 +42,7 @@ void *send_receive(void *arguments){
     pthread_exit(NULL);
 }
 
-static ENetHost* create_client(void)
-{
+static ENetHost* create_client(void){
    ENetHost * client;
    client = enet_host_create(NULL /* create a client host */,
       1 /* only allow 1 outgoing connection */,
@@ -57,8 +56,7 @@ static ENetHost* create_client(void)
    return client;
 }
 
-static void disconnect_client(ENetHost *client, ENetPeer *server)
-{
+static void disconnect_client(ENetHost *client, ENetPeer *server){
    enet_peer_disconnect(server, 0);
 
    /* Allow up to 3 seconds for the disconnect to succeed
@@ -83,8 +81,7 @@ static void disconnect_client(ENetHost *client, ENetPeer *server)
    enet_peer_reset(server);
 }
 
-static ENetPeer* connect_client(ENetHost *client, ENetAddress address, int port)
-{
+static ENetPeer* connect_client(ENetHost *client, ENetAddress address, int port){
    //ENetAddress address;
    ENetEvent event;
    ENetPeer *server;
@@ -115,8 +112,7 @@ static ENetPeer* connect_client(ENetHost *client, ENetAddress address, int port)
    return server;
 }
 
-void do_send_receive(ENetHost *client)
-{
+void do_send_receive(ENetHost *client){
     ENetEvent event;
         ServerMessage *msg;
 
@@ -171,8 +167,7 @@ pthread_t init_thread(ENetHost *client){
     return *cmp_thread;
 }
 
-int init_client(char* host, int port)
-{
+int init_client(char* host, int port){
    ALLEGRO_DISPLAY *display;
    ALLEGRO_TIMER *timer;
    ALLEGRO_EVENT_QUEUE *queue;
