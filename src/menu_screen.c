@@ -186,13 +186,13 @@ void draw_background(){
     int bgw = al_get_bitmap_width(bmp_background);
     int bgh = al_get_bitmap_height(bmp_background);
     int i,j;
-    x=(x < -bgw ||x > DISPLAY_W)?1:x;
-    y=(y < -bgh ||y > DISPLAY_H)?1:y;
+    x=(x < -bgw)?1:x;
+    y=(y >  bgh)?1:y;
     x--;
-    y--;
+    y++;
     for(i=x; i<DISPLAY_W; i+=bgw){
         al_draw_bitmap(bmp_background,i,j,0);
-        for(j=y; j<DISPLAY_H; j+=bgh){
+        for(j=y-bgh; j<DISPLAY_H; j+=bgh){
             al_draw_bitmap(bmp_background,i,j,0);
         }                    
     }
