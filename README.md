@@ -1,6 +1,6 @@
 # BattleType
 
-BattleType é um projeto simples de batalha de digitação multiplayer desenvolvido como trabalho acadêmico por [Emílio B. Pedrollo] e [Fábio A. Predroso].
+BattleType é um projeto simples de batalha de digitação multiplayer desenvolvido como trabalho acadêmico por [Emílio B. Pedrollo] e [Fábio A. Pedroso].
 
 ## Instalando Depêndencias
 
@@ -36,5 +36,5 @@ $ make
 Após compilado o executável do jogo estará em `~/battle-type/output/battle_type` você só precisa chama-lo pelo terminal ou com um duplo clique para abrir o jogo
 
 [Emílio B. Pedrollo]: <https://github.com/emiliopedrollo>
-[Fábio A. Predroso]: <https://github.com/fapedroso>
+[Fábio A. Pedroso]: <https://github.com/fapedroso>
 
