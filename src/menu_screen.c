@@ -188,7 +188,7 @@ void draw_background(){
     static int x=1,y=1;
     int bgw = al_get_bitmap_width(bmp_background);
     int bgh = al_get_bitmap_height(bmp_background);
-    int i,j;
+    int i,j=y-bgh;
     x=(x < -bgw)?1:x;
     y=(y >  bgh)?1:y;
     x--;
