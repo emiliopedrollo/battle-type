@@ -11,6 +11,13 @@
 #include <stdbool.h>
 
 
+char *concat(char* part1, char* part2){
+    char* result = malloc(strlen(part1)+1+strlen(part2));
+    strcpy(result,part1);
+    strcat(result,part2);
+    return result;
+}
+
 void get_list_of_interfaces(){
     struct ifaddrs *addrs,*tmp;
 
