@@ -10,7 +10,8 @@
 #include "resources/img/background.jpg.h"
 #include "resources/img/battleship.png.h"
 #include "buttons.h"
-
+#include "menu_screen.h"
+#include "network_utils.h"
 
 ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_BITMAP *bmp_battleship, *bmp_background;
@@ -19,7 +20,7 @@ bool start_sp = false;
 bool exiting = false;
 bool is_mouse_down = false;
 bool is_mouse_down_on_button = false;
-Button buttons[3];
+Button buttons[9];
 
 int DISPLAY_H = 800;
 int DISPLAY_W = 500;
@@ -46,11 +47,18 @@ void do_the_loop(ALLEGRO_EVENT_QUEUE *queue);
 int show_screen(){
     ALLEGRO_EVENT_QUEUE *queue;
     
-    init_display();  
+    init_display();
+
+    current_game_state = GAME_STATE_MAIN_MENU;
+
     load_resources();
+
+    current_menu_screen = MENU_SCREEN_MAIN;
+
     init_menu_buttons();
-    
+
     queue = create_queue();
+
     
     do_the_loop(queue);
     
@@ -78,6 +86,36 @@ ALLEGRO_EVENT_QUEUE* create_queue(){
     return queue;    
 }
 
+void on_menu_change(){
+
+    int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
+    for (int i = 0; i < total_buttons; i++) buttons[i].visible = false;
+
+    switch (current_menu_screen){
+        case MENU_SCREEN_MAIN:
+            buttons[BTN_SINGLE_PLAYER].visible = true;
+            buttons[BTN_MULTI_PLAYER].visible = true;
+            buttons[BTN_EXIT].visible = true;
+            break;
+        case MENU_SCREEN_MULTIPLAYER_SELECT:
+            buttons[BTN_MULTIPLAYER_JOIN].visible = true;
+            buttons[BTN_MULTIPLAYER_HOST].visible = true;
+            buttons[BTN_MULTIPLAYER_BACK].visible = true;
+            break;
+        case MENU_SCREEN_MULTIPLAYER_JOIN:
+            buttons[BTN_MULTIPLAYER_JOIN_ENTER].visible = true;
+            buttons[BTN_MULTIPLAYER_JOIN_CANCEL].visible = true;
+            break;
+        case MENU_SCREEN_MULTIPLAYER_HOST:
+            printf("ip address found: %s\n",(char*) get_ip_address());
+            buttons[BTN_MULTIPLAYER_HOST_CANCEL].visible = true;
+            break;
+        default:
+            break;
+    }
+
+}
+
 void init_display(){
     
     // Carrega Allegro
@@ -91,7 +129,7 @@ void init_display(){
     if(!display) {
        fprintf(stderr, "failed to create display!\n");
        exit(EXIT_FAILURE);
-    }    
+    }
     
     // Define titulo da Tela
     al_set_window_title(display, "BattleType");
@@ -152,19 +190,36 @@ void unload_resources(){
 void init_menu_buttons(){  
     int margin = 20;
     RectangleCoordinate coord;
-    
+    int top_position = (DISPLAY_H - 280);
+    int middle_position, bottom_position;
+
     init_button_colors();
 
-    buttons[0] = init_button(main_font,"Single Player",
-                             DISPLAY_W/2,DISPLAY_H - 280);
+    //Main Menu
+    buttons[BTN_SINGLE_PLAYER] = init_button(main_font,"Single Player",DISPLAY_W/2,top_position);
+
     coord = get_button_coordinate(buttons[0]);
-    
-    buttons[1] = init_button(main_font,"Multi Player",
-                             DISPLAY_W/2,coord.y2+buttons[0].h/2+margin);
+    middle_position = coord.y2+buttons[0].h/2+margin;
+    buttons[BTN_MULTI_PLAYER] = init_button(main_font,"Multi Player",DISPLAY_W/2,middle_position);
+
     coord = get_button_coordinate(buttons[1]);
-    
-    buttons[2] = init_button(main_font,"Sair",
-                             DISPLAY_W/2,coord.y2+buttons[1].h/2+margin);
+    bottom_position = coord.y2+buttons[1].h/2+margin;
+    buttons[BTN_EXIT] = init_button(main_font,"Sair",DISPLAY_W/2,bottom_position);
+
+
+    // Multiplayer Menu
+    buttons[BTN_MULTIPLAYER_JOIN] = init_button(main_font,"Join",DISPLAY_W/2,top_position);
+    buttons[BTN_MULTIPLAYER_HOST] = init_button(main_font,"Host",DISPLAY_W/2,middle_position);
+    buttons[BTN_MULTIPLAYER_BACK] = init_button(main_font,"Back",DISPLAY_W/2,bottom_position);
+
+    // Multiplayer Join Menu
+    buttons[BTN_MULTIPLAYER_JOIN_ENTER] = init_button(main_font,"Enter",DISPLAY_W/2,middle_position);
+    buttons[BTN_MULTIPLAYER_JOIN_CANCEL] = init_button(main_font,"Cancel",DISPLAY_W/2,bottom_position);
+
+    // Multiplayer Host Menu
+    buttons[BTN_MULTIPLAYER_HOST_CANCEL] = init_button(main_font,"Cancel",DISPLAY_W/2,bottom_position);
+
+    on_menu_change();
     
 }
 
@@ -255,22 +310,46 @@ void draw_menu(){
     for (int i = 0; i < total_buttons; i++){
         draw_button(buttons[i]);        
     }
+
+    if (current_menu_screen == MENU_SCREEN_MULTIPLAYER_HOST){
+
+    }
     
+}
+
+void change_menu_state(MENU_SCREEN state){
+    current_menu_screen = state;
+    on_menu_change();
 }
 
 void on_button_click(int index){    
     switch (index){
-        case (0):
-            buttons[0].visible = false;
+        case BTN_SINGLE_PLAYER:
+            current_game_state = GAME_STATE_IN_GAME;
             //menu_buttons[1].visible = false;
             //menu_buttons[2].visible = false;
-            start_sp = true;
+            //start_sp = true;
             break;
-        case 1:
-            buttons[0].visible = true;
-            break;                    
-        case (2): //Exit
+        case BTN_MULTI_PLAYER:
+            change_menu_state(MENU_SCREEN_MULTIPLAYER_SELECT);
+            break;
+        case BTN_EXIT:
             exiting = true;
+            break;
+        case BTN_MULTIPLAYER_JOIN:
+            change_menu_state(MENU_SCREEN_MULTIPLAYER_JOIN);
+            break;
+        case BTN_MULTIPLAYER_JOIN_ENTER:
+            break;
+        case BTN_MULTIPLAYER_HOST:
+            change_menu_state(MENU_SCREEN_MULTIPLAYER_HOST);
+            break;
+        case BTN_MULTIPLAYER_JOIN_CANCEL:
+        case BTN_MULTIPLAYER_HOST_CANCEL:
+            change_menu_state(MENU_SCREEN_MULTIPLAYER_SELECT);
+            break;
+        case BTN_MULTIPLAYER_BACK:
+            change_menu_state(MENU_SCREEN_MAIN);
             break;
         default:
             break;
@@ -306,7 +385,7 @@ void on_mouse_down(int x, int y){
     
     int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
     for (int i = 0; i < total_buttons; i++){
-        if (is_coordinate_inside_button(buttons[i], x, y)){
+        if (buttons[i].visible && is_coordinate_inside_button(buttons[i], x, y)){
             is_mouse_down_on_button = true;
             buttons[i].state = BUTTON_STATE_ACTIVE;
             break;
@@ -320,7 +399,7 @@ void on_mouse_up(int x, int y){
     
     int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
     for (int i = 0; i < total_buttons; i++){
-        if (buttons[i].state == BUTTON_STATE_ACTIVE){
+        if (buttons[i].visible && buttons[i].state == BUTTON_STATE_ACTIVE){
             if (is_coordinate_inside_button(buttons[i], x, y)){
                 buttons[i].state = BUTTON_STATE_HOVER;
                 on_button_click(i);
@@ -336,12 +415,42 @@ void on_mouse_up(int x, int y){
     on_mouse_move(x,y);
 }
 
+void on_key_press(ALLEGRO_KEYBOARD_EVENT event){
+
+    if (event.keycode == ALLEGRO_KEY_ESCAPE){
+        if(current_game_state == GAME_STATE_MAIN_MENU){
+            switch (current_menu_screen){
+                case MENU_SCREEN_MAIN:
+                    exiting = true;
+                    break;
+                case MENU_SCREEN_MULTIPLAYER_SELECT:
+                    change_menu_state(MENU_SCREEN_MAIN);
+                    break;
+                case MENU_SCREEN_MULTIPLAYER_JOIN:
+                case MENU_SCREEN_MULTIPLAYER_HOST:
+                    change_menu_state(MENU_SCREEN_MULTIPLAYER_SELECT);
+                    break;
+            }
+        } else if (current_game_state == GAME_STATE_IN_GAME){
+            current_game_flow_state = (current_game_flow_state == GAME_FLOW_STATE_PAUSE)?
+                                       GAME_FLOW_STATE_RUNNING:GAME_FLOW_STATE_PAUSE;
+        }
+    }
+
+
+
+
+    printf("Keycode: %d | Modifier %o\n",
+           event.keycode,event.modifiers);
+}
+
 void on_redraw(){
     al_clear_to_color(al_map_rgb_f(0, 0, 0));  
-    
+
     draw_background();
     draw_ship();
-    draw_menu();
+
+    if (current_game_state == GAME_STATE_MAIN_MENU) draw_menu();
     
     al_flip_display();
 }
@@ -359,10 +468,7 @@ void do_the_loop(ALLEGRO_EVENT_QUEUE *queue){
                 exiting = true;
                 break;
             case ALLEGRO_EVENT_KEY_CHAR:
-                if (event.keyboard.keycode == ALLEGRO_KEY_ESCAPE)
-                    exiting = true;                
-                printf("Keycode: %d | Modifier %o\n",
-                        event.keyboard.keycode,event.keyboard.modifiers);
+                on_key_press(event.keyboard);
                 break;
             case ALLEGRO_EVENT_TIMER:
                 redraw = true;
