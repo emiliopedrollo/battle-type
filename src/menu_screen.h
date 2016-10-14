@@ -7,6 +7,12 @@
 int show_screen();
 
 typedef enum {
+    TURNING_DIRECTION_NONE,
+    TURNING_DIRECTION_LEFT,
+    TURNING_DIRECTION_RIGHT
+} TURNING_DIRECTION;
+
+typedef enum {
     BTN_SINGLE_PLAYER = 0,
     BTN_MULTI_PLAYER = 1,
     BTN_EXIT = 2,

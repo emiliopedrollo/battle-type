@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
@@ -114,6 +115,16 @@ void on_menu_change(){
             break;
     }
 
+}
+
+bool on_game_state_change(GAME_STATE old_state, GAME_STATE new_state){
+
+    if (old_state == GAME_STATE_MAIN_MENU){
+        if (new_state == GAME_STATE_IN_GAME){
+            start_sp = true;
+            return true;
+        }
+    }
 }
 
 void init_display(){
@@ -257,49 +268,59 @@ void draw_background(){
 }
 
 void draw_ship(){
-    static int dx,dy,vx=4,vy=1,fps=0;
+    static TURNING_DIRECTION turning_direction = TURNING_DIRECTION_NONE;
+    static float dx,dy,vx=4,vy=1;
     int bsw = al_get_bitmap_width(bmp_battleship);
     int bsh = al_get_bitmap_height(bmp_battleship);
-    double prob,mod=(rand()%100)/100.0;
-    static bool position_center = false;
-    int dist = (DISPLAY_W-(dx+bsw)<=0)?1:DISPLAY_W-(dx+bsw);
 
     if(!start_sp){
+        const float dvx = 0.8;
+        double dist_r = (DISPLAY_W-(dx+bsw)<=0)?1:DISPLAY_W-(dx+bsw);
+        double dist_l = (dx<=0)?1:dx;
+        static int turning_frame = 0;
+        double prob,mod=(rand()%100)/100.0;
 
-        prob=(vx>0)?(1.0/pow(dist,1.0/2.0))+mod:(1.0/pow(dx,1.0/2.0));
+
+        prob=(vx>0)?(1.0/pow(dist_r,7.0/8.0))+mod:(1.0/pow(dist_l,7.0/8.0))+mod;
         vy=((vy>0 && (bsh+dy)==DISPLAY_H-20)||(vy<0 && dy==20))?vy*(-1):vy;
 
-        //prob=(vx>0)? /*(exp((DISPLAY_W-(dx+bsw))/n))/mod*/(1.0/pow(dist,1.0/2.0))+mod : /*(exp(dx/n))/mod*/(1.0/pow(dx,1.0/2.0))+mod;
 
-        if( fps<=0 || dx<20 && fps<10 || dist<20 && fps<10 ){
-            vx=(prob>=1.0)?vx*(-1):vx;
-            fps=(prob>=1.0)?30:10;
-        }else if( fps>0 ){
-            fps--;
-        }
+        if (prob >= 1 && turning_direction == TURNING_DIRECTION_NONE)
+            turning_direction = (vx>0)?TURNING_DIRECTION_LEFT:TURNING_DIRECTION_RIGHT;
 
-        if( fps<10 ){
-            dx+=vx;
-            dy+=vy;
-        }
-// else if( fps>=10 && fps<12 ){
-//            dx+=vx-(abs(vx)/-vx);
-//            dy+=vy;
-//        }else if( fps>=28 && fps<30 ){
-//            dx+=-vx-(abs(vx)/-vx);
-//            dy+=vy;
-//        }
+        if (turning_direction != TURNING_DIRECTION_NONE){
+            turning_frame++;
+            vx = (turning_direction == TURNING_DIRECTION_LEFT)? vx-dvx : vx+dvx ;
+            if (turning_frame > 10){
+                turning_direction = TURNING_DIRECTION_NONE;
+                vx = (vx > 0) ? 4: -4;
+            }
+        } else turning_frame = 0;
+
+        dx += vx;
+        dy += vy;
 
     }else{
-        if((dx!=(DISPLAY_W-bsw)/2 || dy!=(DISPLAY_H-bsh)/2) && position_center == false){
-           dx=(dx < (DISPLAY_W-bsw)/2)?dx+1:dx;
-           dx=(dx > (DISPLAY_W-bsw)/2)?dx-1:dx;
-           dy=(dy < (DISPLAY_H-bsh)/2)?dy+1:dy;
-           dy=(dy > (DISPLAY_H-bsh)/2)?dy-1:dy; 
-        }else{
-            position_center = true;
-            if(dy!=-bsh)
-                dy-=pow(1.2,++vy);
+        static int k = 180; // 3 segundos
+        static bool push_back_done = false;
+        static bool push_back_set_speed = false;
+        static int push_back_frame = 0;
+
+        if (!push_back_set_speed){
+            push_back_set_speed = true;
+            vx = (((DISPLAY_W-bsw)/2)-dx)/k;
+            vy = (((DISPLAY_H-bsh)/2)-dy)/k;
+        }
+
+        if(k-- > 0){
+            dx+=vx;
+            dy+=vy;
+        }else if (!push_back_done ) {
+            if (push_back_frame++ < 60){
+                dy++;
+            } else push_back_done = true;
+        }else if (dy!=-bsh){
+            dy-=pow(1.2,++vy);
         }
         
     }
@@ -357,10 +378,15 @@ void change_menu_state(MENU_SCREEN state){
     on_menu_change();
 }
 
+void change_game_state(GAME_STATE state){
+    if (on_game_state_change(current_game_state,state))
+        current_game_state = state;
+}
+
 void on_button_click(int index){    
     switch (index){
         case BTN_SINGLE_PLAYER:
-            current_game_state = GAME_STATE_IN_GAME;
+            change_game_state(GAME_STATE_IN_GAME);
             //menu_buttons[1].visible = false;
             //menu_buttons[2].visible = false;
             //start_sp = true;
@@ -478,31 +504,53 @@ void on_key_press(ALLEGRO_KEYBOARD_EVENT event){
         }
     }
 
-    static int itmp = 15;
-
+    static int itmp = 14;
+    char *add = NULL;
     // 192.168.000.001
-    char *ctmp;
-    char new_ip[16];
 
     if (current_game_state == GAME_STATE_MAIN_MENU && current_menu_screen == MENU_SCREEN_MULTIPLAYER_JOIN){
         switch (event.keycode){
             case ALLEGRO_KEY_BACKSPACE:
-                //itmp = sizeof(remote_ip)/ sizeof(char)-2;
+                if (itmp < 0) break;
                 substr(remote_ip, sizeof(remote_ip),remote_ip,itmp--);
                 break;
             case ALLEGRO_KEY_FULLSTOP:
+                add = ".";
                 break;
             case ALLEGRO_KEY_0:
-            case ALLEGRO_KEY_1:
-            case ALLEGRO_KEY_2:
-            case ALLEGRO_KEY_3:
-            case ALLEGRO_KEY_4:
-            case ALLEGRO_KEY_5:
-            case ALLEGRO_KEY_6:
-            case ALLEGRO_KEY_7:
-            case ALLEGRO_KEY_8:
-            case ALLEGRO_KEY_9:
+                add = "0";
                 break;
+            case ALLEGRO_KEY_1:
+                add = "1";
+                break;
+            case ALLEGRO_KEY_2:
+                add = "2";
+                break;
+            case ALLEGRO_KEY_3:
+                add = "3";
+                break;
+            case ALLEGRO_KEY_4:
+                add = "4";
+                break;
+            case ALLEGRO_KEY_5:
+                add = "5";
+                break;
+            case ALLEGRO_KEY_6:
+                add = "6";
+                break;
+            case ALLEGRO_KEY_7:
+                add = "7";
+                break;
+            case ALLEGRO_KEY_8:
+                add = "8";
+                break;
+            case ALLEGRO_KEY_9:
+                add = "9";
+                break;
+        }
+        if (add != NULL && itmp < 14){
+            itmp++;
+            memmove(remote_ip,concat(remote_ip,add), strlen(concat(remote_ip,add)));
         }
     }
 
