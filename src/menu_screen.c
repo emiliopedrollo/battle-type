@@ -269,12 +269,9 @@ void draw_ship(){
         prob=(vx>0)?(1.0/pow(dist,1.0/2.0))+mod:(1.0/pow(dx,1.0/2.0));
         vy=((vy>0 && (bsh+dy)==DISPLAY_H-20)||(vy<0 && dy==20))?vy*(-1):vy;
 
-        if(prob>1.0){
-
-        }
         //prob=(vx>0)? /*(exp((DISPLAY_W-(dx+bsw))/n))/mod*/(1.0/pow(dist,1.0/2.0))+mod : /*(exp(dx/n))/mod*/(1.0/pow(dx,1.0/2.0))+mod;
 
-        /*if( fps<=0 || dx<20 && fps<10 || dist<20 && fps<10 ){
+        if( fps<=0 || dx<20 && fps<10 || dist<20 && fps<10 ){
             vx=(prob>=1.0)?vx*(-1):vx;
             fps=(prob>=1.0)?30:10;
         }else if( fps>0 ){
@@ -284,13 +281,14 @@ void draw_ship(){
         if( fps<10 ){
             dx+=vx;
             dy+=vy;
-        }else if( fps>=10 && fps<12 ){
-            dx+=vx-(abs(vx)/-vx);
-            dy+=vy;
-        }else if( fps>=28 && fps<30 ){
-            dx+=-vx-(abs(vx)/-vx);
-            dy+=vy;
-        }*/
+        }
+// else if( fps>=10 && fps<12 ){
+//            dx+=vx-(abs(vx)/-vx);
+//            dy+=vy;
+//        }else if( fps>=28 && fps<30 ){
+//            dx+=-vx-(abs(vx)/-vx);
+//            dy+=vy;
+//        }
 
     }else{
         if((dx!=(DISPLAY_W-bsw)/2 || dy!=(DISPLAY_H-bsh)/2) && position_center == false){
@@ -309,7 +307,7 @@ void draw_ship(){
     al_draw_bitmap(bmp_battleship,dx,dy, 0);
 }
 
-char* remote_ip = "192.168.0.1";
+char remote_ip[16] = "192.168.000.001";
 void draw_address_box(){
     static int frame = 0;
     static char* pipe = "";
@@ -480,15 +478,17 @@ void on_key_press(ALLEGRO_KEYBOARD_EVENT event){
         }
     }
 
-    int itmp;
+    static int itmp = 15;
+
+    // 192.168.000.001
     char *ctmp;
+    char new_ip[16];
 
     if (current_game_state == GAME_STATE_MAIN_MENU && current_menu_screen == MENU_SCREEN_MULTIPLAYER_JOIN){
         switch (event.keycode){
             case ALLEGRO_KEY_BACKSPACE:
-                ctmp = remote_ip;
-                ctmp[strlen(ctmp)-1] = 0;
-                remote_ip = ctmp;
+                //itmp = sizeof(remote_ip)/ sizeof(char)-2;
+                substr(remote_ip, sizeof(remote_ip),remote_ip,itmp--);
                 break;
             case ALLEGRO_KEY_FULLSTOP:
                 break;

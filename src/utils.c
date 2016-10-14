@@ -70,3 +70,31 @@ char *get_ip_address(){
     return host;
 
 }
+
+void substr(char *buffer, size_t buflen, char const *source, int len)
+{
+    size_t srclen = strlen(source);
+    size_t nbytes = 0;
+    size_t offset = 0;
+    size_t sublen;
+
+    if (buflen == 0)    /* Can't write anything anywhere */
+        return;
+    if (len > 0)
+    {
+        sublen = len;
+        nbytes = (sublen > srclen) ? srclen : sublen;
+        offset = 0;
+    }
+    else if (len < 0)
+    {
+        sublen = -len;
+        nbytes = (sublen > srclen) ? srclen : sublen;
+        offset = srclen - nbytes;
+    }
+    if (nbytes >= buflen)
+        nbytes = 0;
+    if (nbytes > 0)
+        memmove(buffer, source + offset, nbytes);
+    buffer[nbytes] = '\0';
+}
