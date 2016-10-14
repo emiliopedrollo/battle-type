@@ -205,22 +205,27 @@ void draw_ship(){
     static int dx,dy,vx=4,vy=1,fps=0;
     int bsw = al_get_bitmap_width(bmp_battleship);
     int bsh = al_get_bitmap_height(bmp_battleship);
-    const double n = -89.03036879;
-    double prob,mod=((rand()%100)/100.0)+0.01;
+    double prob,mod=(rand()%100)/100.0;
     static bool position_center = false;
-    
+    int dist = (DISPLAY_W-(dx+bsw)<=0)?1:DISPLAY_W-(dx+bsw);
+
     if(!start_sp){
-        
-        prob=(vx>0)? (exp((DISPLAY_W-(dx+bsw))/n))/mod : (exp(dx/n))/mod;
+
+        prob=(vx>0)?(1.0/pow(dist,1.0/2.0))+mod:(1.0/pow(dx,1.0/2.0));
         vy=((vy>0 && (bsh+dy)==DISPLAY_H-20)||(vy<0 && dy==20))?vy*(-1):vy;
-        
-        if( fps<=0 || dx<20 && fps<10 || DISPLAY_W-(dx+bsw)<20 && fps<10 ){
+
+        if(prob>1.0){
+
+        }
+        //prob=(vx>0)? /*(exp((DISPLAY_W-(dx+bsw))/n))/mod*/(1.0/pow(dist,1.0/2.0))+mod : /*(exp(dx/n))/mod*/(1.0/pow(dx,1.0/2.0))+mod;
+
+        /*if( fps<=0 || dx<20 && fps<10 || dist<20 && fps<10 ){
             vx=(prob>=1.0)?vx*(-1):vx;
             fps=(prob>=1.0)?30:10;
         }else if( fps>0 ){
             fps--;
         }
-        
+
         if( fps<10 ){
             dx+=vx;
             dy+=vy;
@@ -230,8 +235,8 @@ void draw_ship(){
         }else if( fps>=28 && fps<30 ){
             dx+=-vx-(abs(vx)/-vx);
             dy+=vy;
-        }
-        
+        }*/
+
     }else{
         if((dx!=(DISPLAY_W-bsw)/2 || dy!=(DISPLAY_H-bsh)/2) && position_center == false){
            dx=(dx < (DISPLAY_W-bsw)/2)?dx+1:dx;

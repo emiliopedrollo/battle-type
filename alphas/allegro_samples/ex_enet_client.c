@@ -7,7 +7,7 @@
  * To try this example, first run ex_enet_server.
  * Then start multiple instances of ex_enet_client.
  */
-     
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <enet/enet.h>
@@ -21,24 +21,24 @@
 void do_send_receive(ENetHost *client);
 
 void *send_receive(void *arguments){
-    //long tid;    
-    //tid = ((SEND_RECEIVE_THREAD_ARGS) arguments).tid;   
-        
+    //long tid;
+    //tid = ((SEND_RECEIVE_THREAD_ARGS) arguments).tid;
+
     struct Client_Thread_Args *args = (struct Client_Thread_Args*)arguments;
-    
-    ENetHost *cli;    
+
+    ENetHost *cli;
     cli = (*args).client;
-    
+
     thread_done = false;
-        
+
     printf("Thread Run\n");
-    
+
     while(!thread_done){
         do_send_receive(cli);
     }
-    
+
     printf("Thread Exiting\n");
-    
+
     pthread_exit(NULL);
 }
 
@@ -149,21 +149,21 @@ void do_send_receive(ENetHost *client){
 }
 
 pthread_t init_thread(ENetHost *client){
-    
+
     //pthread_t threads;
     int rc;
     struct Client_Thread_Args *args;
-    
+
     pthread_t *cmp_thread = malloc(sizeof(pthread_t));
     args = malloc(sizeof(struct Client_Thread_Args));
     (*args).client = client;
-    
+
     printf("Creating server comms thread.\n");
     rc = pthread_create(cmp_thread, NULL, send_receive, (void *) args);
     if (rc) {
         printf("ERROR; return code from pthread_create() is %d\n", rc);
     }
-    
+
     return *cmp_thread;
 }
 
@@ -210,12 +210,12 @@ int init_client(char* host, int port){
       printf("An error occurred while initializing ENet.\n");
 
    enet_address_set_host(&address, host);
-   
+
    client = create_client();
    server = connect_client(client, address, port);
 
-   comm_thread = init_thread(client);   
-   
+   comm_thread = init_thread(client);
+
    // --- game loop ---
    bool direction_changed = false;
    while (!done) {
@@ -292,7 +292,7 @@ int init_client(char* host, int port){
 
    thread_done = true;
    pthread_join(comm_thread,NULL);
-   
+
    disconnect_client(client, server);
    enet_host_destroy(client);
    enet_deinitialize();
