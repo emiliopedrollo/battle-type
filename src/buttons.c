@@ -53,126 +53,126 @@ Button init_button(ALLEGRO_FONT* font, char* text, int cx, int cy){
 
 void draw_button(Button button){
     int fh = al_get_font_line_height(button.font);
-    int pixel_thiknes = 4;
+    int pixel_thickness = 4;
     RectangleCoordinate coord = get_button_coordinate(button);
     
     if (!button.visible) return;
     
     // Preenche fundo
     al_draw_filled_rectangle(
-            coord.x1+pixel_thiknes*2,
-            coord.y1+pixel_thiknes*2,
-            coord.x2-pixel_thiknes*2,
-            coord.y2-pixel_thiknes*2,
+            coord.x1+pixel_thickness*2,
+            coord.y1+pixel_thickness*2,
+            coord.x2-pixel_thickness*2,
+            coord.y2-pixel_thickness*2,
             btn_fill_color);
     
     // Desenha borda de cima
     al_draw_line(
-            coord.x1+pixel_thiknes,
-            coord.y1+pixel_thiknes/2,
-            coord.x2-pixel_thiknes,
-            coord.y1+pixel_thiknes/2,
-            btn_border_color,pixel_thiknes);
+            coord.x1+pixel_thickness,
+            coord.y1+pixel_thickness/2,
+            coord.x2-pixel_thickness,
+            coord.y1+pixel_thickness/2,
+            btn_border_color,pixel_thickness);
     
     // Desenha borda de baixo
     al_draw_line(
-            coord.x1+pixel_thiknes,
-            coord.y2-pixel_thiknes/2,
-            coord.x2-pixel_thiknes,
-            coord.y2-pixel_thiknes/2,
-            btn_border_color,pixel_thiknes);
+            coord.x1+pixel_thickness,
+            coord.y2-pixel_thickness/2,
+            coord.x2-pixel_thickness,
+            coord.y2-pixel_thickness/2,
+            btn_border_color,pixel_thickness);
     
     // Desenha borda lateral esquerda
     al_draw_line(
-            coord.x1+pixel_thiknes/2,
-            coord.y1+pixel_thiknes,
-            coord.x1+pixel_thiknes/2,
-            coord.y2-pixel_thiknes,
-            btn_border_color,pixel_thiknes);
+            coord.x1+pixel_thickness/2,
+            coord.y1+pixel_thickness,
+            coord.x1+pixel_thickness/2,
+            coord.y2-pixel_thickness,
+            btn_border_color,pixel_thickness);
     
     // Desenha borda lateral direita
     al_draw_line(
-            coord.x2-pixel_thiknes/2,
-            coord.y1+pixel_thiknes,
-            coord.x2-pixel_thiknes/2,
-            coord.y2-pixel_thiknes,
-            btn_border_color,pixel_thiknes);
+            coord.x2-pixel_thickness/2,
+            coord.y1+pixel_thickness,
+            coord.x2-pixel_thickness/2,
+            coord.y2-pixel_thickness,
+            btn_border_color,pixel_thickness);
     
     if (button.state == BUTTON_STATE_NORMAL || 
         button.state == BUTTON_STATE_HOVER){
          // Desenha cantos iluminados
         al_draw_line(
-                coord.x1+pixel_thiknes*3/2,
-                coord.y1+pixel_thiknes,
-                coord.x1+pixel_thiknes*3/2,
-                coord.y2-pixel_thiknes,
-                btn_light_color,pixel_thiknes);
+                coord.x1+pixel_thickness*3/2,
+                coord.y1+pixel_thickness,
+                coord.x1+pixel_thickness*3/2,
+                coord.y2-pixel_thickness,
+                btn_light_color,pixel_thickness);
 
         al_draw_line(
-                coord.x1+pixel_thiknes*2,
-                coord.y1+pixel_thiknes*3/2,
-                coord.x2-pixel_thiknes,
-                coord.y1+pixel_thiknes*3/2,
-                btn_light_color,pixel_thiknes);
+                coord.x1+pixel_thickness*2,
+                coord.y1+pixel_thickness*3/2,
+                coord.x2-pixel_thickness,
+                coord.y1+pixel_thickness*3/2,
+                btn_light_color,pixel_thickness);
 
         // Desenha cantos sombrios
         al_draw_line(
-                coord.x1+pixel_thiknes*2,
-                coord.y2-pixel_thiknes*3/2,
-                coord.x2-pixel_thiknes,
-                coord.y2-pixel_thiknes*3/2,
-                btn_dark_color,pixel_thiknes);
+                coord.x1+pixel_thickness*2,
+                coord.y2-pixel_thickness*3/2,
+                coord.x2-pixel_thickness,
+                coord.y2-pixel_thickness*3/2,
+                btn_dark_color,pixel_thickness);
         al_draw_line(
-                coord.x2-pixel_thiknes*3/2,
-                coord.y1+pixel_thiknes*2,
-                coord.x2-pixel_thiknes*3/2,
-                coord.y2-pixel_thiknes,
-                btn_dark_color,pixel_thiknes);
+                coord.x2-pixel_thickness*3/2,
+                coord.y1+pixel_thickness*2,
+                coord.x2-pixel_thickness*3/2,
+                coord.y2-pixel_thickness,
+                btn_dark_color,pixel_thickness);
                 
         al_draw_filled_rectangle(
-                coord.x2-pixel_thiknes*3,           
-                coord.y2-pixel_thiknes*3,
-                coord.x2-pixel_thiknes*2,          
-                coord.y2-pixel_thiknes*2,      
+                coord.x2-pixel_thickness*3,
+                coord.y2-pixel_thickness*3,
+                coord.x2-pixel_thickness*2,
+                coord.y2-pixel_thickness*2,
                 btn_dark_color);
         
     } else if (button.state == BUTTON_STATE_ACTIVE){
         
          // Desenha cantos iluminados
         al_draw_line(
-                coord.x1+pixel_thiknes*3/2,
-                coord.y1+pixel_thiknes,
-                coord.x1+pixel_thiknes*3/2,
-                coord.y2-pixel_thiknes,
-                btn_dark_color,pixel_thiknes);
+                coord.x1+pixel_thickness*3/2,
+                coord.y1+pixel_thickness,
+                coord.x1+pixel_thickness*3/2,
+                coord.y2-pixel_thickness,
+                btn_dark_color,pixel_thickness);
 
         al_draw_line(
-                coord.x1+pixel_thiknes*2,
-                coord.y1+pixel_thiknes*3/2,
-                coord.x2-pixel_thiknes,
-                coord.y1+pixel_thiknes*3/2,
-                btn_dark_color,pixel_thiknes);
+                coord.x1+pixel_thickness*2,
+                coord.y1+pixel_thickness*3/2,
+                coord.x2-pixel_thickness,
+                coord.y1+pixel_thickness*3/2,
+                btn_dark_color,pixel_thickness);
 
         // Desenha cantos sombrios
         al_draw_line(
-                coord.x1+pixel_thiknes*2,
-                coord.y2-pixel_thiknes*3/2,
-                coord.x2-pixel_thiknes,
-                coord.y2-pixel_thiknes*3/2,
-                btn_light_color,pixel_thiknes);
+                coord.x1+pixel_thickness*2,
+                coord.y2-pixel_thickness*3/2,
+                coord.x2-pixel_thickness,
+                coord.y2-pixel_thickness*3/2,
+                btn_light_color,pixel_thickness);
         al_draw_line(
-                coord.x2-pixel_thiknes*3/2,
-                coord.y1+pixel_thiknes*2,
-                coord.x2-pixel_thiknes*3/2,
-                coord.y2-pixel_thiknes,
-                btn_light_color,pixel_thiknes);
+                coord.x2-pixel_thickness*3/2,
+                coord.y1+pixel_thickness*2,
+                coord.x2-pixel_thickness*3/2,
+                coord.y2-pixel_thickness,
+                btn_light_color,pixel_thickness);
         
                 
         al_draw_filled_rectangle(
-                coord.x1+pixel_thiknes*2,
-                coord.y1+pixel_thiknes*2,
-                coord.x1+pixel_thiknes*3,
-                coord.y1+pixel_thiknes*3,
+                coord.x1+pixel_thickness*2,
+                coord.y1+pixel_thickness*2,
+                coord.x1+pixel_thickness*3,
+                coord.y1+pixel_thickness*3,
                 btn_dark_color);
     }
     
