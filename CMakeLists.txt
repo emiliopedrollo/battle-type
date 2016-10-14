@@ -16,7 +16,7 @@ SET(SOURCE_FILES
     src/buttons.h
     src/main.c
     src/menu_screen.c
-    src/menu_screen.h)
+    src/menu_screen.h src/utils.c src/utils.h)
 
 # Cria arquivo cabeçalho para cada recurso utilizado
 SET(RESOURCE_COMPILER "xxd")
