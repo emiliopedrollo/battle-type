@@ -1,97 +1,30 @@
 #include <stdio.h>
 #include <allegro5/allegro.h>
-#include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_font.h>
-#include <allegro5/allegro_ttf.h>
-#include <allegro5/allegro_memfile.h>
-#include "resources/font/VT323.ttf.h"
-#include "resources/img/background.jpg.h"
-#include "resources/img/battleship.png.h"
 #include "main.h"
 #include "buttons.h"
 #include "menu_screen.h"
 #include "battleship.h"
 #include "utils.h"
 
-ALLEGRO_DISPLAY *display = NULL;
-ALLEGRO_BITMAP *bmp_battleship, *bmp_background;
-ALLEGRO_FONT *main_font;
-//bool start_sp = false;
-bool exiting = false;
+
 bool is_mouse_down = false;
 bool is_mouse_down_on_button = false;
 Button buttons[9];
 
-ALLEGRO_EVENT_QUEUE* create_queue();
 BATTLESHIP* demo_ship;
 
-void init_display();
-void destroy_display();
-void load_resources();
-void unload_resources();
 void init_menu_buttons();
 void init_demo_ship();
-void load_font(ALLEGRO_FONT* *font, ALLEGRO_FILE* *file,int size, int flags);
-void load_bitmap(ALLEGRO_BITMAP* *bitmap, ALLEGRO_FILE* *file, char* ident);
 void draw_background();
 void draw_demo_ship();
 void draw_menu();
 void on_button_click(int index);
-void on_mouse_move(int x, int y);
-void on_mouse_down(int x, int y);
-void on_mouse_up(int x, int y);
-void on_redraw();
-void do_the_loop(ALLEGRO_EVENT_QUEUE *queue);
+
 void on_menu_change();
-bool on_game_state_change(GAME_STATE old_state, GAME_STATE new_state);
 void draw_address_box();
 void change_menu_state(MENU_SCREEN state);
-void change_game_state(GAME_STATE state);
-void on_key_press(ALLEGRO_KEYBOARD_EVENT event);
-
-int show_screen(){
-    ALLEGRO_EVENT_QUEUE *queue;
-    
-    init_display();
-
-    current_game_state = GAME_STATE_MAIN_MENU;
-
-    load_resources();
-
-    current_menu_screen = MENU_SCREEN_MAIN;
-
-    init_menu_buttons();
-    init_demo_ship();
-
-    queue = create_queue();
-
-    
-    do_the_loop(queue);
-    
-    al_destroy_event_queue(queue);
-    
-    unload_resources();
-    destroy_display();
-    
-    return EXIT_SUCCESS;
-    
-}
-
-ALLEGRO_EVENT_QUEUE* create_queue(){    
-    ALLEGRO_TIMER *timer;
-    ALLEGRO_EVENT_QUEUE *queue;
-    
-    timer = al_create_timer(1.0 / 60); 
-    queue = al_create_event_queue();
-    al_register_event_source(queue, al_get_keyboard_event_source()); 
-    al_register_event_source(queue, al_get_display_event_source(display));
-    al_register_event_source(queue, al_get_timer_event_source(timer));
-    al_register_event_source(queue, al_get_mouse_event_source());
-    al_start_timer(timer);
-    
-    return queue;    
-}
 
 void on_menu_change(){
 
@@ -123,7 +56,18 @@ void on_menu_change(){
 
 }
 
-bool on_game_state_change(GAME_STATE old_state, GAME_STATE new_state){
+void init_menu_screen(){
+    current_menu_screen = MENU_SCREEN_MAIN;
+    init_menu_buttons();
+    init_demo_ship();
+}
+void load_resources_menu_screen(){
+    return;
+}
+void unload_resources_menu_screen(){
+}
+
+bool on_game_state_change_menu_screen(GAME_STATE old_state, GAME_STATE new_state){
 
     if (old_state == GAME_STATE_MAIN_MENU){
         if (new_state == GAME_STATE_IN_GAME){
@@ -132,78 +76,7 @@ bool on_game_state_change(GAME_STATE old_state, GAME_STATE new_state){
         }
     }
 
-    return false;
-}
-
-void init_display(){
-    
-    // Carrega Allegro
-    if(!al_init()) {
-       fprintf(stderr, "failed to initialize allegro!\n");
-       exit(EXIT_FAILURE);
-    }
-
-    // Cria Tela
-    display = al_create_display(DISPLAY_W, DISPLAY_H);
-    if(!display) {
-       fprintf(stderr, "failed to create display!\n");
-       exit(EXIT_FAILURE);
-    }
-    
-    // Define titulo da Tela
-    al_set_window_title(display, "BattleType");
-    
-    // Instala os drivers das entradas
-    al_install_mouse();
-    al_install_keyboard();    
-    
-    // Inicializa addons do Allegro
-    al_init_image_addon();  
-    al_init_primitives_addon();
-    al_init_font_addon();
-    al_init_ttf_addon();
-    
-    // Limpa a tela
-    al_clear_to_color(al_map_rgb(255,255,255));  
-    al_flip_display(); 
-    
-}
-
-void destroy_display(){
-    
-    // Descarrega os addons do Allegro
-    al_shutdown_ttf_addon();
-    al_shutdown_font_addon();
-    al_shutdown_primitives_addon();
-    al_shutdown_image_addon();
-    
-    // Desinstala os drivers das entradas
-    al_uninstall_keyboard();
-    al_uninstall_mouse();
-    
-    // Fecha tela
-    al_destroy_display(display);
-}
-
-void load_resources(){
-    
-    // Carrega as imagens necessárias para a tela do menu
-    ALLEGRO_FILE* background_jpg = al_open_memfile(img_background_jpg,img_background_jpg_len,"r");
-    load_bitmap(&bmp_background,&background_jpg,".jpg");
-
-    ALLEGRO_FILE* battleship_png = al_open_memfile(img_battleship_png,img_battleship_png_len,"r");
-    load_bitmap(&bmp_battleship,&battleship_png,".png");
-    
-    // Carrega a fonte principal da aplicação
-    ALLEGRO_FILE* vt323_ttf = al_open_memfile(font_VT323_ttf,font_VT323_ttf_len,"r");
-    load_font(&main_font,&vt323_ttf,45,ALLEGRO_TTF_MONOCHROME);
-    
-}
-
-void unload_resources(){    
-    al_destroy_bitmap(bmp_background);
-    al_destroy_bitmap(bmp_battleship);
-    al_destroy_font(main_font);
+    return true;
 }
 
 void init_menu_buttons(){  
@@ -243,26 +116,10 @@ void init_menu_buttons(){
 }
 
 void init_demo_ship(){
-    demo_ship = init_battleship(bmp_battleship,
+    demo_ship = init_battleship(bmd_demo_battleship,
         DISPLAY_W/2,DISPLAY_H/2,3,1);
 
     change_battleship_state(demo_ship,BATTLESHIP_MOVE_STATE_DEMO);
-}
-
-void load_font(ALLEGRO_FONT* *font, ALLEGRO_FILE* *file,int size, int flags){
-    *font = al_load_ttf_font_f(*file,NULL,size,flags);
-    if (!*font) {
-        fprintf(stderr,"failed to load font resource!\n");
-        exit(EXIT_FAILURE);
-    }   
-}
-
-void load_bitmap(ALLEGRO_BITMAP* *bitmap, ALLEGRO_FILE* *file, char* ident){
-    *bitmap = al_load_bitmap_f(*file,ident);
-    if (!*bitmap) {
-        fprintf(stderr,"failed to load bitmap resource!\n");
-        exit(EXIT_FAILURE);
-    }
 }
 
 void draw_background(){
@@ -336,11 +193,6 @@ void change_menu_state(MENU_SCREEN state){
     on_menu_change();
 }
 
-void change_game_state(GAME_STATE state){
-    if (on_game_state_change(current_game_state,state))
-        current_game_state = state;
-}
-
 void on_button_click(int index){    
     switch (index){
         case BTN_SINGLE_PLAYER:
@@ -377,70 +229,7 @@ void on_button_click(int index){
     al_set_system_mouse_cursor(display,ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
 }
 
-void on_mouse_move(int x, int y){
-
-    if (current_game_state == GAME_STATE_MAIN_MENU){
-
-        bool is_over_button = false;
-
-        if (!is_mouse_down){
-            int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
-            for (int i = 0; i < total_buttons; i++){
-                if (!buttons[i].visible) continue;
-                if (is_coordinate_inside_button(buttons[i], x, y)){
-                    is_over_button = true;
-                    buttons[i].state = (buttons[i].state != BUTTON_STATE_ACTIVE)?
-                                       BUTTON_STATE_HOVER:buttons[i].state;
-                } else
-                    buttons[i].state = (buttons[i].state == BUTTON_STATE_HOVER)?
-                                       BUTTON_STATE_NORMAL:buttons[i].state;
-            }
-        }
-
-        if (is_over_button || is_mouse_down_on_button)
-            al_set_system_mouse_cursor(display,
-                                       ALLEGRO_SYSTEM_MOUSE_CURSOR_ALT_SELECT);
-        else
-            al_set_system_mouse_cursor(display,
-                                       ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
-    }
-}
-
-void on_mouse_down(int x, int y){
-    
-    int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
-    for (int i = 0; i < total_buttons; i++){
-        if (buttons[i].visible && is_coordinate_inside_button(buttons[i], x, y)){
-            is_mouse_down_on_button = true;
-            buttons[i].state = BUTTON_STATE_ACTIVE;
-            break;
-        }
-    }
-    is_mouse_down = true;
-    
-}
-
-void on_mouse_up(int x, int y){
-    
-    int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
-    for (int i = 0; i < total_buttons; i++){
-        if (buttons[i].visible && buttons[i].state == BUTTON_STATE_ACTIVE){
-            if (is_coordinate_inside_button(buttons[i], x, y)){
-                buttons[i].state = BUTTON_STATE_HOVER;
-                on_button_click(i);
-            } else {
-                buttons[i].state = BUTTON_STATE_NORMAL;
-            }
-            break;
-        }
-    }    
-    is_mouse_down = false;
-    is_mouse_down_on_button = false;
-    
-    on_mouse_move(x,y);
-}
-
-void on_key_press(ALLEGRO_KEYBOARD_EVENT event){
+void on_key_press_menu_screen(ALLEGRO_KEYBOARD_EVENT event){
 
     if (event.keycode == ALLEGRO_KEY_ESCAPE){
         if(current_game_state == GAME_STATE_MAIN_MENU){
@@ -458,7 +247,7 @@ void on_key_press(ALLEGRO_KEYBOARD_EVENT event){
             }
         } else if (current_game_state == GAME_STATE_IN_GAME){
             current_game_flow_state = (current_game_flow_state == GAME_FLOW_STATE_PAUSE)?
-                                       GAME_FLOW_STATE_RUNNING:GAME_FLOW_STATE_PAUSE;
+                                      GAME_FLOW_STATE_RUNNING:GAME_FLOW_STATE_PAUSE;
         }
     }
 
@@ -521,7 +310,70 @@ void on_key_press(ALLEGRO_KEYBOARD_EVENT event){
            event.keycode,event.modifiers);
 }
 
-void on_redraw(){
+void on_mouse_move_menu_screen(int x, int y){
+
+    if (current_game_state == GAME_STATE_MAIN_MENU){
+
+        bool is_over_button = false;
+
+        if (!is_mouse_down){
+            int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
+            for (int i = 0; i < total_buttons; i++){
+                if (!buttons[i].visible) continue;
+                if (is_coordinate_inside_button(buttons[i], x, y)){
+                    is_over_button = true;
+                    buttons[i].state = (buttons[i].state != BUTTON_STATE_ACTIVE)?
+                                       BUTTON_STATE_HOVER:buttons[i].state;
+                } else
+                    buttons[i].state = (buttons[i].state == BUTTON_STATE_HOVER)?
+                                       BUTTON_STATE_NORMAL:buttons[i].state;
+            }
+        }
+
+        if (is_over_button || is_mouse_down_on_button)
+            al_set_system_mouse_cursor(display,
+                                       ALLEGRO_SYSTEM_MOUSE_CURSOR_ALT_SELECT);
+        else
+            al_set_system_mouse_cursor(display,
+                                       ALLEGRO_SYSTEM_MOUSE_CURSOR_DEFAULT);
+    }
+}
+
+void on_mouse_down_menu_screen(int x, int y){
+    
+    int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
+    for (int i = 0; i < total_buttons; i++){
+        if (buttons[i].visible && is_coordinate_inside_button(buttons[i], x, y)){
+            is_mouse_down_on_button = true;
+            buttons[i].state = BUTTON_STATE_ACTIVE;
+            break;
+        }
+    }
+    is_mouse_down = true;
+    
+}
+
+void on_mouse_up_menu_screen(int x, int y){
+    
+    int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
+    for (int i = 0; i < total_buttons; i++){
+        if (buttons[i].visible && buttons[i].state == BUTTON_STATE_ACTIVE){
+            if (is_coordinate_inside_button(buttons[i], x, y)){
+                buttons[i].state = BUTTON_STATE_HOVER;
+                on_button_click(i);
+            } else {
+                buttons[i].state = BUTTON_STATE_NORMAL;
+            }
+            break;
+        }
+    }    
+    is_mouse_down = false;
+    is_mouse_down_on_button = false;
+    
+    on_mouse_move_menu_screen(x,y);
+}
+
+void on_redraw_menu_screen(){
     al_clear_to_color(al_map_rgb_f(0, 0, 0));  
 
     draw_background();
@@ -530,44 +382,4 @@ void on_redraw(){
     if (current_game_state == GAME_STATE_MAIN_MENU) draw_menu();
     
     al_flip_display();
-}
-
-void do_the_loop(ALLEGRO_EVENT_QUEUE *queue){
-    
-    ALLEGRO_EVENT event;
-    bool redraw = true;
-    
-    while (!exiting) {
-        al_wait_for_event(queue, &event); // Wait for and get an event.
-        
-        switch (event.type){
-            case ALLEGRO_EVENT_DISPLAY_CLOSE:
-                exiting = true;
-                break;
-            case ALLEGRO_EVENT_KEY_CHAR:
-                on_key_press(event.keyboard);
-                break;
-            case ALLEGRO_EVENT_TIMER:
-                redraw = true;
-                break;
-            case ALLEGRO_EVENT_MOUSE_AXES:
-                on_mouse_move(event.mouse.x,event.mouse.y);
-                break;
-            case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
-                on_mouse_down(event.mouse.x,event.mouse.y);
-                break;
-            case ALLEGRO_EVENT_MOUSE_BUTTON_UP:
-                on_mouse_up(event.mouse.x,event.mouse.y);
-                break;
-            default:
-                break;
-        }
-            
-        // Redraw, but only if the event queue is empty
-        if (redraw && al_is_event_queue_empty(queue)) {
-            redraw = false;
-            on_redraw();
-        }
-    }
-    
 }

@@ -7,8 +7,21 @@
 #include <math.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_primitives.h>
+#include <allegro5/allegro_memfile.h>
 #include "main.h"
+#include "resources/img/battleship.png.h"
 
+
+ALLEGRO_BITMAP *bmd_demo_battleship;
+
+void load_resources_battleship(){
+    ALLEGRO_FILE* battleship_png = al_open_memfile(img_battleship_png,img_battleship_png_len,"r");
+    load_bitmap(&bmd_demo_battleship,&battleship_png,".png");
+}
+
+void unload_resources_battleship(){
+    al_destroy_bitmap(bmd_demo_battleship);
+}
 
 BATTLESHIP* init_battleship(ALLEGRO_BITMAP *bmp, int dx, int dy, int vx, int vy){
 

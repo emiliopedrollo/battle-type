@@ -7,6 +7,8 @@
 
 #include <allegro5/bitmap.h>
 
+extern ALLEGRO_BITMAP *bmd_demo_battleship;
+
 typedef enum {
     BATTLESHIP_MOVE_STATE_INITAL_STATE,
     BATTLESHIP_MOVE_STATE_DEMO,
@@ -36,6 +38,8 @@ typedef struct {
 BATTLESHIP* init_battleship(ALLEGRO_BITMAP *bmp, int dx, int dy, int vx, int vy);
 void change_battleship_state(BATTLESHIP *battleship,BATTLESHIP_MOVE_STATE state);
 void draw_ship(BATTLESHIP *battleship);
+void load_resources_battleship();
+void unload_resources_battleship();
 
 
 #endif //BATTLE_TYPE_BATTLESHIP_H
