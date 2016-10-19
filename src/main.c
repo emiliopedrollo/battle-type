@@ -2,6 +2,7 @@
 //#include <stdlib.h>
 //#include <getopt.h>
 //#include <stdbool.h>
+#include "main.h"
 #include "menu_screen.h"
 //#include "alphas/allegro_samples/ex_enet_server.h"
 //#include "alphas/allegro_samples/ex_enet_client.h"
@@ -9,7 +10,11 @@
 /*
  * 
  */
+const int DISPLAY_H = 800, DISPLAY_W = 500;
+bool DEBUG = true;
+
 int main(int argc, char** argv) {
+
   
 //    bool is_server = false;
 //    char* host = "localhost";

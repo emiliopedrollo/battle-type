@@ -1,6 +1,4 @@
 #include <stdio.h>
-#include <math.h>
-#include <string.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
@@ -10,33 +8,34 @@
 #include "resources/font/VT323.ttf.h"
 #include "resources/img/background.jpg.h"
 #include "resources/img/battleship.png.h"
+#include "main.h"
 #include "buttons.h"
 #include "menu_screen.h"
+#include "battleship.h"
 #include "utils.h"
 
 ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_BITMAP *bmp_battleship, *bmp_background;
 ALLEGRO_FONT *main_font;
-bool start_sp = false;
+//bool start_sp = false;
 bool exiting = false;
 bool is_mouse_down = false;
 bool is_mouse_down_on_button = false;
 Button buttons[9];
 
-int DISPLAY_H = 800;
-int DISPLAY_W = 500;
-
 ALLEGRO_EVENT_QUEUE* create_queue();
+BATTLESHIP* demo_ship;
 
 void init_display();
 void destroy_display();
 void load_resources();
 void unload_resources();
 void init_menu_buttons();
+void init_demo_ship();
 void load_font(ALLEGRO_FONT* *font, ALLEGRO_FILE* *file,int size, int flags);
 void load_bitmap(ALLEGRO_BITMAP* *bitmap, ALLEGRO_FILE* *file, char* ident);
 void draw_background();
-void draw_ship();
+void draw_demo_ship();
 void draw_menu();
 void on_button_click(int index);
 void on_mouse_move(int x, int y);
@@ -44,6 +43,12 @@ void on_mouse_down(int x, int y);
 void on_mouse_up(int x, int y);
 void on_redraw();
 void do_the_loop(ALLEGRO_EVENT_QUEUE *queue);
+void on_menu_change();
+bool on_game_state_change(GAME_STATE old_state, GAME_STATE new_state);
+void draw_address_box();
+void change_menu_state(MENU_SCREEN state);
+void change_game_state(GAME_STATE state);
+void on_key_press(ALLEGRO_KEYBOARD_EVENT event);
 
 int show_screen(){
     ALLEGRO_EVENT_QUEUE *queue;
@@ -57,6 +62,7 @@ int show_screen(){
     current_menu_screen = MENU_SCREEN_MAIN;
 
     init_menu_buttons();
+    init_demo_ship();
 
     queue = create_queue();
 
@@ -121,10 +127,12 @@ bool on_game_state_change(GAME_STATE old_state, GAME_STATE new_state){
 
     if (old_state == GAME_STATE_MAIN_MENU){
         if (new_state == GAME_STATE_IN_GAME){
-            start_sp = true;
+            change_battleship_state(demo_ship,BATTLESHIP_MOVE_STATE_DEMO_PUSHBACK);
             return true;
         }
     }
+
+    return false;
 }
 
 void init_display(){
@@ -234,6 +242,12 @@ void init_menu_buttons(){
     
 }
 
+void init_demo_ship(){
+    demo_ship = init_battleship(bmp_battleship,
+        DISPLAY_W/2,DISPLAY_H/2,4,1);
+    change_battleship_state(demo_ship,BATTLESHIP_MOVE_STATE_DEMO);
+}
+
 void load_font(ALLEGRO_FONT* *font, ALLEGRO_FILE* *file,int size, int flags){
     *font = al_load_ttf_font_f(*file,NULL,size,flags);
     if (!*font) {
@@ -267,65 +281,8 @@ void draw_background(){
     }
 }
 
-void draw_ship(){
-    static TURNING_DIRECTION turning_direction = TURNING_DIRECTION_NONE;
-    static float dx,dy,vx=4,vy=1;
-    int bsw = al_get_bitmap_width(bmp_battleship);
-    int bsh = al_get_bitmap_height(bmp_battleship);
-
-    if(!start_sp){
-        const float dvx = 0.8;
-        double dist_r = (DISPLAY_W-(dx+bsw)<=0)?1:DISPLAY_W-(dx+bsw);
-        double dist_l = (dx<=0)?1:dx;
-        static int turning_frame = 0;
-        double prob,mod=(rand()%100)/100.0;
-
-
-        prob=(vx>0)?(1.0/pow(dist_r,7.0/8.0))+mod:(1.0/pow(dist_l,7.0/8.0))+mod;
-        vy=((vy>0 && (bsh+dy)==DISPLAY_H-20)||(vy<0 && dy==20))?vy*(-1):vy;
-
-
-        if (prob >= 1 && turning_direction == TURNING_DIRECTION_NONE)
-            turning_direction = (vx>0)?TURNING_DIRECTION_LEFT:TURNING_DIRECTION_RIGHT;
-
-        if (turning_direction != TURNING_DIRECTION_NONE){
-            turning_frame++;
-            vx = (turning_direction == TURNING_DIRECTION_LEFT)? vx-dvx : vx+dvx ;
-            if (turning_frame > 10){
-                turning_direction = TURNING_DIRECTION_NONE;
-                vx = (vx > 0) ? 4: -4;
-            }
-        } else turning_frame = 0;
-
-        dx += vx;
-        dy += vy;
-
-    }else{
-        static int k = 180; // 3 segundos
-        static bool push_back_done = false;
-        static bool push_back_set_speed = false;
-        static int push_back_frame = 0;
-
-        if (!push_back_set_speed){
-            push_back_set_speed = true;
-            vx = (((DISPLAY_W-bsw)/2)-dx)/k;
-            vy = (((DISPLAY_H-bsh)/2)-dy)/k;
-        }
-
-        if(k-- > 0){
-            dx+=vx;
-            dy+=vy;
-        }else if (!push_back_done ) {
-            if (push_back_frame++ < 60){
-                dy++;
-            } else push_back_done = true;
-        }else if (dy!=-bsh){
-            dy-=pow(1.2,++vy);
-        }
-        
-    }
-    //Bagunçado mas funcional :)
-    al_draw_bitmap(bmp_battleship,dx,dy, 0);
+void draw_demo_ship(){
+    draw_ship(demo_ship);
 }
 
 char remote_ip[16] = "192.168.000.001";
@@ -547,6 +504,8 @@ void on_key_press(ALLEGRO_KEYBOARD_EVENT event){
             case ALLEGRO_KEY_9:
                 add = "9";
                 break;
+            default:
+                break;
         }
         if (add != NULL && itmp < 14){
             itmp++;
@@ -565,7 +524,7 @@ void on_redraw(){
     al_clear_to_color(al_map_rgb_f(0, 0, 0));  
 
     draw_background();
-    draw_ship();
+    draw_demo_ship();
 
     if (current_game_state == GAME_STATE_MAIN_MENU) draw_menu();
     

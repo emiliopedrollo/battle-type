@@ -16,7 +16,7 @@ SET(SOURCE_FILES
     src/buttons.h
     src/main.c
     src/menu_screen.c
-    src/menu_screen.h src/utils.c src/utils.h)
+    src/menu_screen.h src/utils.c src/utils.h src/battleship.c src/battleship.h src/main.h)
 
 # Cria arquivo cabeçalho para cada recurso utilizado
 SET(RESOURCE_COMPILER "xxd")
@@ -51,7 +51,7 @@ FIND_PACKAGE(Threads REQUIRED)
 # Define derivativas ao linker
 TARGET_LINK_LIBRARIES(battle_type ${CMAKE_THREAD_LIBS_INIT}) # -pthread ou equivalente
 TARGET_LINK_LIBRARIES(battle_type m) # -lm , para usar math.h
-TARGET_LINK_LIBRARIES(battle_type libenet.a) # -lenet , camada de comunicação em rede via UDP, static link
+TARGET_LINK_LIBRARIES(battle_type enet) # -lenet , camada de comunicação em rede via UDP, static link
 TARGET_LINK_LIBRARIES(battle_type allegro) # -lallegro
 TARGET_LINK_LIBRARIES(battle_type allegro_image) # -lallegro_image
 TARGET_LINK_LIBRARIES(battle_type allegro_primitives) # -lallegro_primitives
