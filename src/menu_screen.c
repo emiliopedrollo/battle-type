@@ -244,7 +244,8 @@ void init_menu_buttons(){
 
 void init_demo_ship(){
     demo_ship = init_battleship(bmp_battleship,
-        DISPLAY_W/2,DISPLAY_H/2,4,1);
+        DISPLAY_W/2,DISPLAY_H/2,3,1);
+
     change_battleship_state(demo_ship,BATTLESHIP_MOVE_STATE_DEMO);
 }
 

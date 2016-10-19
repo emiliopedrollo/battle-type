@@ -26,6 +26,7 @@ typedef struct {
     int turning_frame;
     float dx,dy;
     float vx,vy;
+    float vxi,vyi;
     bool push_back_done;
     bool push_back_set_speed;
     int push_back_frame;
