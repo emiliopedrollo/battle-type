@@ -198,7 +198,8 @@ void move_ship(BATTLESHIP *battleship) {
                 } else battleship->turning_frame = 0;
 
                 battleship->dx += battleship->vx;
-                battleship->dy -= battleship->vy;
+                if(battleship->limit >= 50)
+                    battleship->dy -= battleship->vy;
             }else if(battleship->owner == BATTLESHIP_OWNER_OPPONENT){
                 dist_r = (DISPLAY_W-(battleship->dx+bsw/2)<=0)?1:DISPLAY_W-(battleship->dx+bsw/2);
                 dist_l = (battleship->dx-bsw/2<=0)?1:battleship->dx-bsw/2;
@@ -229,7 +230,9 @@ void move_ship(BATTLESHIP *battleship) {
                 } else battleship->turning_frame = 0;
 
                 battleship->dx += battleship->vx;
-                battleship->dy += battleship->vy;
+
+                if(battleship->limit >= 50)
+                    battleship->dy += battleship->vy;
             }
             break;
         default:

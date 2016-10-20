@@ -2,6 +2,7 @@
 // Created by ubuntu on 10/20/16.
 //
 
+#include <math.h>
 #include "game.h"
 #include "battleship.h"
 
@@ -38,14 +39,14 @@ void init_starter_battleships(){
                                         (rand()%max_rand)+half_ship, DISPLAY_H + ship_height/2 );
         change_battleship_state(host_ships[i],BATTLESHIP_MOVE_STATE_IN_GAME);
         host_ships[i]->owner = BATTLESHIP_OWNER_PLAYER;
-        host_ships[i]->limit = DISPLAY_H/2 + 10;
+        host_ships[i]->limit = 800;//DISPLAY_H/2 + 10;
 
 
         client_ships[i] = init_battleship(BATTLESHIP_CLASS_5,
                                           (rand()%max_rand)+half_ship,  -ship_height/2 );
         change_battleship_state(client_ships[i],BATTLESHIP_MOVE_STATE_IN_GAME);
         client_ships[i]->owner = BATTLESHIP_OWNER_OPPONENT;
-        client_ships[i]->limit = DISPLAY_H/2 - 10;
+        client_ships[i]->limit = 800;//DISPLAY_H/2 - 10;
     }
 
 
@@ -55,15 +56,24 @@ void move_game_ships(){
     for (int i =0; i < MAX_SHIPS_FOR_PLAYERS; i++){
         if (host_ships[i] && host_ships[i]->active) move_ship(host_ships[i]);
         if (client_ships[i] && client_ships[i]->active) move_ship(client_ships[i]);
+
+        //int bsh = get_battleship_height(client_ships[j]);
+
+        for (int i =0; i < MAX_SHIPS_FOR_PLAYERS; i++){
+            for(int j =0; j < MAX_SHIPS_FOR_PLAYERS; j++){
+
+                host_ships[i]->limit =
+                        (fabs(host_ships[i]->dy - (client_ships[j]->dy + get_battleship_height(client_ships[j]->class))) < host_ships[i]->limit)
+                        ?fabs(host_ships[i]->dy - (client_ships[j]->dy + get_battleship_height(client_ships[j]->class))):host_ships[i]->limit;
+                client_ships[j]->limit =
+                        (fabs(host_ships[i]->dy - (client_ships[j]->dy + get_battleship_height(client_ships[j]->class))) < client_ships[j]->limit)
+                        ?fabs(host_ships[i]->dy - (client_ships[j]->dy + get_battleship_height(client_ships[j]->class))):client_ships[j]->limit;
+            }
+        }
     }
 }
 
 void draw_game_ships(){
-    for (int i =0; i < MAX_SHIPS_FOR_PLAYERS; i++){
-        for(int j =0; j < MAX_SHIPS_FOR_PLAYERS; j++){
-
-        }
-    }
     for (int i =0; i < MAX_SHIPS_FOR_PLAYERS; i++){
         if (host_ships[i] && host_ships[i]->active) draw_ship(host_ships[i]);
         if (client_ships[i] && client_ships[i]->active) draw_ship(client_ships[i]);
