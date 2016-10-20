@@ -7,11 +7,15 @@
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_memfile.h>
+#include <getopt.h>
 #include "main.h"
 #include "menu_screen.h"
 #include "resources/img/background.jpg.h"
 #include "resources/font/VT323.ttf.h"
 #include "battleship.h"
+#include "server.h"
+#include "../alphas/allegro_samples/ex_enet_server.h"
+#include "../alphas/allegro_samples/ex_enet_client.h"
 //#include "alphas/allegro_samples/ex_enet_server.h"
 //#include "alphas/allegro_samples/ex_enet_client.h"
 
@@ -46,8 +50,52 @@ void on_redraw();
 ALLEGRO_EVENT_QUEUE* create_queue();
 
 int main(int argc, char** argv) {
-        
-    return show_screen();
+    bool is_server = false;
+    bool is_demo = false;
+    char* host = "localhost";
+    int port = 0;
+
+    int c;
+    static struct option long_options[] = {
+        {"server",  no_argument,       0,  0 },
+        {"demo",    no_argument,       0,  0 },
+        {"port",    required_argument, 0,  0 },
+        {"host",    required_argument, 0,  0 },
+        {0,         0,                 0,  0 }
+    };
+
+    while (1){
+        int option_index = 0;
+        c = getopt_long(argc, argv, "",
+                 long_options, &option_index);
+
+        if (c == -1)
+            break;
+
+        switch (c) {
+            case 0:
+                if (long_options[option_index].name == "server") {
+                    is_server = true;
+                } else if (long_options[option_index].name == "demo"){
+                    is_demo = true;
+                } else if (long_options[option_index].name == "port") {
+                    port = atoi(optarg);
+                } else if (long_options[option_index].name == "host") {
+                    host = optarg;
+                }
+                break;
+        }
+
+    }
+
+    if (is_server){
+        return start_ex_server("0.0.0.0",port);
+    } else if (is_demo) {
+        return init_client(host,port);
+    } else {
+        return show_screen();
+    }
+
 }
 
 
@@ -285,6 +333,7 @@ void do_the_loop(ALLEGRO_EVENT_QUEUE *queue){
             redraw = false;
             on_redraw();
         }
+        on_main_loop_server();
     }
 }
 

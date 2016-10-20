@@ -255,8 +255,12 @@ void on_key_press_menu_screen(ALLEGRO_KEYBOARD_EVENT event){
                 change_menu_state(MENU_SCREEN_MAIN);
                 break;
             case MENU_SCREEN_MULTIPLAYER_JOIN:
+                change_menu_state(MENU_SCREEN_MULTIPLAYER_SELECT);
+                disconnect_client();
+                break;
             case MENU_SCREEN_MULTIPLAYER_HOST:
                 change_menu_state(MENU_SCREEN_MULTIPLAYER_SELECT);
+                stop_server();
                 break;
         }
     }

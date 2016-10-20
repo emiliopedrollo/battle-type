@@ -7,5 +7,6 @@
 
 void start_server();
 void stop_server();
+void on_main_loop_server();
 
 #endif //BATTLE_TYPE_SERVER_H

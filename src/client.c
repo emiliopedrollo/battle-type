@@ -11,9 +11,11 @@
 #include "utils.h"
 
 struct Client_Thread_Args{
-    ENetHost *client;
+    ENetAddress host_address;
+    unsigned short port;
 };
 
+bool connected;
 bool client_connected;
 bool connection_set_to_close;
 pthread_t client_thread;
@@ -21,7 +23,7 @@ ENetHost *client;
 ENetPeer *peer;
 
 ENetHost* create_client(void);
-pthread_t init_client_thread(ENetHost *client);
+pthread_t init_client_thread(ENetAddress host_address, unsigned short port);
 ENetPeer* create_peer(ENetHost *client, ENetAddress address, unsigned short port);
 void disconnect_peer(ENetHost *client, ENetPeer *peer);
 
@@ -38,9 +40,8 @@ bool connect_client(char* host_ip){
 
     enet_address_set_host(&host_address, host_ip);
     client = create_client();
-    peer = create_peer(client, host_address, port); // TODO: Sent to thread
 
-    client_thread = init_client_thread(client);
+    client_thread = init_client_thread(host_address, port);
 
     return true;
 }
@@ -49,7 +50,6 @@ void disconnect_client(){
     connection_set_to_close = true;
     pthread_join(client_thread,NULL);
 
-    disconnect_peer(client, peer); // TODO: Sent to thread
     enet_host_destroy(client);
     enet_deinitialize();
     client_connected = false;
@@ -57,17 +57,21 @@ void disconnect_client(){
 }
 
 void *client_loop(void *arguments){
-
-
     struct Client_Thread_Args *args = (struct Client_Thread_Args*)arguments;
 
-    ENetHost *client = (*args).client;
+    unsigned short port = (*args).port;
+    ENetAddress host_address = (*args).host_address;
 
+    connected = false;
     connection_set_to_close = false;
 
-    while(!connection_set_to_close){
+    peer = create_peer(client, host_address, port);
+
+    while(!connection_set_to_close && connected){
         msleep(16);
     }
+
+    if (connected) disconnect_peer(client, peer);
 
     pthread_exit(NULL);
 }
@@ -79,7 +83,7 @@ void disconnect_peer(ENetHost *client, ENetPeer *peer){
      * and drop any packets received packets.
      */
     ENetEvent event;
-    while (enet_host_service (client, &event, 3000) > 0) {
+    while (enet_host_service (client, &event, 1000) > 0) {
         switch (event.type) {
             case ENET_EVENT_TYPE_RECEIVE:
                 enet_packet_destroy(event.packet);
@@ -110,12 +114,13 @@ ENetPeer* create_peer(ENetHost *client, ENetAddress address, unsigned short port
         fprintf(stderr,"Client: No available peers for initiating an ENet connection.\n");
 
     /* Wait up to 5 seconds for the connection attempt to succeed. */
-    if (enet_host_service(client, &event, 5000) > 0 &&
+    if (enet_host_service(client, &event, 2000) > 0 &&
         event.type == ENET_EVENT_TYPE_CONNECT)
     {
         printf("Client: Connected to %x:%u.\n",
                event.peer->address.host,
                event.peer->address.port);
+        connected = true;
     }
     else
     {
@@ -124,6 +129,7 @@ ENetPeer* create_peer(ENetHost *client, ENetAddress address, unsigned short port
         /* had run out without any significant event.            */
         enet_peer_reset(server);
         printf("Client: Connection to server failed.\n");
+        connected = false;
     }
 
     return server;
@@ -143,7 +149,7 @@ ENetHost* create_client(void){
     return client;
 }
 
-pthread_t init_client_thread(ENetHost *client) {
+pthread_t init_client_thread(ENetAddress host_address, unsigned short port) {
 
     //pthread_t threads;
     int rc;
@@ -151,7 +157,8 @@ pthread_t init_client_thread(ENetHost *client) {
 
     pthread_t *cmp_thread = malloc(sizeof(pthread_t));
     args = malloc(sizeof(struct Client_Thread_Args));
-    (*args).client = client;
+    (*args).host_address = host_address;
+    (*args).port = port;
 
     rc = pthread_create(cmp_thread, NULL, client_loop, (void *) args);
     if (rc) {
