@@ -152,7 +152,7 @@ void draw_demo_ship(){
     draw_ship(demo_ship);
 }
 
-char remote_ip[16] = "192.168.000.001";
+char remote_ip[16] = "";
 void draw_address_box(){
     static int frame = 0;
     static char* pipe = "";
@@ -202,7 +202,20 @@ void change_menu_state(MENU_SCREEN state){
     on_menu_change();
 }
 
-void on_button_click(int index){    
+void on_success_connect(){
+
+    change_game_state(GAME_STATE_IN_GAME);
+
+}
+
+void on_failure_connect(){
+
+
+
+}
+
+void on_button_click(int index){
+
     switch (index){
         case BTN_SINGLE_PLAYER:
             change_game_state(GAME_STATE_IN_GAME);
@@ -220,7 +233,7 @@ void on_button_click(int index){
             change_menu_state(MENU_SCREEN_MULTIPLAYER_JOIN);
             break;
         case BTN_MULTIPLAYER_JOIN_ENTER:
-            connect_client(remote_ip);
+            connect_client(remote_ip,on_success_connect,on_failure_connect);
             break;
         case BTN_MULTIPLAYER_HOST:
             change_menu_state(MENU_SCREEN_MULTIPLAYER_HOST);
@@ -265,7 +278,7 @@ void on_key_press_menu_screen(ALLEGRO_KEYBOARD_EVENT event){
         }
     }
 
-    static int itmp = 14;
+    static int itmp = -1;
     char *add = NULL;
     // 192.168.000.001
 
@@ -275,36 +288,48 @@ void on_key_press_menu_screen(ALLEGRO_KEYBOARD_EVENT event){
                 if (itmp < 0) break;
                 substr(remote_ip, sizeof(remote_ip),remote_ip,itmp--);
                 break;
+            case ALLEGRO_KEY_PAD_DELETE:
             case ALLEGRO_KEY_FULLSTOP:
                 add = ".";
                 break;
+            case ALLEGRO_KEY_PAD_0:
             case ALLEGRO_KEY_0:
                 add = "0";
                 break;
+            case ALLEGRO_KEY_PAD_1:
             case ALLEGRO_KEY_1:
                 add = "1";
                 break;
+            case ALLEGRO_KEY_PAD_2:
             case ALLEGRO_KEY_2:
                 add = "2";
                 break;
+            case ALLEGRO_KEY_PAD_3:
             case ALLEGRO_KEY_3:
                 add = "3";
                 break;
+            case ALLEGRO_KEY_PAD_4:
             case ALLEGRO_KEY_4:
                 add = "4";
                 break;
+
+            case ALLEGRO_KEY_PAD_5:
             case ALLEGRO_KEY_5:
                 add = "5";
                 break;
+            case ALLEGRO_KEY_PAD_6:
             case ALLEGRO_KEY_6:
                 add = "6";
                 break;
+            case ALLEGRO_KEY_PAD_7:
             case ALLEGRO_KEY_7:
                 add = "7";
                 break;
+            case ALLEGRO_KEY_PAD_8:
             case ALLEGRO_KEY_8:
                 add = "8";
                 break;
+            case ALLEGRO_KEY_PAD_9:
             case ALLEGRO_KEY_9:
                 add = "9";
                 break;

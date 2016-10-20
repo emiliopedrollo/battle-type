@@ -5,7 +5,11 @@
 #ifndef BATTLE_TYPE_CLIENT_H
 #define BATTLE_TYPE_CLIENT_H
 
-bool connect_client(char* host_ip);
+extern void (*on_success_client_connect)(void);
+extern void (*on_failure_client_connect)(void);
+
+bool connect_client(char* host_ip,
+                    void (*on_success_connect)(void), void (*on_failure_connect)(void));
 void disconnect_client();
 
 #endif //BATTLE_TYPE_CLIENT_H

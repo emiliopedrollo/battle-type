@@ -26,10 +26,20 @@ ENetHost* create_client(void);
 pthread_t init_client_thread(ENetAddress host_address, unsigned short port);
 ENetPeer* create_peer(ENetHost *client, ENetAddress address, unsigned short port);
 void disconnect_peer(ENetHost *client, ENetPeer *peer);
+void client_send_receive(ENetHost *client);
 
-bool connect_client(char* host_ip){
+void (*on_success_client_connect)(void);
+void (*on_failure_client_connect)(void);
+
+bool connect_client(char* host_ip,
+                    void (*on_success_connect_callback)(void), void (*on_failure_connect_callback)(void)){
+
     unsigned short port = DEFAULT_PORT;
     ENetAddress host_address;
+
+    on_success_client_connect = on_success_connect_callback;
+    on_failure_client_connect = on_failure_connect_callback;
+
 
     if (client_connected) return true;
     client_connected = true;
@@ -51,6 +61,7 @@ void disconnect_client(){
     pthread_join(client_thread,NULL);
 
     enet_host_destroy(client);
+    client = NULL;
     enet_deinitialize();
     client_connected = false;
 
@@ -67,13 +78,59 @@ void *client_loop(void *arguments){
 
     peer = create_peer(client, host_address, port);
 
+    if (connected) on_success_client_connect(); else on_failure_client_connect();
+
     while(!connection_set_to_close && connected){
+        client_send_receive(client);
         msleep(16);
     }
 
-    if (connected) disconnect_peer(client, peer);
+    if (connected) {
+        disconnect_peer(client, peer);
+    } else {
+        disconnect_client();
+    }
 
     pthread_exit(NULL);
+
+}
+
+void client_send_receive(ENetHost *client){
+    ENetEvent event;
+//    ServerMessage *msg;
+
+    // Check if we have any queued incoming messages, but do not wait otherwise.
+    // This also sends outgoing messages queued with enet_peer_send.
+    while (enet_host_service(client, &event, 0) > 0) {
+        // clients only care about incoming packets, they will not receive
+        // connect/disconnect events.
+        if (event.type == ENET_EVENT_TYPE_RECEIVE) {
+//            msg = (ServerMessage*)event.packet->data;
+
+//            switch (msg->type) {
+//                case POSITION_UPDATE:
+//                    players[msg->player_id].x = msg->x;
+//                    players[msg->player_id].y = msg->y;
+//                    break;
+//                case PLAYER_JOIN:
+//                    printf("Client: player #%d joined\n", msg->player_id);
+//                    players[msg->player_id].active = true;
+//                    players[msg->player_id].x = msg->x;
+//                    players[msg->player_id].y = msg->y;
+//                    players[msg->player_id].color = msg->color;
+//                    break;
+//                case PLAYER_LEAVE:
+//                    printf("Client: player #%d left\n", msg->player_id);
+//                    players[msg->player_id].active = false;
+//                    break;
+//            }
+
+            /* Clean up the packet now that we're done using it. */
+            enet_packet_destroy(event.packet);
+        } else if (event.type == ENET_EVENT_TYPE_DISCONNECT) {
+            printf("Server went Offline\n");
+        }
+    }
 }
 
 void disconnect_peer(ENetHost *client, ENetPeer *peer){

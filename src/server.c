@@ -10,7 +10,6 @@
 #include <allegro5/timer.h>
 #include "server.h"
 #include "enet_common.h"
-#include "utils.h"
 
 struct Host_Thread_Args{
     ENetAddress listener;
@@ -25,8 +24,6 @@ bool server_running = false;
 bool server_set_to_stop = false;
 pthread_t server_thread;
 ENetHost *host;
-double last_time;
-double cur_time;
 
 void start_server(){
 
@@ -45,27 +42,20 @@ void start_server(){
     enet_address_set_host(&listener, binder);
     listener.port = port;
 
-
-    last_time = al_get_time();
-
-    host = create_server(listener);
-    //server_thread = init_server_thread(listener);
+//    host = create_server(listener);
+    server_thread = init_server_thread(listener);
 
 
 
 }
 
 void stop_server(){
-    //server_set_to_stop = true;
-    //pthread_join(server_thread,NULL);
+    server_set_to_stop = true;
+    pthread_join(server_thread,NULL);
 
     enet_host_destroy(host);
     enet_deinitialize();
     server_running = false;
-}
-
-void on_main_loop_server(){
-    if (server_running) server_send_receive();
 }
 
 void server_send_receive(){

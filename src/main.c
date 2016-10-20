@@ -13,7 +13,7 @@
 #include "resources/img/background.jpg.h"
 #include "resources/font/VT323.ttf.h"
 #include "battleship.h"
-#include "server.h"
+//#include "server.h"
 #include "../alphas/allegro_samples/ex_enet_server.h"
 #include "../alphas/allegro_samples/ex_enet_client.h"
 //#include "alphas/allegro_samples/ex_enet_server.h"
@@ -39,6 +39,7 @@ void destroy_display();
 void load_resources();
 void unload_resources();
 void draw_background();
+void on_changed_game_state();
 //bool on_game_state_change(GAME_STATE old_state, GAME_STATE new_state);
 void do_the_loop(ALLEGRO_EVENT_QUEUE *queue);
 void on_key_press(ALLEGRO_KEYBOARD_EVENT keyboard_event);
@@ -72,18 +73,16 @@ int main(int argc, char** argv) {
         if (c == -1)
             break;
 
-        switch (c) {
-            case 0:
-                if (long_options[option_index].name == "server") {
-                    is_server = true;
-                } else if (long_options[option_index].name == "demo"){
-                    is_demo = true;
-                } else if (long_options[option_index].name == "port") {
-                    port = atoi(optarg);
-                } else if (long_options[option_index].name == "host") {
-                    host = optarg;
-                }
-                break;
+        if (c == 0){
+            if (long_options[option_index].name == "server") {
+                is_server = true;
+            } else if (long_options[option_index].name == "demo"){
+                is_demo = true;
+            } else if (long_options[option_index].name == "port") {
+                port = atoi(optarg);
+            } else if (long_options[option_index].name == "host") {
+                host = optarg;
+            }
         }
 
     }
@@ -104,11 +103,9 @@ int show_screen(){
 
     init_display();
 
-    change_game_state(GAME_STATE_MAIN_MENU);
-
     load_resources();
 
-    init_menu_screen();
+    change_game_state(GAME_STATE_MAIN_MENU);
 
     queue = create_queue();
 
@@ -239,8 +236,12 @@ void change_game_state(GAME_STATE state){
                     on_game_state_changing_count_steps_menu_screen(state);
             start_game_state_change_menu_screen(state);
             break;
+        case GAME_STATE_IN_GAME:
+
+            break;
         default:
             current_game_state = state;
+            on_changed_game_state();
             break;
     }
 
@@ -250,10 +251,24 @@ void change_game_state(GAME_STATE state){
 
 }
 
+void on_changed_game_state(){
+    switch (current_game_state){
+        case GAME_STATE_MAIN_MENU:
+            init_menu_screen();
+            break;
+        case GAME_STATE_IN_GAME:
+
+            break;
+        default:
+            break;
+    }
+}
+
 void check_game_state_complete(){
     if (--change_game_state_step_remaining == 0){
         if (changing_game_state != GAME_STATE_NONE){
             current_game_state = changing_game_state;
+            on_changed_game_state();
             changing_game_state = GAME_STATE_NONE;
         }
     }
@@ -293,7 +308,9 @@ void on_redraw(){
     al_clear_to_color(al_map_rgb_f(0, 0, 0));
     draw_background();
 
-    on_redraw_menu_screen();
+    if (changing_game_state == GAME_STATE_MAIN_MENU){
+        on_redraw_menu_screen();
+    }
 
     al_flip_display();
 }
@@ -333,7 +350,6 @@ void do_the_loop(ALLEGRO_EVENT_QUEUE *queue){
             redraw = false;
             on_redraw();
         }
-        on_main_loop_server();
     }
 }
 
