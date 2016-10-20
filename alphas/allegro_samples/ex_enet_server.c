@@ -69,7 +69,6 @@ static void send_receive(ENetHost *server) {
                        event.peer->address.port);
 
                 int player_id = init_player();
-
                 // store the id with the peer we can correlate messages from this
                 // client with this ID
                 event.peer->data = malloc(sizeof(int));
