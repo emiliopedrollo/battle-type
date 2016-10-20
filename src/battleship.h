@@ -15,6 +15,13 @@ typedef enum {
 } BATTLESHIP_MOVE_STATE;
 
 typedef enum {
+    BATTLESHIP_OWNER_NONE,
+    BATTLESHIP_OWNER_PLAYER,
+    BATTLESHIP_OWNER_OPPONENT,
+    BATTLESHIP_OWNER_SPECIAL,
+} BATTLESHIP_OWNER;
+
+typedef enum {
     BATTLESHIP_CLASS_1,
     BATTLESHIP_CLASS_2,
     BATTLESHIP_CLASS_3,
@@ -33,6 +40,7 @@ typedef struct {
     TURNING_DIRECTION turning_direction;
     BATTLESHIP_CLASS class;
     ALLEGRO_BITMAP *bmp;
+    BATTLESHIP_OWNER owner;
     int turning_frame;
     float dx,dy;
     float vx,vy;
