@@ -18,15 +18,16 @@ bool client_connected;
 bool connection_set_to_close;
 pthread_t client_thread;
 ENetHost *client;
+ENetPeer *peer;
 
 ENetHost* create_client(void);
 pthread_t init_client_thread(ENetHost *client);
 ENetPeer* create_peer(ENetHost *client, ENetAddress address, unsigned short port);
+void disconnect_peer(ENetHost *client, ENetPeer *peer);
 
 bool connect_client(char* host_ip){
     unsigned short port = DEFAULT_PORT;
     ENetAddress host_address;
-    ENetPeer *peer;
 
     if (client_connected) return true;
     client_connected = true;
@@ -37,7 +38,7 @@ bool connect_client(char* host_ip){
 
     enet_address_set_host(&host_address, host_ip);
     client = create_client();
-    peer = create_peer(client, host_address, port);
+    peer = create_peer(client, host_address, port); // TODO: Sent to thread
 
     client_thread = init_client_thread(client);
 
@@ -48,6 +49,7 @@ void disconnect_client(){
     connection_set_to_close = true;
     pthread_join(client_thread,NULL);
 
+    disconnect_peer(client, peer); // TODO: Sent to thread
     enet_host_destroy(client);
     enet_deinitialize();
     client_connected = false;
@@ -69,6 +71,32 @@ void *client_loop(void *arguments){
 
     pthread_exit(NULL);
 }
+
+void disconnect_peer(ENetHost *client, ENetPeer *peer){
+    enet_peer_disconnect(peer, 0);
+
+    /* Allow up to 3 seconds for the disconnect to succeed
+     * and drop any packets received packets.
+     */
+    ENetEvent event;
+    while (enet_host_service (client, &event, 3000) > 0) {
+        switch (event.type) {
+            case ENET_EVENT_TYPE_RECEIVE:
+                enet_packet_destroy(event.packet);
+                break;
+            case ENET_EVENT_TYPE_DISCONNECT:
+                puts("Client: Disconnect succeeded.");
+                return;
+            case ENET_EVENT_TYPE_NONE:
+            case ENET_EVENT_TYPE_CONNECT:
+                break;
+        }
+    }
+
+    // failed to disconnect gracefully, force the connection closed
+    enet_peer_reset(peer);
+}
+
 
 ENetPeer* create_peer(ENetHost *client, ENetAddress address, unsigned short port){
     //ENetAddress address;
