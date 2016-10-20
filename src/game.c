@@ -34,7 +34,7 @@ void init_starter_battleships(){
         host_ships[i] = init_battleship(BATTLESHIP_CLASS_5,
                                         (rand()%max_rand)+half_ship, DISPLAY_H + ship_height/2 );
         change_battleship_state(host_ships[i],BATTLESHIP_MOVE_STATE_IN_GAME);
-        client_ships[i]->owner = BATTLESHIP_OWNER_PLAYER;
+        host_ships[i]->owner = BATTLESHIP_OWNER_PLAYER;
     }
 
     for (int i = 0; i < 3; i++){
