@@ -55,7 +55,7 @@ typedef struct {
     void (*push_back_callback)(void);
 } BATTLESHIP;
 
-BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, int dx, int dy);
+BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, float dx, float dy);
 void change_battleship_state(BATTLESHIP *battleship,BATTLESHIP_MOVE_STATE state);
 void move_ship(BATTLESHIP *battleship);
 void draw_ship(BATTLESHIP *battleship);

@@ -96,7 +96,7 @@ void *client_loop(void *arguments){
 
 void client_send_receive(ENetHost *client){
     ENetEvent event;
-//    ServerMessage *msg;
+    SERVER_MESSAGE *msg;
 
     // Check if we have any queued incoming messages, but do not wait otherwise.
     // This also sends outgoing messages queued with enet_peer_send.
@@ -104,6 +104,13 @@ void client_send_receive(ENetHost *client){
         // clients only care about incoming packets, they will not receive
         // connect/disconnect events.
         if (event.type == ENET_EVENT_TYPE_RECEIVE) {
+            msg = (SERVER_MESSAGE*)event.packet->data;
+            switch (msg->type){
+                case MESSAGE_TYPE_GAME_SNAPSHOP:
+                    game = msg->game;
+                    break;
+            }
+
 //            msg = (ServerMessage*)event.packet->data;
 
 //            switch (msg->type) {
