@@ -40,7 +40,7 @@ int get_battleship_width(BATTLESHIP_CLASS class){
     }
 }
 
-BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, int dx, int dy){
+BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, float dx, float dy){
 
     BATTLESHIP* battleship = malloc(sizeof(BATTLESHIP));
     float vx,vy;
