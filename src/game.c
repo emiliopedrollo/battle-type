@@ -50,6 +50,11 @@ void init_starter_battleships(){
 
 void draw_game_ships(){
     for (int i =0; i < MAX_SHIPS_FOR_PLAYERS; i++){
+        for(int j =0; j < MAX_SHIPS_FOR_PLAYERS; j++){
+
+        }
+    }
+    for (int i =0; i < MAX_SHIPS_FOR_PLAYERS; i++){
         if (host_ships[i] && host_ships[i]->active) draw_ship(host_ships[i]);
         if (client_ships[i] && client_ships[i]->active) draw_ship(client_ships[i]);
     }
