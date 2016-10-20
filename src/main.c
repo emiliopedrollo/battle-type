@@ -27,17 +27,22 @@ const int DISPLAY_H = 800, DISPLAY_W = 500;
 bool exiting = false;
 bool DEBUG = true;
 
+int change_game_state_step_remaining = 0;
+GAME_STATE changing_game_state;
+
 void init_display();
 void destroy_display();
 void load_resources();
 void unload_resources();
-bool on_game_state_change(GAME_STATE old_state, GAME_STATE new_state);
+void draw_background();
+//bool on_game_state_change(GAME_STATE old_state, GAME_STATE new_state);
 void do_the_loop(ALLEGRO_EVENT_QUEUE *queue);
 void on_key_press(ALLEGRO_KEYBOARD_EVENT keyboard_event);
 void on_mouse_move(int x, int y);
 void on_mouse_down(int x, int y);
 void on_mouse_up(int x, int y);
 void on_redraw();
+
 ALLEGRO_EVENT_QUEUE* create_queue();
 
 int main(int argc, char** argv) {
@@ -177,18 +182,51 @@ void destroy_display(){
 
 // Change Events
 void change_game_state(GAME_STATE state){
-    if (on_game_state_change(current_game_state,state))
-        current_game_state = state;
+
+    changing_game_state = state;
+
+    switch (current_game_state){
+        case GAME_STATE_MAIN_MENU:
+            change_game_state_step_remaining =
+                    on_game_state_changing_count_steps_menu_screen(state);
+            start_game_state_change_menu_screen(state);
+            break;
+        default:
+            current_game_state = state;
+            break;
+    }
+
+    if (change_game_state_step_remaining < 1){
+        check_game_state_complete();
+    }
+
 }
 
-bool on_game_state_change(GAME_STATE old_state, GAME_STATE new_state){
-
-    return on_game_state_change_menu_screen(old_state,new_state);
+void check_game_state_complete(){
+    if (--change_game_state_step_remaining == 0){
+        if (changing_game_state != GAME_STATE_NONE){
+            current_game_state = changing_game_state;
+            changing_game_state = GAME_STATE_NONE;
+        }
+    }
 }
+
+//bool on_game_state_change(GAME_STATE old_state, GAME_STATE new_state){
+//
+//
+//    return false;
+//    //return on_game_state_change_menu_screen(old_state,new_state);
+//}
 
 // OnEvents
 void on_key_press(ALLEGRO_KEYBOARD_EVENT keyboard_event){
-    on_key_press_menu_screen(keyboard_event);
+    if(current_game_state == GAME_STATE_MAIN_MENU){
+        on_key_press_menu_screen(keyboard_event);
+    }   else if (current_game_state == GAME_STATE_IN_GAME){
+
+        current_game_flow_state = (current_game_flow_state == GAME_FLOW_STATE_PAUSE)?
+                                  GAME_FLOW_STATE_RUNNING:GAME_FLOW_STATE_PAUSE;
+    }
 }
 
 void on_mouse_move(int x, int y){
@@ -204,7 +242,12 @@ void on_mouse_up(int x, int y){
 }
 
 void on_redraw(){
+    al_clear_to_color(al_map_rgb_f(0, 0, 0));
+    draw_background();
+
     on_redraw_menu_screen();
+
+    al_flip_display();
 }
 
 void do_the_loop(ALLEGRO_EVENT_QUEUE *queue){
@@ -241,6 +284,23 @@ void do_the_loop(ALLEGRO_EVENT_QUEUE *queue){
         if (redraw && al_is_event_queue_empty(queue)) {
             redraw = false;
             on_redraw();
+        }
+    }
+}
+
+void draw_background(){
+    static int x=1,y=1;
+    int bgw = al_get_bitmap_width(bmp_background);
+    int bgh = al_get_bitmap_height(bmp_background);
+    int i,j=y-bgh;
+    x=(x < -bgw)?1:x;
+    y=(y >  bgh)?1:y;
+    x--;
+    y++;
+    for(i=x; i<DISPLAY_W; i+=bgw){
+        al_draw_bitmap(bmp_background,i,j,0);
+        for(j=y-bgh; j<DISPLAY_H; j+=bgh){
+            al_draw_bitmap(bmp_background,i,j,0);
         }
     }
 }

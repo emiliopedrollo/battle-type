@@ -29,10 +29,12 @@ typedef struct {
     float dx,dy;
     float vx,vy;
     float vxi,vyi;
+    bool push_back_ended;
     bool push_back_done;
     bool push_back_set_speed;
     int push_back_frame;
     int push_back_k;
+    void (*push_back_callback)(void);
 } BATTLESHIP;
 
 BATTLESHIP* init_battleship(ALLEGRO_BITMAP *bmp, int dx, int dy, int vx, int vy);

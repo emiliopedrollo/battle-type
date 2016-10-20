@@ -11,13 +11,14 @@
 
 bool is_mouse_down = false;
 bool is_mouse_down_on_button = false;
+bool draw_menu_buttons = true;
 Button buttons[9];
 
 BATTLESHIP* demo_ship;
 
 void init_menu_buttons();
 void init_demo_ship();
-void draw_background();
+
 void draw_demo_ship();
 void draw_menu();
 void on_button_click(int index);
@@ -67,17 +68,40 @@ void load_resources_menu_screen(){
 void unload_resources_menu_screen(){
 }
 
-bool on_game_state_change_menu_screen(GAME_STATE old_state, GAME_STATE new_state){
-
-    if (old_state == GAME_STATE_MAIN_MENU){
-        if (new_state == GAME_STATE_IN_GAME){
-            change_battleship_state(demo_ship,BATTLESHIP_MOVE_STATE_DEMO_PUSHBACK);
-            return true;
-        }
+int on_game_state_changing_count_steps_menu_screen(GAME_STATE new_state){
+    switch (new_state){
+        case GAME_STATE_IN_GAME:
+            return 1;
+        default:
+            return -1;
     }
-
-    return true;
 }
+
+void demo_ship_push_back_callback(){
+    check_game_state_complete();
+}
+
+void start_game_state_change_menu_screen(GAME_STATE new_state){
+    switch (new_state){
+        case GAME_STATE_IN_GAME:
+            draw_menu_buttons = false;
+            demo_ship->push_back_callback = demo_ship_push_back_callback;
+            change_battleship_state(demo_ship,BATTLESHIP_MOVE_STATE_DEMO_PUSHBACK);
+        default:
+            break;
+    }
+}
+
+//bool on_game_state_change_menu_screen(GAME_STATE old_state, GAME_STATE new_state){
+//
+//    if (old_state == GAME_STATE_MAIN_MENU){
+//        if (new_state == GAME_STATE_IN_GAME){
+//            return true;
+//        }
+//    }
+//
+//    return true;
+//}
 
 void init_menu_buttons(){  
     int margin = 20;
@@ -117,26 +141,9 @@ void init_menu_buttons(){
 
 void init_demo_ship(){
     demo_ship = init_battleship(bmd_demo_battleship,
-        DISPLAY_W/2,DISPLAY_H/2,3,1);
+        DISPLAY_W/2,DISPLAY_H/2,3,-1);
 
     change_battleship_state(demo_ship,BATTLESHIP_MOVE_STATE_DEMO);
-}
-
-void draw_background(){
-    static int x=1,y=1;
-    int bgw = al_get_bitmap_width(bmp_background);
-    int bgh = al_get_bitmap_height(bmp_background);
-    int i,j=y-bgh;
-    x=(x < -bgw)?1:x;
-    y=(y >  bgh)?1:y;
-    x--;
-    y++;
-    for(i=x; i<DISPLAY_W; i+=bgw){
-        al_draw_bitmap(bmp_background,i,j,0);
-        for(j=y-bgh; j<DISPLAY_H; j+=bgh){
-            al_draw_bitmap(bmp_background,i,j,0);
-        }                    
-    }
 }
 
 void draw_demo_ship(){
@@ -232,22 +239,17 @@ void on_button_click(int index){
 void on_key_press_menu_screen(ALLEGRO_KEYBOARD_EVENT event){
 
     if (event.keycode == ALLEGRO_KEY_ESCAPE){
-        if(current_game_state == GAME_STATE_MAIN_MENU){
-            switch (current_menu_screen){
-                case MENU_SCREEN_MAIN:
-                    exiting = true;
-                    break;
-                case MENU_SCREEN_MULTIPLAYER_SELECT:
-                    change_menu_state(MENU_SCREEN_MAIN);
-                    break;
-                case MENU_SCREEN_MULTIPLAYER_JOIN:
-                case MENU_SCREEN_MULTIPLAYER_HOST:
-                    change_menu_state(MENU_SCREEN_MULTIPLAYER_SELECT);
-                    break;
-            }
-        } else if (current_game_state == GAME_STATE_IN_GAME){
-            current_game_flow_state = (current_game_flow_state == GAME_FLOW_STATE_PAUSE)?
-                                      GAME_FLOW_STATE_RUNNING:GAME_FLOW_STATE_PAUSE;
+        switch (current_menu_screen){
+            case MENU_SCREEN_MAIN:
+                exiting = true;
+                break;
+            case MENU_SCREEN_MULTIPLAYER_SELECT:
+                change_menu_state(MENU_SCREEN_MAIN);
+                break;
+            case MENU_SCREEN_MULTIPLAYER_JOIN:
+            case MENU_SCREEN_MULTIPLAYER_HOST:
+                change_menu_state(MENU_SCREEN_MULTIPLAYER_SELECT);
+                break;
         }
     }
 
@@ -312,7 +314,7 @@ void on_key_press_menu_screen(ALLEGRO_KEYBOARD_EVENT event){
 
 void on_mouse_move_menu_screen(int x, int y){
 
-    if (current_game_state == GAME_STATE_MAIN_MENU){
+    if (draw_menu_buttons){
 
         bool is_over_button = false;
 
@@ -374,12 +376,8 @@ void on_mouse_up_menu_screen(int x, int y){
 }
 
 void on_redraw_menu_screen(){
-    al_clear_to_color(al_map_rgb_f(0, 0, 0));  
 
-    draw_background();
     draw_demo_ship();
+    if (draw_menu_buttons) draw_menu();
 
-    if (current_game_state == GAME_STATE_MAIN_MENU) draw_menu();
-    
-    al_flip_display();
 }

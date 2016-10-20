@@ -18,6 +18,7 @@ extern bool exiting;
 extern bool DEBUG;
 
 typedef enum {
+    GAME_STATE_NONE,
     GAME_STATE_MAIN_MENU,
     GAME_STATE_IN_GAME,
 } GAME_STATE;
@@ -36,5 +37,6 @@ void load_font(ALLEGRO_FONT* *font, ALLEGRO_FILE* *file,int size, int flags);
 void load_bitmap(ALLEGRO_BITMAP* *bitmap, ALLEGRO_FILE* *file, char* ident);
 
 void change_game_state(GAME_STATE state);
+void check_game_state_complete();
 
 #endif //BATTLE_TYPE_MAIN_H
