@@ -23,8 +23,11 @@ typedef struct {
 typedef struct {
     SERIAL_BATTLESHIP host_ships[10];
     SERIAL_BATTLESHIP client_ships[10];
+    int host_cash, client_cash;
 } GAME_SNAPSHOT;
 
+extern int game_bs_host_limit;
+extern int game_bs_client_limit;
 extern GAME_SNAPSHOT game;
 
 #endif //BATTLE_TYPE_GAME_H

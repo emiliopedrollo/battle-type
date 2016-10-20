@@ -10,6 +10,9 @@ BATTLESHIP* client_ships[10];
 
 GAME_SNAPSHOT game;
 
+int game_bs_host_limit;
+int game_bs_client_limit;
+
 void init_starter_battleships();
 void move_game_ships();
 void draw_game_ships();
