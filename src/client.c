@@ -37,8 +37,8 @@ bool connect_client(char* host_ip,
     unsigned short port = DEFAULT_PORT;
     ENetAddress host_address;
 
-    client_connected = true;
     if (client_connected) return true;
+    client_connected = true;
 
     on_success_client_connect = on_success_connect_callback;
     on_failure_client_connect = on_failure_connect_callback;
