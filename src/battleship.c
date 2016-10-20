@@ -97,7 +97,7 @@ void change_battleship_state(BATTLESHIP *battleship,BATTLESHIP_MOVE_STATE state)
 
 }
 
-void draw_ship(BATTLESHIP *battleship){
+void move_ship(BATTLESHIP *battleship) {
 
     //static TURNING_DIRECTION turning_direction = TURNING_DIRECTION_NONE;
     //const float dvx = 0.8;
@@ -110,33 +110,34 @@ void draw_ship(BATTLESHIP *battleship){
     int bsh = al_get_bitmap_height(battleship->bmp);
     int n_frames_pushback_placement = 120;
 
-    switch (battleship->state){
+    switch (battleship->state) {
         case BATTLESHIP_MOVE_STATE_DEMO:
             dist_r = (DISPLAY_W-(battleship->dx+bsw/2)<=0)?1:DISPLAY_W-(battleship->dx+bsw/2);
             dist_l = (battleship->dx-bsw/2<=0)?1:battleship->dx-bsw/2;
             //static int turning_frame = 0;
-            double prob,mod=(rand()%100)/100.0;
+            double prob, mod = (rand() % 100) / 100.0;
 
             // Calcula chance de inverter velocidade horizontal
             prob=(battleship->vx>0)?(1.0/pow(dist_r,7.0/8.0))+mod:(1.0/pow(dist_l,7.0/8.0))+mod;
 
             // Inverte a velocidade vertical ao se aproximar das bordas de cima ou de baixo
-            battleship->vy=((battleship->vy>0 && (bsh+battleship->dy+(bsh/2))==DISPLAY_H-270)||
-                    (battleship->vy<0 && battleship->dy-(bsh/2)==20))?battleship->vy*(-1):battleship->vy;
+            battleship->vy = ((battleship->vy > 0 && (bsh + battleship->dy + (bsh / 2)) == DISPLAY_H - 270) ||
+                              (battleship->vy < 0 && battleship->dy - (bsh / 2) == 20)) ? battleship->vy * (-1)
+                                                                                        : battleship->vy;
 
 
             if (prob >= 1 && battleship->turning_direction == TURNING_DIRECTION_NONE)
-                battleship->turning_direction = (battleship->vx>0)?TURNING_DIRECTION_LEFT:TURNING_DIRECTION_RIGHT;
+                battleship->turning_direction = (battleship->vx > 0) ? TURNING_DIRECTION_LEFT : TURNING_DIRECTION_RIGHT;
 
-            if (battleship->turning_direction != TURNING_DIRECTION_NONE){
+            if (battleship->turning_direction != TURNING_DIRECTION_NONE) {
                 battleship->turning_frame++;
-                dvx = (float)fabs(battleship->vxi)/10;
+                dvx = (float) fabs(battleship->vxi) / 10;
 
-                battleship->vx = (battleship->turning_direction == TURNING_DIRECTION_LEFT)?
-                                 battleship->vx-dvx : battleship->vx+dvx ;
-                if (battleship->turning_frame > 10){
+                battleship->vx = (battleship->turning_direction == TURNING_DIRECTION_LEFT) ?
+                                 battleship->vx - dvx : battleship->vx + dvx;
+                if (battleship->turning_frame > 10) {
                     battleship->turning_direction = TURNING_DIRECTION_NONE;
-                    battleship->vx = ((battleship->vx > 0) ? 1 : -1) * (float)fabs(battleship->vxi);
+                    battleship->vx = ((battleship->vx > 0) ? 1 : -1) * (float) fabs(battleship->vxi);
                 }
             } else battleship->turning_frame = 0;
 
@@ -145,32 +146,32 @@ void draw_ship(BATTLESHIP *battleship){
             break;
         case BATTLESHIP_MOVE_STATE_DEMO_PUSHBACK:
 
-            if (!battleship->push_back_set_speed){
+            if (!battleship->push_back_set_speed) {
                 battleship->push_back_set_speed = true;
-                battleship->vx = ((DISPLAY_W/2)-battleship->dx)/n_frames_pushback_placement;
-                battleship->vy = ((DISPLAY_H/2)-battleship->dy)/n_frames_pushback_placement;
+                battleship->vx = ((DISPLAY_W / 2) - battleship->dx) / n_frames_pushback_placement;
+                battleship->vy = ((DISPLAY_H / 2) - battleship->dy) / n_frames_pushback_placement;
             }
 
-            if (battleship->push_back_k++ < n_frames_pushback_placement){
-                battleship->dx+=battleship->vx;
-                battleship->dy+=battleship->vy;
+            if (battleship->push_back_k++ < n_frames_pushback_placement) {
+                battleship->dx += battleship->vx;
+                battleship->dy += battleship->vy;
             } else if (!battleship->push_back_done) {
-                if (battleship->push_back_frame++ < 60){
+                if (battleship->push_back_frame++ < 60) {
                     battleship->dy++;
                 } else battleship->push_back_done = true;
-            } else if (battleship->dy > -bsh){
-                battleship->dy-=pow(1.2,++battleship->vy);
+            } else if (battleship->dy > -bsh) {
+                battleship->dy -= pow(1.2, ++battleship->vy);
             } else if (!battleship->push_back_ended) {
                 battleship->push_back_ended = true;
                 battleship->push_back_callback();
             }
             break;
         case BATTLESHIP_MOVE_STATE_IN_GAME:
-            if(battleship->owner == BATTLESHIP_OWNER_PLAYER){
-                dist_r = (DISPLAY_W-(battleship->dx+bsw/2)<=0)?1:DISPLAY_W-(battleship->dx+bsw/2);
-                dist_l = (battleship->dx-bsw/2<=0)?1:battleship->dx-bsw/2;
+            if (battleship->owner == BATTLESHIP_OWNER_PLAYER) {
+                dist_r = (DISPLAY_W - (battleship->dx + bsw / 2) <= 0) ? 1 : DISPLAY_W - (battleship->dx + bsw / 2);
+                dist_l = (battleship->dx - bsw / 2 <= 0) ? 1 : battleship->dx - bsw / 2;
                 //static int turning_frame = 0;
-                double prob,mod=(rand()%100)/100.0;
+                double prob, mod = (rand() % 100) / 100.0;
 
                 // Calcula chance de inverter velocidade horizontal
                 prob=(battleship->vx>0)?(1.0/pow(dist_r,7.0/8.0))+mod:(1.0/pow(dist_l,7.0/8.0))+mod;
@@ -181,17 +182,18 @@ void draw_ship(BATTLESHIP *battleship){
 
 
                 if (prob >= 1 && battleship->turning_direction == TURNING_DIRECTION_NONE)
-                    battleship->turning_direction = (battleship->vx>0)?TURNING_DIRECTION_LEFT:TURNING_DIRECTION_RIGHT;
+                    battleship->turning_direction = (battleship->vx > 0) ? TURNING_DIRECTION_LEFT
+                                                                         : TURNING_DIRECTION_RIGHT;
 
-                if (battleship->turning_direction != TURNING_DIRECTION_NONE){
+                if (battleship->turning_direction != TURNING_DIRECTION_NONE) {
                     battleship->turning_frame++;
-                    dvx = (float)fabs(battleship->vxi)/10;
+                    dvx = (float) fabs(battleship->vxi) / 10;
 
-                    battleship->vx = (battleship->turning_direction == TURNING_DIRECTION_LEFT)?
-                                     battleship->vx-dvx : battleship->vx+dvx ;
-                    if (battleship->turning_frame > 10){
+                    battleship->vx = (battleship->turning_direction == TURNING_DIRECTION_LEFT) ?
+                                     battleship->vx - dvx : battleship->vx + dvx;
+                    if (battleship->turning_frame > 10) {
                         battleship->turning_direction = TURNING_DIRECTION_NONE;
-                        battleship->vx = ((battleship->vx > 0) ? 1 : -1) * (float)fabs(battleship->vxi);
+                        battleship->vx = ((battleship->vx > 0) ? 1 : -1) * (float) fabs(battleship->vxi);
                     }
                 } else battleship->turning_frame = 0;
 
@@ -202,6 +204,12 @@ void draw_ship(BATTLESHIP *battleship){
         default:
             break;
     }
+}
+
+void draw_ship(BATTLESHIP *battleship){
+
+    int bsh = get_battleship_height(battleship->class);
+    int bsw = get_battleship_width(battleship->class);
 
     al_draw_bitmap(battleship->bmp,battleship->dx-(bsw/2),battleship->dy-(bsh/2), 0);
 
