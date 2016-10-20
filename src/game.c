@@ -57,23 +57,34 @@ void init_starter_battleships(){
 }
 
 void move_game_ships(){
-    for (int i =0; i < MAX_SHIPS_FOR_PLAYERS; i++){
+
+    game_bs_host_limit = 0;
+    game_bs_client_limit = DISPLAY_H;
+
+    int ship_bound;
+
+    // Encontra limite para movimento dos battleships do host
+    for (int i=0;i< MAX_SHIPS_FOR_PLAYERS;i++) {
+        if (!client_ships[i]) continue;
+        ship_bound = (int) client_ships[i]->dy + get_battleship_height(client_ships[i]->class) / 2;
+        game_bs_host_limit = (ship_bound > game_bs_host_limit) ? ship_bound : game_bs_host_limit;
+    }
+
+    //Move os battleships do host
+    for (int i =0; i < MAX_SHIPS_FOR_PLAYERS; i++) {
         if (host_ships[i] && host_ships[i]->active) move_ship(host_ships[i]);
+    }
+
+    // Encontra limite para movimento dos battleships do client
+    for (int i=0;i< MAX_SHIPS_FOR_PLAYERS;i++){
+        if (!host_ships[i]) continue;
+        ship_bound = (int)host_ships[i]->dy - get_battleship_height(host_ships[i]->class)/2;
+        game_bs_client_limit = ( ship_bound < game_bs_host_limit ) ? ship_bound : game_bs_host_limit;
+    }
+
+    //Move os battleships do client
+    for (int i =0; i < MAX_SHIPS_FOR_PLAYERS; i++){
         if (client_ships[i] && client_ships[i]->active) move_ship(client_ships[i]);
-
-        //int bsh = get_battleship_height(client_ships[j]);
-
-        for (int i =0; i < MAX_SHIPS_FOR_PLAYERS; i++){
-            for(int j =0; j < MAX_SHIPS_FOR_PLAYERS; j++){
-
-                host_ships[i]->limit =
-                        (fabs(host_ships[i]->dy - (client_ships[j]->dy + get_battleship_height(client_ships[j]->class))) < host_ships[i]->limit)
-                        ?fabs(host_ships[i]->dy - (client_ships[j]->dy + get_battleship_height(client_ships[j]->class))):host_ships[i]->limit;
-                client_ships[j]->limit =
-                        (fabs(host_ships[i]->dy - (client_ships[j]->dy + get_battleship_height(client_ships[j]->class))) < client_ships[j]->limit)
-                        ?fabs(host_ships[i]->dy - (client_ships[j]->dy + get_battleship_height(client_ships[j]->class))):client_ships[j]->limit;
-            }
-        }
     }
 }
 
