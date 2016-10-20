@@ -85,6 +85,8 @@ void server_send_receive(){
 
 void update_game(){
 
+    if (client == NULL) return;
+
     // notify all clients of this player's new position
     SERVER_MESSAGE msg;
     msg.type = MESSAGE_TYPE_GAME_SNAPSHOP;
