@@ -25,7 +25,9 @@ bool server_set_to_stop = false;
 pthread_t server_thread;
 ENetHost *host;
 
-void start_server(){
+void (*on_server_client_connect)(void);
+
+void start_server(void (*on_client_connect_callback)(void)){
 
     unsigned short port = DEFAULT_PORT;
     char *binder = "0.0.0.0";
@@ -34,6 +36,8 @@ void start_server(){
 
     if (server_running) return;
     server_running = true;
+
+    on_server_client_connect = on_client_connect_callback;
 
     if (enet_initialize() != 0) {
         fprintf(stderr, "An error occurred while initializing ENet.\n");
@@ -66,6 +70,7 @@ void server_send_receive(){
                 printf("Server: A new client connected from %x:%hu.\n",
                        event.peer->address.host,
                        event.peer->address.port);
+                on_server_client_connect();
                 break;
             case ENET_EVENT_TYPE_DISCONNECT:
                 printf("Server: client disconnected.\n");
@@ -97,7 +102,6 @@ void *server_loop(void *arguments){
     queue = al_create_event_queue();
     al_register_event_source(queue, al_get_timer_event_source(timer));
     al_start_timer(timer);
-
 
     while (!server_set_to_stop){
         al_wait_for_event(queue, &event_timer);

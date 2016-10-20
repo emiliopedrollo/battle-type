@@ -308,7 +308,7 @@ void on_redraw(){
     al_clear_to_color(al_map_rgb_f(0, 0, 0));
     draw_background();
 
-    if (changing_game_state == GAME_STATE_MAIN_MENU){
+    if (current_game_state == GAME_STATE_MAIN_MENU){
         on_redraw_menu_screen();
     }
 

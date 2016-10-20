@@ -214,6 +214,12 @@ void on_failure_connect(){
 
 }
 
+void on_client_connect(){
+
+    change_game_state(GAME_STATE_IN_GAME);
+
+}
+
 void on_button_click(int index){
 
     switch (index){
@@ -237,7 +243,7 @@ void on_button_click(int index){
             break;
         case BTN_MULTIPLAYER_HOST:
             change_menu_state(MENU_SCREEN_MULTIPLAYER_HOST);
-            start_server();
+            start_server(on_client_connect);
             break;
         case BTN_MULTIPLAYER_JOIN_CANCEL:
             change_menu_state(MENU_SCREEN_MULTIPLAYER_SELECT);
@@ -332,6 +338,10 @@ void on_key_press_menu_screen(ALLEGRO_KEYBOARD_EVENT event){
             case ALLEGRO_KEY_PAD_9:
             case ALLEGRO_KEY_9:
                 add = "9";
+                break;
+            case ALLEGRO_KEY_PAD_ENTER:
+            case ALLEGRO_KEY_ENTER:
+                on_button_click(BTN_MULTIPLAYER_JOIN_ENTER);
                 break;
             default:
                 break;

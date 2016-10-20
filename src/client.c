@@ -37,12 +37,11 @@ bool connect_client(char* host_ip,
     unsigned short port = DEFAULT_PORT;
     ENetAddress host_address;
 
+    client_connected = true;
+    if (client_connected) return true;
+
     on_success_client_connect = on_success_connect_callback;
     on_failure_client_connect = on_failure_connect_callback;
-
-
-    if (client_connected) return true;
-    client_connected = true;
 
     if (enet_initialize() != 0) {
         fprintf(stderr, "An error occurred while initializing ENet.\n");
