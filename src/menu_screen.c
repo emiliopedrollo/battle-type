@@ -142,8 +142,12 @@ void init_menu_buttons(){
 }
 
 void init_demo_ship(){
-    demo_ship = init_battleship(bmd_demo_battleship,
-        DISPLAY_W/2,DISPLAY_H/2,3,-1);
+    demo_ship = init_battleship(BATTLESHIP_CLASS_5,
+        DISPLAY_W/2,DISPLAY_H/2);
+
+    demo_ship->vx = 3;
+    demo_ship->vxi = 3;
+    demo_ship->vy = -1;
 
     change_battleship_state(demo_ship,BATTLESHIP_MOVE_STATE_DEMO);
 }

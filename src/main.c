@@ -16,6 +16,7 @@
 //#include "server.h"
 #include "../alphas/allegro_samples/ex_enet_server.h"
 #include "../alphas/allegro_samples/ex_enet_client.h"
+#include "game.h"
 //#include "alphas/allegro_samples/ex_enet_server.h"
 //#include "alphas/allegro_samples/ex_enet_client.h"
 
@@ -183,6 +184,7 @@ void load_resources(){
 
     load_resources_menu_screen();
     load_resources_battleship();
+    load_resources_game();
 
 }
 
@@ -205,6 +207,7 @@ void load_bitmap(ALLEGRO_BITMAP* *bitmap, ALLEGRO_FILE* *file, char* ident){
 void unload_resources(){
     unload_resources_menu_screen();
     unload_resources_battleship();
+    unload_resources_game();
 
     al_destroy_bitmap(bmp_background);
     al_destroy_font(main_font);
@@ -257,7 +260,7 @@ void on_changed_game_state(){
             init_menu_screen();
             break;
         case GAME_STATE_IN_GAME:
-
+            init_game();
             break;
         default:
             break;
@@ -310,6 +313,8 @@ void on_redraw(){
 
     if (current_game_state == GAME_STATE_MAIN_MENU){
         on_redraw_menu_screen();
+    } else if (current_game_state == GAME_STATE_IN_GAME){
+        on_redraw_game();
     }
 
     al_flip_display();

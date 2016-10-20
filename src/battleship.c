@@ -11,25 +11,58 @@
 #include "main.h"
 #include "resources/img/battleship.png.h"
 
-
-ALLEGRO_BITMAP *bmd_demo_battleship;
+ALLEGRO_BITMAP *bmp_bs_c5;
 
 void load_resources_battleship(){
-    ALLEGRO_FILE* battleship_png = al_open_memfile(img_battleship_png,img_battleship_png_len,"r");
-    load_bitmap(&bmd_demo_battleship,&battleship_png,".png");
+    ALLEGRO_FILE* battleship_c5_png = al_open_memfile(img_battleship_png,img_battleship_png_len,"r");
+    load_bitmap(&bmp_bs_c5,&battleship_c5_png,".png");
 }
 
 void unload_resources_battleship(){
-    al_destroy_bitmap(bmd_demo_battleship);
+    al_destroy_bitmap(bmp_bs_c5);
 }
 
-BATTLESHIP* init_battleship(ALLEGRO_BITMAP *bmp, int dx, int dy, int vx, int vy){
+int get_battleship_height(BATTLESHIP_CLASS class){
+    switch (class){
+        case BATTLESHIP_CLASS_5:
+            return 84;
+        default:
+            return 0;
+    }
+}
+
+int get_battleship_width(BATTLESHIP_CLASS class){
+    switch (class){
+        case BATTLESHIP_CLASS_5:
+            return 90;
+        default:
+            return 0;
+    }
+}
+
+BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, int dx, int dy){
 
     BATTLESHIP* battleship = malloc(sizeof(BATTLESHIP));
+    float vx,vy;
 
-    battleship->bmp = bmp;
+    battleship->class = class;
+
+    switch (class){
+        case BATTLESHIP_CLASS_5:
+            battleship->bmp = bmp_bs_c5;
+            vx = 3; vy = 1;
+            break;
+        default:
+            battleship->bmp = bmp_bs_c5;
+            vx = 3; vy = 1;
+            break;
+    }
+
     battleship->dx = dx;
     battleship->dy = dy;
+
+
+
     battleship->vx = vx;
     battleship->vy = vy;
     battleship->vxi = vx;
