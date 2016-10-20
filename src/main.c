@@ -239,9 +239,6 @@ void change_game_state(GAME_STATE state){
                     on_game_state_changing_count_steps_menu_screen(state);
             start_game_state_change_menu_screen(state);
             break;
-        case GAME_STATE_IN_GAME:
-
-            break;
         default:
             current_game_state = state;
             on_changed_game_state();
@@ -259,7 +256,9 @@ void on_changed_game_state(){
         case GAME_STATE_MAIN_MENU:
             init_menu_screen();
             break;
-        case GAME_STATE_IN_GAME:
+        case GAME_STATE_IN_GAME_SINGLE_PLAYER:
+        case GAME_STATE_IN_GAME_MULTIPLAYER_HOST:
+        case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
             init_game();
             break;
         default:
@@ -286,12 +285,16 @@ void check_game_state_complete(){
 
 // OnEvents
 void on_key_press(ALLEGRO_KEYBOARD_EVENT keyboard_event){
-    if(current_game_state == GAME_STATE_MAIN_MENU){
-        on_key_press_menu_screen(keyboard_event);
-    }   else if (current_game_state == GAME_STATE_IN_GAME){
-
-        current_game_flow_state = (current_game_flow_state == GAME_FLOW_STATE_PAUSE)?
-                                  GAME_FLOW_STATE_RUNNING:GAME_FLOW_STATE_PAUSE;
+    switch (current_game_state){
+        case GAME_STATE_MAIN_MENU:
+            on_key_press_menu_screen(keyboard_event);
+            break;
+        case GAME_STATE_IN_GAME_SINGLE_PLAYER:
+            current_game_flow_state = (current_game_flow_state == GAME_FLOW_STATE_PAUSE)?
+                                      GAME_FLOW_STATE_RUNNING:GAME_FLOW_STATE_PAUSE;
+            break;
+        default:
+            break;
     }
 }
 
@@ -311,10 +314,17 @@ void on_redraw(){
     al_clear_to_color(al_map_rgb_f(0, 0, 0));
     draw_background();
 
-    if (current_game_state == GAME_STATE_MAIN_MENU){
-        on_redraw_menu_screen();
-    } else if (current_game_state == GAME_STATE_IN_GAME){
-        on_redraw_game();
+    switch (current_game_state){
+        case GAME_STATE_MAIN_MENU:
+            on_redraw_menu_screen();
+            break;
+        case GAME_STATE_IN_GAME_SINGLE_PLAYER:
+        case GAME_STATE_IN_GAME_MULTIPLAYER_HOST:
+        case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
+            on_redraw_game();
+            break;
+        default:
+            break;
     }
 
     al_flip_display();

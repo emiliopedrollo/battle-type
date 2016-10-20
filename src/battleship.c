@@ -45,6 +45,8 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, int dx, int dy){
     BATTLESHIP* battleship = malloc(sizeof(BATTLESHIP));
     float vx,vy;
 
+    battleship->active = true;
+
     battleship->class = class;
 
     switch (class){

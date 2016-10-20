@@ -72,7 +72,9 @@ void unload_resources_menu_screen(){
 
 int on_game_state_changing_count_steps_menu_screen(GAME_STATE new_state){
     switch (new_state){
-        case GAME_STATE_IN_GAME:
+        case GAME_STATE_IN_GAME_SINGLE_PLAYER:
+        case GAME_STATE_IN_GAME_MULTIPLAYER_HOST:
+        case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
             return 1;
         default:
             return -1;
@@ -85,7 +87,9 @@ void demo_ship_push_back_callback(){
 
 void start_game_state_change_menu_screen(GAME_STATE new_state){
     switch (new_state){
-        case GAME_STATE_IN_GAME:
+        case GAME_STATE_IN_GAME_SINGLE_PLAYER:
+        case GAME_STATE_IN_GAME_MULTIPLAYER_HOST:
+        case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
             draw_menu_buttons = false;
             demo_ship->push_back_callback = demo_ship_push_back_callback;
             change_battleship_state(demo_ship,BATTLESHIP_MOVE_STATE_DEMO_PUSHBACK);
@@ -208,7 +212,7 @@ void change_menu_state(MENU_SCREEN state){
 
 void on_success_connect(){
 
-    change_game_state(GAME_STATE_IN_GAME);
+    change_game_state(GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT);
 
 }
 
@@ -220,7 +224,7 @@ void on_failure_connect(){
 
 void on_client_connect(){
 
-    change_game_state(GAME_STATE_IN_GAME);
+    change_game_state(GAME_STATE_IN_GAME_MULTIPLAYER_HOST);
 
 }
 
@@ -228,7 +232,7 @@ void on_button_click(int index){
 
     switch (index){
         case BTN_SINGLE_PLAYER:
-            change_game_state(GAME_STATE_IN_GAME);
+            change_game_state(GAME_STATE_IN_GAME_SINGLE_PLAYER);
             //menu_buttons[1].visible = false;
             //menu_buttons[2].visible = false;
             //start_sp = true;

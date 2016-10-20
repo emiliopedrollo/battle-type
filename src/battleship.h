@@ -41,6 +41,7 @@ typedef struct {
     BATTLESHIP_CLASS class;
     ALLEGRO_BITMAP *bmp;
     BATTLESHIP_OWNER owner;
+    bool active;
     int turning_frame;
     float dx,dy;
     float vx,vy;

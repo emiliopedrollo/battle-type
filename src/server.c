@@ -6,10 +6,9 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <allegro5/altime.h>
-#include <allegro5/events.h>
-#include <allegro5/timer.h>
 #include "server.h"
 #include "enet_common.h"
+#include "utils.h"
 
 struct Host_Thread_Args{
     ENetAddress listener;
@@ -24,6 +23,7 @@ bool server_running = false;
 bool server_set_to_stop = false;
 pthread_t server_thread;
 ENetHost *host;
+ENetPeer *client;
 
 void (*on_server_client_connect)(void);
 
@@ -67,6 +67,7 @@ void server_send_receive(){
     while (enet_host_service(host, &event, 0) > 0) {
         switch (event.type){
             case ENET_EVENT_TYPE_CONNECT:
+                client = event.peer;
                 printf("Server: A new client connected from %x:%hu.\n",
                        event.peer->address.host,
                        event.peer->address.port);
@@ -82,12 +83,22 @@ void server_send_receive(){
     }
 }
 
+void update_game(){
+
+    // notify all clients of this player's new position
+    SERVER_MESSAGE msg;
+    msg.type = MESSAGE_TYPE_GAME_SNAPSHOP;
+    msg.game = game;
+
+    ENetPacket *packet = enet_packet_create(&msg,
+                                            sizeof(SERVER_MESSAGE),
+                                            ENET_PACKET_FLAG_RELIABLE);
+
+    enet_peer_send(client, 0, packet);
+
+}
+
 void *server_loop(void *arguments){
-
-    ALLEGRO_EVENT event_timer;
-
-    ALLEGRO_TIMER *timer;
-    ALLEGRO_EVENT_QUEUE *queue;
 
     struct Host_Thread_Args *args = (struct Host_Thread_Args*)arguments;
 
@@ -97,16 +108,10 @@ void *server_loop(void *arguments){
 
     server_set_to_stop = false;
 
-
-    timer = al_create_timer(1.0 / 30); // Run at 30FPS
-    queue = al_create_event_queue();
-    al_register_event_source(queue, al_get_timer_event_source(timer));
-    al_start_timer(timer);
-
     while (!server_set_to_stop){
-        al_wait_for_event(queue, &event_timer);
-        if (event_timer.type != ALLEGRO_EVENT_TIMER) continue;
         server_send_receive();
+        update_game();
+        msleep(16);
     }
     pthread_exit(NULL);
 }
@@ -146,3 +151,4 @@ ENetHost *create_server(ENetAddress listener) {
 
     return host;
 }
+
