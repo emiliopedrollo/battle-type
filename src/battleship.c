@@ -10,6 +10,7 @@
 #include <allegro5/allegro_memfile.h>
 #include "main.h"
 #include "resources/img/battleship.png.h"
+#include "game.h"
 
 ALLEGRO_BITMAP *bmp_bs_c5;
 
@@ -198,8 +199,8 @@ void move_ship(BATTLESHIP *battleship) {
                 } else battleship->turning_frame = 0;
 
                 battleship->dx += battleship->vx;
-                if(battleship->limit >= 50)
-                    battleship->dy -= battleship->vy;
+                battleship->dy = ((battleship->dy-45)-50>=game_bs_host_limit) ? battleship->dy - 1:battleship->dy;
+
             }else if(battleship->owner == BATTLESHIP_OWNER_OPPONENT){
                 dist_r = (DISPLAY_W-(battleship->dx+bsw/2)<=0)?1:DISPLAY_W-(battleship->dx+bsw/2);
                 dist_l = (battleship->dx-bsw/2<=0)?1:battleship->dx-bsw/2;
@@ -230,9 +231,7 @@ void move_ship(BATTLESHIP *battleship) {
                 } else battleship->turning_frame = 0;
 
                 battleship->dx += battleship->vx;
-
-                if(battleship->limit >= 50)
-                    battleship->dy += battleship->vy;
+                battleship->dy = (((battleship->dy-45)+bsh)+50<=game_bs_client_limit) ? battleship->dy + battleship->vy:battleship->dy;
             }
             break;
         default:

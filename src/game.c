@@ -79,7 +79,7 @@ void move_game_ships(){
     for (int i=0;i< MAX_SHIPS_FOR_PLAYERS;i++){
         if (!host_ships[i]) continue;
         ship_bound = (int)host_ships[i]->dy - get_battleship_height(host_ships[i]->class)/2;
-        game_bs_client_limit = ( ship_bound < game_bs_host_limit ) ? ship_bound : game_bs_host_limit;
+        game_bs_client_limit = ( ship_bound < game_bs_client_limit ) ? ship_bound : game_bs_client_limit;
     }
 
     //Move os battleships do client
