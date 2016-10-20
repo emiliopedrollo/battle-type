@@ -178,7 +178,7 @@ static ENetHost *create_server(ENetAddress address) {
     return server;
 }
 
-int start_server(char *listen, unsigned short port) {
+int start_ex_server(char *listen, unsigned short port) {
     ALLEGRO_TIMER *timer;
     ALLEGRO_EVENT_QUEUE *queue;
     ALLEGRO_EVENT event;

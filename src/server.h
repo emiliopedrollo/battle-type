@@ -5,4 +5,7 @@
 #ifndef BATTLE_TYPE_SERVER_H
 #define BATTLE_TYPE_SERVER_H
 
+void start_server();
+void stop_server();
+
 #endif //BATTLE_TYPE_SERVER_H

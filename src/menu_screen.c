@@ -7,6 +7,8 @@
 #include "menu_screen.h"
 #include "battleship.h"
 #include "utils.h"
+#include "server.h"
+#include "client.h"
 
 
 bool is_mouse_down = false;
@@ -218,13 +220,19 @@ void on_button_click(int index){
             change_menu_state(MENU_SCREEN_MULTIPLAYER_JOIN);
             break;
         case BTN_MULTIPLAYER_JOIN_ENTER:
+            connect_client(remote_ip);
             break;
         case BTN_MULTIPLAYER_HOST:
             change_menu_state(MENU_SCREEN_MULTIPLAYER_HOST);
+            start_server();
             break;
         case BTN_MULTIPLAYER_JOIN_CANCEL:
+            change_menu_state(MENU_SCREEN_MULTIPLAYER_SELECT);
+            disconnect_client();
+            break;
         case BTN_MULTIPLAYER_HOST_CANCEL:
             change_menu_state(MENU_SCREEN_MULTIPLAYER_SELECT);
+            stop_server();
             break;
         case BTN_MULTIPLAYER_BACK:
             change_menu_state(MENU_SCREEN_MAIN);

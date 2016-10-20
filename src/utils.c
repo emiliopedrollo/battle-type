@@ -1,14 +1,19 @@
 #define _GNU_SOURCE     /* To get defns of NI_MAXSERV and NI_MAXHOST */
 #include <arpa/inet.h>
-#include <sys/socket.h>
 #include <netdb.h>
 #include <ifaddrs.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <linux/if_link.h>
 #include <memory.h>
 #include <stdbool.h>
+
+#ifdef WIN32
+#include <windows.h>
+#elif _POSIX_C_SOURCE >= 199309L
+#include <time.h>   // for nanosleep
+#else
+#include <unistd.h> // for usleep
+#endif
 
 
 char *concat(char* part1, char* part2){
@@ -37,7 +42,7 @@ void get_list_of_interfaces(){
 
 char *get_ip_address(){
     struct ifaddrs *ifaddr, *ifa;
-    int family, s, n;
+    int s;
     static char host[NI_MAXHOST];
 
     if (getifaddrs(&ifaddr) == -1) {
@@ -82,13 +87,13 @@ void substr(char *buffer, size_t buflen, char const *source, int len)
         return;
     if (len > 0)
     {
-        sublen = len;
+        sublen = (size_t)len;
         nbytes = (sublen > srclen) ? srclen : sublen;
         offset = 0;
     }
     else if (len < 0)
     {
-        sublen = -len;
+        sublen = (size_t)-len;
         nbytes = (sublen > srclen) ? srclen : sublen;
         offset = srclen - nbytes;
     }
@@ -97,4 +102,18 @@ void substr(char *buffer, size_t buflen, char const *source, int len)
     if (nbytes > 0)
         memmove(buffer, source + offset, nbytes);
     buffer[nbytes] = '\0';
+}
+
+void msleep(int milliseconds) // cross-platform sleep function
+{
+#ifdef WIN32
+    Sleep(milliseconds);
+#elif _POSIX_C_SOURCE >= 199309L
+    struct timespec ts;
+    ts.tv_sec = milliseconds / 1000;
+    ts.tv_nsec = (milliseconds % 1000) * 1000000;
+    nanosleep(&ts, NULL);
+#else
+    usleep(milliseconds * 1000);
+#endif
 }

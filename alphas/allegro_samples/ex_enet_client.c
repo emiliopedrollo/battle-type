@@ -81,7 +81,7 @@ static void disconnect_client(ENetHost *client, ENetPeer *server){
    enet_peer_reset(server);
 }
 
-static ENetPeer* connect_client(ENetHost *client, ENetAddress address, int port){
+static ENetPeer* connect_ex_client(ENetHost *client, ENetAddress address, int port){
    //ENetAddress address;
    ENetEvent event;
    ENetPeer *server;
@@ -148,7 +148,7 @@ void do_send_receive(ENetHost *client){
         }
 }
 
-pthread_t init_thread(ENetHost *client){
+pthread_t init_ex_thread(ENetHost *client){
 
     //pthread_t threads;
     int rc;
@@ -212,9 +212,9 @@ int init_client(char* host, int port){
    enet_address_set_host(&address, host);
 
    client = create_client();
-   server = connect_client(client, address, port);
+   server = connect_ex_client(client, address, port);
 
-   comm_thread = init_thread(client);
+   comm_thread = init_ex_thread(client);
 
    // --- game loop ---
    bool direction_changed = false;
