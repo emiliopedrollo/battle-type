@@ -167,72 +167,74 @@ void move_ship(BATTLESHIP *battleship) {
                 battleship->push_back_callback();
             }
             break;
-        case BATTLESHIP_MOVE_STATE_IN_GAME:
+        case BATTLESHIP_MOVE_STATE_IN_GAME: {
+            int margin = 200;
             if (battleship->owner == BATTLESHIP_OWNER_PLAYER) {
-                dist_r = (DISPLAY_W - (battleship->dx + bsw / 2) <= 0) ? 1 : DISPLAY_W - (battleship->dx + bsw / 2);
-                dist_l = (battleship->dx - bsw / 2 <= 0) ? 1 : battleship->dx - bsw / 2;
-                //static int turning_frame = 0;
-                double prob, mod = (rand() % 100) / 100.0;
+                        dist_r = (DISPLAY_W - (battleship->dx + bsw / 2) <= 0) ? 1 : DISPLAY_W - (battleship->dx + bsw / 2);
+                        dist_l = (battleship->dx - bsw / 2 <= 0) ? 1 : battleship->dx - bsw / 2;
+                        //static int turning_frame = 0;
+                        double prob, mod = (rand() % 100) / 100.0;
 
-                // Calcula chance de inverter velocidade horizontal
-                prob=(battleship->vx>0)?(1.0/pow(dist_r,7.0/8.0))+mod:(1.0/pow(dist_l,7.0/8.0))+mod;
+                        // Calcula chance de inverter velocidade horizontal
+                        prob=(battleship->vx>0)?(1.0/pow(dist_r,7.0/8.0))+mod:(1.0/pow(dist_l,7.0/8.0))+mod;
 
-                // Inverte a velocidade vertical ao se aproximar das bordas de cima ou de baixo
-                //battleship->vy=((battleship->vy>0 && (bsh+battleship->dy+(bsh/2))==DISPLAY_H-270)||
-                //                (battleship->vy<0 && battleship->dy-(bsh/2)==20))?battleship->vy*(-1):battleship->vy;
+                        // Inverte a velocidade vertical ao se aproximar das bordas de cima ou de baixo
+                        //battleship->vy=((battleship->vy>0 && (bsh+battleship->dy+(bsh/2))==DISPLAY_H-270)||
+                        //                (battleship->vy<0 && battleship->dy-(bsh/2)==20))?battleship->vy*(-1):battleship->vy;
 
 
-                if (prob >= 1 && battleship->turning_direction == TURNING_DIRECTION_NONE)
-                    battleship->turning_direction = (battleship->vx > 0) ? TURNING_DIRECTION_LEFT
-                                                                         : TURNING_DIRECTION_RIGHT;
+                        if (prob >= 1 && battleship->turning_direction == TURNING_DIRECTION_NONE)
+                            battleship->turning_direction = (battleship->vx > 0) ? TURNING_DIRECTION_LEFT
+                                                                                 : TURNING_DIRECTION_RIGHT;
 
-                if (battleship->turning_direction != TURNING_DIRECTION_NONE) {
-                    battleship->turning_frame++;
-                    dvx = (float) fabs(battleship->vxi) / 10;
+                        if (battleship->turning_direction != TURNING_DIRECTION_NONE) {
+                            battleship->turning_frame++;
+                            dvx = (float) fabs(battleship->vxi) / 10;
 
-                    battleship->vx = (battleship->turning_direction == TURNING_DIRECTION_LEFT) ?
-                                     battleship->vx - dvx : battleship->vx + dvx;
-                    if (battleship->turning_frame > 10) {
-                        battleship->turning_direction = TURNING_DIRECTION_NONE;
-                        battleship->vx = ((battleship->vx > 0) ? 1 : -1) * (float) fabs(battleship->vxi);
+                            battleship->vx = (battleship->turning_direction == TURNING_DIRECTION_LEFT) ?
+                                             battleship->vx - dvx : battleship->vx + dvx;
+                            if (battleship->turning_frame > 10) {
+                                battleship->turning_direction = TURNING_DIRECTION_NONE;
+                                battleship->vx = ((battleship->vx > 0) ? 1 : -1) * (float) fabs(battleship->vxi);
+                            }
+                        } else battleship->turning_frame = 0;
+
+                        battleship->dx += battleship->vx;
+                        battleship->dy = ((battleship->dy-45) - margin >= game_bs_host_limit) ? battleship->dy - 1 : battleship->dy;
+
+                    }else if(battleship->owner == BATTLESHIP_OWNER_OPPONENT){
+                        dist_r = (DISPLAY_W-(battleship->dx+bsw/2)<=0)?1:DISPLAY_W-(battleship->dx+bsw/2);
+                        dist_l = (battleship->dx-bsw/2<=0)?1:battleship->dx-bsw/2;
+                        //static int turning_frame = 0;
+                        double prob,mod=(rand()%100)/100.0;
+
+                        // Calcula chance de inverter velocidade horizontal
+                        prob=(battleship->vx>0)?(1.0/pow(dist_r,7.0/8.0))+mod:(1.0/pow(dist_l,7.0/8.0))+mod;
+
+                        // Inverte a velocidade vertical ao se aproximar das bordas de cima ou de baixo
+                        //battleship->vy=((battleship->vy>0 && (bsh+battleship->dy+(bsh/2))==DISPLAY_H-270)||
+                        //                (battleship->vy<0 && battleship->dy-(bsh/2)==20))?battleship->vy*(-1):battleship->vy;
+
+
+                        if (prob >= 1 && battleship->turning_direction == TURNING_DIRECTION_NONE)
+                            battleship->turning_direction = (battleship->vx>0)?TURNING_DIRECTION_LEFT:TURNING_DIRECTION_RIGHT;
+
+                        if (battleship->turning_direction != TURNING_DIRECTION_NONE){
+                            battleship->turning_frame++;
+                            dvx = (float)fabs(battleship->vxi)/10;
+
+                            battleship->vx = (battleship->turning_direction == TURNING_DIRECTION_LEFT)?
+                                             battleship->vx-dvx : battleship->vx+dvx ;
+                            if (battleship->turning_frame > 10){
+                                battleship->turning_direction = TURNING_DIRECTION_NONE;
+                                battleship->vx = ((battleship->vx > 0) ? 1 : -1) * (float)fabs(battleship->vxi);
+                            }
+                        } else battleship->turning_frame = 0;
+
+                        battleship->dx += battleship->vx;
+                        battleship->dy = (((battleship->dy-45)+bsh) + margin <= game_bs_client_limit) ? battleship->dy + battleship->vy : battleship->dy;
                     }
-                } else battleship->turning_frame = 0;
-
-                battleship->dx += battleship->vx;
-                battleship->dy = ((battleship->dy-45)-50>=game_bs_host_limit) ? battleship->dy - 1:battleship->dy;
-
-            }else if(battleship->owner == BATTLESHIP_OWNER_OPPONENT){
-                dist_r = (DISPLAY_W-(battleship->dx+bsw/2)<=0)?1:DISPLAY_W-(battleship->dx+bsw/2);
-                dist_l = (battleship->dx-bsw/2<=0)?1:battleship->dx-bsw/2;
-                //static int turning_frame = 0;
-                double prob,mod=(rand()%100)/100.0;
-
-                // Calcula chance de inverter velocidade horizontal
-                prob=(battleship->vx>0)?(1.0/pow(dist_r,7.0/8.0))+mod:(1.0/pow(dist_l,7.0/8.0))+mod;
-
-                // Inverte a velocidade vertical ao se aproximar das bordas de cima ou de baixo
-                //battleship->vy=((battleship->vy>0 && (bsh+battleship->dy+(bsh/2))==DISPLAY_H-270)||
-                //                (battleship->vy<0 && battleship->dy-(bsh/2)==20))?battleship->vy*(-1):battleship->vy;
-
-
-                if (prob >= 1 && battleship->turning_direction == TURNING_DIRECTION_NONE)
-                    battleship->turning_direction = (battleship->vx>0)?TURNING_DIRECTION_LEFT:TURNING_DIRECTION_RIGHT;
-
-                if (battleship->turning_direction != TURNING_DIRECTION_NONE){
-                    battleship->turning_frame++;
-                    dvx = (float)fabs(battleship->vxi)/10;
-
-                    battleship->vx = (battleship->turning_direction == TURNING_DIRECTION_LEFT)?
-                                     battleship->vx-dvx : battleship->vx+dvx ;
-                    if (battleship->turning_frame > 10){
-                        battleship->turning_direction = TURNING_DIRECTION_NONE;
-                        battleship->vx = ((battleship->vx > 0) ? 1 : -1) * (float)fabs(battleship->vxi);
-                    }
-                } else battleship->turning_frame = 0;
-
-                battleship->dx += battleship->vx;
-                battleship->dy = (((battleship->dy-45)+bsh)+50<=game_bs_client_limit) ? battleship->dy + battleship->vy:battleship->dy;
-            }
+        }
             break;
         default:
             break;
