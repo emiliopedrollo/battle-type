@@ -274,7 +274,7 @@ void draw_ship(BATTLESHIP *battleship){
     }
 
     al_draw_bitmap(battleship->bmp,dx,dy,flags);
-    if (battleship->owner == BATTLESHIP_OWNER_OPPONENT){
+    if (battleship->owner == BATTLESHIP_OWNER_OPPONENT && battleship->class != BATTLESHIP_CLASS_M){
         al_draw_text(main_font_size_30,al_map_rgb(255,255,255),dx+(bsw/2),dy+bsh*(3/2),
                      ALLEGRO_ALIGN_CENTER,battleship->word);
     }
