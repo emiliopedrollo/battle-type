@@ -8,6 +8,8 @@
 #include "battleship.h"
 #include "main.h"
 
+#define NUMBER_OF_SHIPS_PER_PLAYER 10
+
 void init_game();
 void on_redraw_game();
 void load_resources_game();
@@ -21,8 +23,8 @@ typedef struct {
 } SERIAL_BATTLESHIP;
 
 typedef struct {
-    SERIAL_BATTLESHIP host_ships[10];
-    SERIAL_BATTLESHIP client_ships[10];
+    SERIAL_BATTLESHIP host_ships[NUMBER_OF_SHIPS_PER_PLAYER];
+    SERIAL_BATTLESHIP client_ships[NUMBER_OF_SHIPS_PER_PLAYER];
     int host_cash, client_cash;
 } GAME_SNAPSHOT;
 
