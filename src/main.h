@@ -36,9 +36,9 @@ extern GAME_STATE current_game_state;
 extern GAME_FLOW_STATE current_game_flow_state;
 extern ALLEGRO_BITMAP *bmp_background;
 extern ALLEGRO_FONT *main_font_size_45;
-extern ALLEGRO_FONT *main_font_size_30;
+extern ALLEGRO_FONT *main_font_size_25;
 extern int main_font_size_45_height;
-extern int main_font_size_30_height;
+extern int main_font_size_25_height;
 
 void load_font(ALLEGRO_FONT* *font, ALLEGRO_FILE* *file,int size, int flags);
 void load_bitmap(ALLEGRO_BITMAP* *bitmap, ALLEGRO_FILE* *file, char* ident);
