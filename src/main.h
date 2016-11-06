@@ -18,6 +18,7 @@ extern const int DISPLAY_W;
 
 extern bool exiting;
 extern bool DEBUG;
+extern bool PITTHAN_MODE;
 
 typedef enum {
     GAME_STATE_NONE,

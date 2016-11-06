@@ -47,7 +47,7 @@ typedef struct {
     float dx,dy;
     float vx,vy;
     float vxi,vyi;
-    float limit;
+//    float limit;
     bool push_back_ended;
     bool push_back_done;
     bool push_back_set_speed;
