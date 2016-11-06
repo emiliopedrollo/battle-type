@@ -241,7 +241,7 @@ void move_ship(BATTLESHIP *battleship) {
                         } else battleship->turning_frame = 0;
 
                         battleship->dx += battleship->vx;
-                        battleship->dy = (((battleship->dy-45)+bsh) <= game_bs_client_limit) ? battleship->dy + battleship->vy : battleship->dy;
+                        battleship->dy = battleship->dy+45 <= game_bs_client_limit) ? battleship->dy + battleship->vy : battleship->dy;
                     }
         }
             break;
@@ -264,6 +264,12 @@ void draw_ship(BATTLESHIP *battleship){
     }
 
     if (DEBUG){
+        if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT){
+            battleship->dx=abs(DISPLAY_W-battleship->dx);
+            battleship->dy=abs(DISPLAY_H-battleship->dy);
+        }
+
+
         ALLEGRO_COLOR color = (battleship->turning_direction == TURNING_DIRECTION_NONE)?
                               al_map_rgb(250,0,0): al_map_rgb(0,250,0);
         al_draw_rectangle(battleship->dx-bsw/2,battleship->dy-bsh/2,
