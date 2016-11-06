@@ -58,7 +58,7 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, float dx, float dy){
     switch (class){
         case BATTLESHIP_CLASS_5:
             battleship->bmp = bmp_bs_c5;
-            vx = 3; vy = 0.5;
+            vx = 2; vy = 0.05;
             break;
         case BATTLESHIP_CLASS_M:
             battleship->bmp = bmp_bs_c5;
@@ -294,6 +294,7 @@ void draw_ship(BATTLESHIP *battleship){
             battleship->dx=(float)fabs(DISPLAY_W-battleship->dx);
             battleship->dy=(float)fabs(DISPLAY_H-battleship->dy);
         }
+
 
 
         ALLEGRO_COLOR color = (battleship->turning_direction == TURNING_DIRECTION_NONE)?
