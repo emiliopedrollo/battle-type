@@ -396,6 +396,7 @@ void draw_ship(BATTLESHIP *battleship){
         }
 
 
+
         ALLEGRO_COLOR color = (battleship->turning_direction == TURNING_DIRECTION_NONE)?
                               al_map_rgb(250,0,0): al_map_rgb(0,250,0);
 
