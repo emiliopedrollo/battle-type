@@ -51,6 +51,7 @@ typedef struct {
     float mr,ml;
     float lr,ll;
     float limit;
+    bool locked;
     bool push_back_ended;
     bool push_back_done;
     bool push_back_set_speed;
@@ -62,6 +63,7 @@ typedef struct {
 
 BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, float dx, float dy);
 void change_battleship_state(BATTLESHIP *battleship,BATTLESHIP_MOVE_STATE state);
+void draw_target_lock(BATTLESHIP *battleship);
 void move_ship(BATTLESHIP *battleship);
 void draw_ship(BATTLESHIP *battleship);
 void load_resources_battleship();

@@ -101,6 +101,7 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, float dx, float dy){
     battleship->turning_frame = 0;
     change_battleship_state(battleship, BATTLESHIP_MOVE_STATE_INITAL_STATE);
 
+    battleship->locked = false;
     battleship->word = NULL;
 
     return battleship;
@@ -291,56 +292,63 @@ void move_ship(BATTLESHIP *battleship) {
     }
 }
 
-void draw_ship(BATTLESHIP *battleship){
+float get_normalized_dx(BATTLESHIP *battleship){
+    float dx = battleship->dx;
+    if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
+        dx = DISPLAY_W - dx;
+    }
+    return dx;
+}
 
+float get_normalized_dy(BATTLESHIP *battleship){
+    float dy = battleship->dy;
+    if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
+        dy = DISPLAY_H - dy;
+    }
+    return dy;
+}
+
+float get_left_dx(BATTLESHIP *battleship){
+    float dx = get_normalized_dx(battleship);
+    int bsw = get_battleship_width(battleship->class);
+    return dx - (bsw/2.0f);
+}
+
+float get_top_dy(BATTLESHIP *battleship){
+    float dy = get_normalized_dy(battleship);
+    int bsh = get_battleship_height(battleship->class);
+    return dy - (bsh/2.0f);
+}
+
+float get_righ_dx(BATTLESHIP *battleship){
+    float dx = get_normalized_dx(battleship);
+    int bsw = get_battleship_width(battleship->class);
+    return dx + (bsw/2.0f);
+}
+
+float get_bottom_dy(BATTLESHIP *battleship){
+    float dy = get_normalized_dy(battleship);
+    int bsh = get_battleship_height(battleship->class);
+    return dy + (bsh/2.0f);
+}
+
+void draw_debug(BATTLESHIP *battleship) {
     int bsh = get_battleship_height(battleship->class);
     int bsw = get_battleship_width(battleship->class);
 
     float dx, dy;
-    int flags;
 
-    dx = battleship->dx;
-    dy = battleship->dy;
-
-    bool draw_ship = true;
-
-    if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
-        flags = (battleship->owner == BATTLESHIP_OWNER_PLAYER)?ALLEGRO_FLIP_VERTICAL:0;
-        dx = DISPLAY_W - dx;
-        dy = DISPLAY_H - dy;
-
-        if (battleship->owner == BATTLESHIP_OWNER_PLAYER && battleship->class != BATTLESHIP_CLASS_M){
-            al_draw_text(main_font_size_25,al_map_rgb(255,255,255),dx,dy+bsh/2,
-                         ALLEGRO_ALIGN_CENTER,battleship->word);
-        }
-
-        if (PITTHAN_MODE) draw_ship = (battleship->owner != BATTLESHIP_OWNER_OPPONENT);
-
-    } else {
-        flags = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)?ALLEGRO_FLIP_VERTICAL:0;
-
-        if (battleship->owner == BATTLESHIP_OWNER_OPPONENT && battleship->class != BATTLESHIP_CLASS_M){
-            al_draw_text(main_font_size_25,al_map_rgb(255,255,255),dx,dy+bsh/2,
-                         ALLEGRO_ALIGN_CENTER,battleship->word);
-        }
-
-        if (PITTHAN_MODE) draw_ship = (battleship->owner != BATTLESHIP_OWNER_PLAYER);
-    }
-
-    if (PITTHAN_MODE && battleship->class == BATTLESHIP_CLASS_M) draw_ship = !draw_ship;
-
-    if (!draw_ship) return;
-
-    al_draw_bitmap(battleship->bmp,dx-(bsw/2),dy-(bsh/2),flags);
+    dx = get_normalized_dx(battleship);
+    dy = get_normalized_dy(battleship);
 
     static bool started = false;
 
-    if (DEBUG && battleship->owner == BATTLESHIP_OWNER_OPPONENT && battleship->class != BATTLESHIP_CLASS_M){
+    if (DEBUG && battleship->owner == BATTLESHIP_OWNER_OPPONENT && battleship->class != BATTLESHIP_CLASS_M) {
         float x = DISPLAY_W / 2, y = DISPLAY_H - bsh;
         static float dyp, dxp, dypl, dxpl;
         static float dxe, dxd, dxel, dxdl;
 
-        if (!started){
+        if (!started) {
             dyp = battleship->dyi;
             dxp = battleship->dxi;
             dxe = dxp - 200;
@@ -364,7 +372,7 @@ void draw_ship(BATTLESHIP *battleship){
             dxpl = dxp;
             dxel = dxe;
             dxdl = dxd;
-            for(i = -45; i < DISPLAY_H - bsh; i++){
+            for (i = -45; i < DISPLAY_H - bsh; i++) {
                 dxdl = ((i - y) / md) + x;
                 dxel = ((i - y) / me) + x;
 
@@ -382,13 +390,13 @@ void draw_ship(BATTLESHIP *battleship){
                     al_draw_filled_rectangle(499 - 2, i - 2,
                                              499 + 2, i + 2,
                                              al_map_rgb(255, 0, 0));
-                }else{
+                } else {
                     al_draw_filled_rectangle(dxdl - 2, i - 2,
                                              dxdl + 2, i + 2,
                                              al_map_rgb(255, 0, 0));
                 }
             }
-            for (i = (int)dypl; i < DISPLAY_H - bsh; i++) {
+            for (i = (int) dypl; i < DISPLAY_H - bsh; i++) {
                 dypl += 1;
                 dxpl = ((dypl - y) / m) + x;
 
@@ -400,38 +408,171 @@ void draw_ship(BATTLESHIP *battleship){
                                      dxp + 2, dyp + 2,
                                      al_map_rgb(0, 255, 0));
         }
-        if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT){
-            battleship->dx=(float)fabs(DISPLAY_W-battleship->dx);
-            battleship->dy=(float)fabs(DISPLAY_H-battleship->dy);
+        if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
+            battleship->dx = (float) fabs(DISPLAY_W - battleship->dx);
+            battleship->dy = (float) fabs(DISPLAY_H - battleship->dy);
         }
 
 
+        ALLEGRO_COLOR color;
 
-        switch (battleship->owner){
+        switch (battleship->owner) {
             case BATTLESHIP_OWNER_NONE:
             case BATTLESHIP_OWNER_PLAYER:
-                color = (battleship->turning_direction == TURNING_DIRECTION_NONE)?
-                        al_map_rgb(250,0,0): al_map_rgb(0,250,0);
+                color = (battleship->turning_direction == TURNING_DIRECTION_NONE) ?
+                        al_map_rgb(250, 0, 0) : al_map_rgb(0, 250, 0);
                 break;
             case BATTLESHIP_OWNER_OPPONENT:
-                color = (battleship->turning_direction == TURNING_DIRECTION_NONE)?
-                        al_map_rgb(0,0,255): al_map_rgb(0,250,0);
+                color = (battleship->turning_direction == TURNING_DIRECTION_NONE) ?
+                        al_map_rgb(0, 0, 255) : al_map_rgb(0, 250, 0);
                 break;
             case BATTLESHIP_OWNER_SPECIAL:
             default:
-                color = (battleship->turning_direction == TURNING_DIRECTION_NONE)?
-                        al_map_rgb(255,255,153): al_map_rgb(0,250,0);
+                color = (battleship->turning_direction == TURNING_DIRECTION_NONE) ?
+                        al_map_rgb(255, 255, 153) : al_map_rgb(0, 250, 0);
                 break;
         }
 
-        ALLEGRO_COLOR color = (battleship->turning_direction == TURNING_DIRECTION_NONE)?
-                              al_map_rgb(250,0,0): al_map_rgb(0,250,0);
+        al_draw_rectangle(dx - bsw / 2, dy - bsh / 2,
+                          dx + bsw / 2, dy + bsh / 2,
+                          color, 2);
+        al_draw_filled_rectangle(dx - 2, dy - 2,
+                                 dx + 2, dy + 2, color);
 
-        al_draw_rectangle(dx-bsw/2,dy-bsh/2,
-                          dx+bsw/2,dy+bsh/2,
-                          color,2);
-        al_draw_filled_rectangle(dx-2,dy-2,
-                                 dx+2,dy+2,
-                                 color);
     }
+}
+
+void draw_target_lock(BATTLESHIP *battleship){
+
+    int outer_margin = 4;
+
+    float ldx = get_left_dx(battleship) - outer_margin;
+    float tdy = get_top_dy(battleship) - outer_margin;
+    float rdx = get_righ_dx(battleship) + outer_margin;
+    float bdy = get_bottom_dy(battleship) + outer_margin;
+
+    int bsw = get_battleship_width(battleship->class);
+    int bsh = get_battleship_height(battleship->class);
+
+    float stop_x = (bsw+2*outer_margin) / 6.0f;
+    float stop_y = (bsh+2*outer_margin) / 6.0f;
+
+    ALLEGRO_COLOR color = al_map_rgb(165,0,0);
+
+    // outer lines
+    al_draw_line(ldx + stop_x * 1, tdy + stop_y * 0,
+                 rdx - stop_x * 1, tdy + stop_y * 0,
+                 color,2);
+
+    al_draw_line(ldx + stop_x * 1, bdy - stop_y * 0,
+                 rdx - stop_x * 1, bdy - stop_y * 0,
+                 color,2);
+
+    al_draw_line(ldx + stop_x * 0, tdy + stop_y * 1,
+                 ldx + stop_x * 0, bdy - stop_y * 1,
+                 color,2);
+
+    al_draw_line(rdx - stop_x * 0, tdy + stop_y * 1,
+                 rdx - stop_x * 0, bdy - stop_y * 1,
+                 color,2);
+
+    // middle lines
+    al_draw_line(ldx + stop_x * 2, tdy + stop_y * 1,
+                 rdx - stop_x * 2, tdy + stop_y * 1,
+                 color,2);
+
+    al_draw_line(ldx + stop_x * 2, bdy - stop_y * 1,
+                 rdx - stop_x * 2, bdy - stop_y * 1,
+                 color,2);
+
+    al_draw_line(ldx + stop_x * 1, tdy + stop_y * 2,
+                 ldx + stop_x * 1, bdy - stop_y * 2,
+                 color,2);
+
+    al_draw_line(rdx - stop_x * 1, tdy + stop_y * 2,
+                 rdx - stop_x * 1, bdy - stop_y * 2,
+                 color,2);
+
+//    // inner lines
+//    al_draw_line(ldx + stop_x * 3, tdy + stop_y * 2,
+//                 rdx - stop_x * 3, tdy + stop_y * 2,
+//                 color,2);
+//
+//    al_draw_line(ldx + stop_x * 3, bdy - stop_y * 2,
+//                 rdx - stop_x * 3, bdy - stop_y * 2,
+//                 color,2);
+//
+//    al_draw_line(ldx + stop_x * 2, tdy + stop_y * 3,
+//                 ldx + stop_x * 2, bdy - stop_y * 3,
+//                 color,2);
+//
+//    al_draw_line(rdx - stop_x * 2, tdy + stop_y * 3,
+//                 rdx - stop_x * 2, bdy - stop_y * 3,
+//                 color,2);
+
+
+    //cross lines
+    al_draw_line(ldx + stop_x * 1, battleship->dy,
+                 ldx + stop_x * 2, battleship->dy,
+                 color,2);
+
+    al_draw_line(rdx - stop_x * 2, battleship->dy,
+                 rdx - stop_x * 1, battleship->dy,
+                 color,2);
+
+    al_draw_line(battleship->dx, tdy + stop_y * 1,
+                 battleship->dx, tdy + stop_y * 2,
+                 color,2);
+
+    al_draw_line(battleship->dx, bdy - stop_y * 2,
+                 battleship->dx, bdy - stop_y * 1,
+                 color,2);
+
+    // center dot
+    al_draw_filled_rectangle(battleship->dx-2,battleship->dy-2,
+                             battleship->dx+2,battleship->dy+2,
+                             color);
+
+}
+
+void draw_ship(BATTLESHIP *battleship){
+
+    int bsh = get_battleship_height(battleship->class);
+    int bsw = get_battleship_width(battleship->class);
+
+    int flags;
+
+    float dx = get_normalized_dx(battleship);
+    float dy = get_normalized_dy(battleship);
+
+    bool draw_ship = true;
+
+    if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
+        flags = (battleship->owner == BATTLESHIP_OWNER_PLAYER)?ALLEGRO_FLIP_VERTICAL:0;
+
+        if (battleship->owner == BATTLESHIP_OWNER_PLAYER && battleship->class != BATTLESHIP_CLASS_M){
+            al_draw_text(main_font_size_25,al_map_rgb(255,255,255),dx,dy+bsh/2,
+                         ALLEGRO_ALIGN_CENTER,battleship->word);
+        }
+
+        if (PITTHAN_MODE) draw_ship = (battleship->owner != BATTLESHIP_OWNER_OPPONENT);
+
+    } else {
+        flags = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)?ALLEGRO_FLIP_VERTICAL:0;
+
+        if (battleship->owner == BATTLESHIP_OWNER_OPPONENT && battleship->class != BATTLESHIP_CLASS_M){
+            al_draw_text(main_font_size_25,al_map_rgb(255,255,255),dx,dy+bsh/2,
+                         ALLEGRO_ALIGN_CENTER,battleship->word);
+        }
+
+        if (PITTHAN_MODE) draw_ship = (battleship->owner != BATTLESHIP_OWNER_PLAYER);
+    }
+
+    if (PITTHAN_MODE && battleship->class == BATTLESHIP_CLASS_M) draw_ship = !draw_ship;
+
+    if (!draw_ship) return;
+
+    al_draw_bitmap(battleship->bmp, get_left_dx(battleship), get_top_dy(battleship),flags);
+
+    if (DEBUG) draw_debug(battleship);
 }
