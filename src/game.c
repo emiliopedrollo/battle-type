@@ -3,6 +3,7 @@
 //
 
 #include <math.h>
+#include <allegro5/allegro_primitives.h>
 #include "game.h"
 #include "resources/dictionary.h"
 #include "battleship.h"
@@ -203,9 +204,15 @@ char* get_word_from_pool(BATTLESHIP_OWNER owner){
 }
 
 void on_redraw_game(){
-    if (frame_count++ % 30){
+    if (frame_count++ % 30 == 0){
         update_word_pool(true);
     }
+
+    if (DEBUG){
+        al_draw_line(5,5,5,5+dictionary_len/2,al_map_rgb(255,255,153),2);
+        al_draw_line(5,5+word_pool_start_pos/2,5,5+word_pool_end_pos/2,al_map_rgb(0,0,255),2);
+    }
+
     if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_HOST ||
             current_game_state == GAME_STATE_IN_GAME_SINGLE_PLAYER){
         move_game_ships();
