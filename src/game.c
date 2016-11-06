@@ -39,18 +39,19 @@ void init_starter_battleships(){
     int ship_height = get_battleship_height(BATTLESHIP_CLASS_5);
 
     for (int i = 0; i < 3; i++){
-        host_ships[i] = init_battleship(BATTLESHIP_CLASS_5,
-                                        (rand()%max_rand)+half_ship, DISPLAY_H + ship_height/2 );
-        change_battleship_state(host_ships[i],BATTLESHIP_MOVE_STATE_IN_GAME);
-        host_ships[i]->owner = BATTLESHIP_OWNER_PLAYER;
-        host_ships[i]->limit = 800;//DISPLAY_H/2 + 10;
+        /*if(current_game_state==GAME_STATE_IN_GAME_MULTIPLAYER_HOST || current_game_state==GAME_STATE_IN_GAME_SINGLE_PLAYER){
+            */host_ships[i] = init_battleship(BATTLESHIP_CLASS_5,
+                                            (rand()%max_rand)+half_ship, DISPLAY_H + ship_height/2 );
+            change_battleship_state(host_ships[i],BATTLESHIP_MOVE_STATE_IN_GAME);
+            host_ships[i]->owner = BATTLESHIP_OWNER_PLAYER;
+            host_ships[i]->limit = 800;//DISPLAY_H/2 + 10;
 
 
-        client_ships[i] = init_battleship(BATTLESHIP_CLASS_5,
-                                          (rand()%max_rand)+half_ship,  -ship_height/2 );
-        change_battleship_state(client_ships[i],BATTLESHIP_MOVE_STATE_IN_GAME);
-        client_ships[i]->owner = BATTLESHIP_OWNER_OPPONENT;
-        client_ships[i]->limit = 800;//DISPLAY_H/2 - 10;
+            client_ships[i] = init_battleship(BATTLESHIP_CLASS_5,
+                                              (rand()%max_rand)+half_ship,  -ship_height/2 );
+            change_battleship_state(client_ships[i],BATTLESHIP_MOVE_STATE_IN_GAME);
+            client_ships[i]->owner = BATTLESHIP_OWNER_OPPONENT;
+            client_ships[i]->limit = 800;
     }
 
 
@@ -64,11 +65,11 @@ void move_game_ships(){
     int ship_bound;
 
     // Encontra limite para movimento dos battleships do host
-    for (int i=0;i< MAX_SHIPS_FOR_PLAYERS;i++) {
+    /*for (int i=0;i< MAX_SHIPS_FOR_PLAYERS;i++) {
         if (!client_ships[i]) continue;
         ship_bound = (int) client_ships[i]->dy + get_battleship_height(client_ships[i]->class) / 2;
         game_bs_host_limit = (ship_bound > game_bs_host_limit) ? ship_bound : game_bs_host_limit;
-    }
+    }*/
 
     //Move os battleships do host
     for (int i =0; i < MAX_SHIPS_FOR_PLAYERS; i++) {
@@ -76,11 +77,11 @@ void move_game_ships(){
     }
 
     // Encontra limite para movimento dos battleships do client
-    for (int i=0;i< MAX_SHIPS_FOR_PLAYERS;i++){
+    /*for (int i=0;i< MAX_SHIPS_FOR_PLAYERS;i++){
         if (!host_ships[i]) continue;
         ship_bound = (int)host_ships[i]->dy - get_battleship_height(host_ships[i]->class)/2;
         game_bs_client_limit = ( ship_bound < game_bs_client_limit ) ? ship_bound : game_bs_client_limit;
-    }
+    }*/
 
     //Move os battleships do client
     for (int i =0; i < MAX_SHIPS_FOR_PLAYERS; i++){
