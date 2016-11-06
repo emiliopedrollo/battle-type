@@ -20,6 +20,7 @@ typedef struct {
     BATTLESHIP_OWNER owner;
     bool active;
     float dx,dy;
+    char* word;
 } SERIAL_BATTLESHIP;
 
 typedef struct {

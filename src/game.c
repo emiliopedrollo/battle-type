@@ -130,6 +130,7 @@ void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battlesh
         battleship->dy     = serial_battleship.dy;
         battleship->owner  = serial_battleship.owner;
         battleship->active = serial_battleship.active;
+        battleship->word   = serial_battleship.word;
 
     } else {
         if (battleship) battleship->active = false;
@@ -144,6 +145,7 @@ SERIAL_BATTLESHIP convert_battleship_to_serial(BATTLESHIP *battleship){
     serial.class  = battleship->class;
     serial.dx     = battleship->dx;
     serial.dy     = battleship->dy;
+    serial.word   = battleship->word;
     return serial;
 }
 
