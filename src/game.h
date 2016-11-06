@@ -30,4 +30,7 @@ extern int game_bs_host_limit;
 extern int game_bs_client_limit;
 extern GAME_SNAPSHOT game;
 
+static int const MINIMUM_WORD_POOL_SIZE = 75;
+static int const MAXIMUM_WORD_POOL_SIZE = 125;
+
 #endif //BATTLE_TYPE_GAME_H
