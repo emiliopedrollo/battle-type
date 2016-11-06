@@ -12,25 +12,32 @@ BATTLESHIP* host_ships[NUMBER_OF_SHIPS_PER_PLAYER];
 BATTLESHIP* client_ships[NUMBER_OF_SHIPS_PER_PLAYER];
 BATTLESHIP* host_mothership;
 BATTLESHIP* client_mothership;
+int host_ship_count = 0;
+int client_ship_count = 0;
+int next_host_ship_spawn = 0;
+int next_client_ship_spawn = 0;
+
+static int const MINIMUM_SPAWN_WAIT = 5 * 60; // 5 seconds
+static int const SPAWN_WINDOW = 10 * 60; // 10 seconds
 
 GAME_SNAPSHOT game;
 
-int game_bs_host_limit;
-int game_bs_client_limit;
+              int game_bs_host_limit;
+              int game_bs_client_limit;
 
-int frame_count;
+              int frame_count;
 
-int word_pool_start_pos;
-int word_pool_end_pos;
+              int word_pool_start_pos;
+              int word_pool_end_pos;
 
-void init_starter_battleships();
-void move_game_ships();
-void draw_game_ships();
-void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battleship);
-char* get_word_from_pool(BATTLESHIP_OWNER owner);
-void update_word_pool(bool pump_word_index);
+              void init_motherships();
+              void move_game_ships();
+              void draw_game_ships();
+              void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battleship);
+              char* get_word_from_pool(BATTLESHIP_OWNER owner);
+              void update_word_pool(bool pump_word_index);
 
-void load_resources_game(){
+              void load_resources_game(){
 
 }
 
@@ -40,39 +47,52 @@ void unload_resources_game(){
 
 void init_game(){
     frame_count = 0;
-    init_starter_battleships();
+    init_motherships();
 }
 
-void init_starter_battleships(){
-    update_word_pool(false);
+void init_motherships(){
 
-    int max_rand = DISPLAY_W - get_battleship_width(BATTLESHIP_CLASS_5);
-    int half_ship = get_battleship_width(BATTLESHIP_CLASS_5)/2;
-
-    int ship_height = get_battleship_height(BATTLESHIP_CLASS_5);
+    int ship_height = get_battleship_height(BATTLESHIP_CLASS_M);
 
     host_mothership = init_battleship(BATTLESHIP_CLASS_M,DISPLAY_W/2,DISPLAY_H - ship_height);
     host_mothership->owner = BATTLESHIP_OWNER_PLAYER;
     client_mothership = init_battleship(BATTLESHIP_CLASS_M,DISPLAY_W/2,ship_height);
     client_mothership->owner = BATTLESHIP_OWNER_OPPONENT;
 
-    for (int i = 0; i < 3; i++){
-        host_ships[i] = init_battleship(BATTLESHIP_CLASS_5,(rand()%max_rand)+half_ship, DISPLAY_H + ship_height/2 );
-        change_battleship_state(host_ships[i],BATTLESHIP_MOVE_STATE_IN_GAME);
-        host_ships[i]->owner = BATTLESHIP_OWNER_PLAYER;
-        host_ships[i]->limit = 800;//DISPLAY_H/2 + 10;
-        host_ships[i]->word = get_word_from_pool(BATTLESHIP_OWNER_PLAYER);
+}
 
+void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class, char* word){
 
+    int ship_count = (owner == BATTLESHIP_OWNER_PLAYER)? host_ship_count : client_ship_count;
 
-        client_ships[i] = init_battleship(BATTLESHIP_CLASS_5,(rand()%max_rand)+half_ship,  -ship_height/2 );
-        change_battleship_state(client_ships[i],BATTLESHIP_MOVE_STATE_IN_GAME);
-        client_ships[i]->owner = BATTLESHIP_OWNER_OPPONENT;
-        client_ships[i]->limit = 800;
-        client_ships[i]->word = get_word_from_pool(BATTLESHIP_OWNER_OPPONENT);
+    if (ship_count >= NUMBER_OF_SHIPS_PER_PLAYER) return;
+
+    int max_rand = DISPLAY_W - get_battleship_width(class);
+    int half_ship = get_battleship_width(class)/2;
+    int ship_height = get_battleship_height(class);
+    int y_pos = (owner == BATTLESHIP_OWNER_PLAYER) ? DISPLAY_H+ship_height/2 : -ship_height/2;
+
+    BATTLESHIP* battleship = init_battleship(class,
+                                             (rand()%max_rand)+half_ship, y_pos);
+    change_battleship_state(battleship,BATTLESHIP_MOVE_STATE_IN_GAME);
+    battleship->owner = owner;
+    battleship->word = word;
+
+    for (int i=0;i<NUMBER_OF_SHIPS_PER_PLAYER;i++){
+        if (owner == BATTLESHIP_OWNER_PLAYER) {
+            if (!host_ships[i] || !host_ships[i]->active){
+                host_ships[i] = battleship;
+                host_ship_count++;
+                break;
+            }
+        } else {
+            if (!client_ships[i] || !client_ships[i]->active){
+                client_ships[i] = battleship;
+                client_ship_count++;
+                break;
+            }
+        }
     }
-
-
 }
 
 void move_game_ships(){
@@ -204,17 +224,33 @@ char* get_word_from_pool(BATTLESHIP_OWNER owner){
 }
 
 void on_redraw_game(){
-    if (frame_count++ % 30 == 0){
-        update_word_pool(true);
-    }
 
-    if (DEBUG){
-        al_draw_line(5,5,5,5+dictionary_len/2,al_map_rgb(255,255,153),2);
-        al_draw_line(5,5+word_pool_start_pos/2,5,5+word_pool_end_pos/2,al_map_rgb(0,0,255),2);
-    }
 
     if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_HOST ||
             current_game_state == GAME_STATE_IN_GAME_SINGLE_PLAYER){
+
+        if (frame_count++ % 30 == 0){
+            update_word_pool(true);
+        }
+
+        if (next_host_ship_spawn-- == 0){
+            spawn_ship(BATTLESHIP_OWNER_PLAYER,BATTLESHIP_CLASS_5,
+                       get_word_from_pool(BATTLESHIP_OWNER_PLAYER));
+            next_host_ship_spawn = (rand()%(SPAWN_WINDOW+1))+MINIMUM_SPAWN_WAIT;
+        }
+
+        if (next_client_ship_spawn-- == 0){
+            spawn_ship(BATTLESHIP_OWNER_OPPONENT,BATTLESHIP_CLASS_5,
+                       get_word_from_pool(BATTLESHIP_OWNER_OPPONENT));
+            next_client_ship_spawn = (rand()%(SPAWN_WINDOW+1))+MINIMUM_SPAWN_WAIT;
+        }
+
+
+        if (DEBUG){
+            al_draw_line(5,5,5,5+dictionary_len/2,al_map_rgb(255,255,153),2);
+            al_draw_line(5,5+word_pool_start_pos/2,5,5+word_pool_end_pos/2,al_map_rgb(0,0,255),2);
+        }
+
         move_game_ships();
         update_game_snapshot();
     } else if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT){
