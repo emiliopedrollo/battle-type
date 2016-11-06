@@ -241,7 +241,7 @@ void move_ship(BATTLESHIP *battleship) {
                         } else battleship->turning_frame = 0;
 
                         battleship->dx += battleship->vx;
-                        battleship->dy = battleship->dy+45 <= game_bs_client_limit) ? battleship->dy + battleship->vy : battleship->dy;
+                        battleship->dy = (battleship->dy+45 <= game_bs_client_limit) ? battleship->dy + battleship->vy : battleship->dy;
                     }
         }
             break;
