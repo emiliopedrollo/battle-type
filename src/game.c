@@ -63,6 +63,8 @@ void init_motherships(){
 
 void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class, char* word){
 
+    static bool p_l = false;
+
     int ship_count = (owner == BATTLESHIP_OWNER_PLAYER)? host_ship_count : client_ship_count;
 
     if (ship_count >= NUMBER_OF_SHIPS_PER_PLAYER) return;
@@ -89,6 +91,11 @@ void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class, char* word){
             if (!client_ships[i] || !client_ships[i]->active){
                 client_ships[i] = battleship;
                 client_ship_count++;
+
+                if (!p_l){
+                    p_l = true;
+                    client_ships[i]->locked = true;
+                }
                 break;
             }
         }
@@ -130,9 +137,27 @@ void move_game_ships(){
 void draw_game_ships(){
     draw_ship(host_mothership);
     draw_ship(client_mothership);
+
+    bool draw_lock = false;
+    bool ship_is_locked;
+    int locked_ship = -1;
+
     for (int i =0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++){
         if (host_ships[i] && host_ships[i]->active) draw_ship(host_ships[i]);
         if (client_ships[i] && client_ships[i]->active) draw_ship(client_ships[i]);
+
+        ship_is_locked = (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_HOST)?
+                         host_ships[i] && host_ships[i]->active && host_ships[i]->locked :
+                         client_ships[i] && client_ships[i]->active && client_ships[i]->locked;
+
+        if (ship_is_locked) locked_ship = i;
+
+        draw_lock = draw_lock || ship_is_locked;
+    }
+
+    if (draw_lock){
+        draw_target_lock((current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_HOST)?
+                         host_ships[locked_ship]:client_ships[locked_ship]);
     }
 }
 
@@ -152,6 +177,7 @@ void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battlesh
         battleship->owner  = serial_battleship.owner;
         battleship->active = serial_battleship.active;
         battleship->word   = serial_battleship.word;
+        battleship->locked = serial_battleship.looked;
 
     } else {
         if (battleship) battleship->active = false;
@@ -167,6 +193,7 @@ SERIAL_BATTLESHIP convert_battleship_to_serial(BATTLESHIP *battleship){
     serial.dx     = battleship->dx;
     serial.dy     = battleship->dy;
     serial.word   = battleship->word;
+    serial.looked = battleship->locked;
     return serial;
 }
 
@@ -224,7 +251,6 @@ char* get_word_from_pool(BATTLESHIP_OWNER owner){
 }
 
 void on_redraw_game(){
-
 
     if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_HOST ||
             current_game_state == GAME_STATE_IN_GAME_SINGLE_PLAYER){

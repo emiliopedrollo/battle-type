@@ -19,6 +19,7 @@ typedef struct {
     BATTLESHIP_CLASS class;
     BATTLESHIP_OWNER owner;
     bool active;
+    bool looked;
     float dx,dy;
     char* word;
 } SERIAL_BATTLESHIP;
