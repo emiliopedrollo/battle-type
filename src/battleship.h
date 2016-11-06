@@ -27,6 +27,7 @@ typedef enum {
     BATTLESHIP_CLASS_3,
     BATTLESHIP_CLASS_4,
     BATTLESHIP_CLASS_5,
+    BATTLESHIP_CLASS_M,
 } BATTLESHIP_CLASS;
 
 typedef enum {
