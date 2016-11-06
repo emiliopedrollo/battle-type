@@ -8,6 +8,7 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_memfile.h>
+#include <allegro5/allegro_font.h>
 #include "main.h"
 #include "resources/img/battleship.png.h"
 #include "game.h"
@@ -83,6 +84,8 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, float dx, float dy){
     battleship->turning_direction = TURNING_DIRECTION_NONE;
     battleship->turning_frame = 0;
     change_battleship_state(battleship, BATTLESHIP_MOVE_STATE_INITAL_STATE);
+
+    battleship->word = NULL;
 
     return battleship;
 }
@@ -255,13 +258,27 @@ void draw_ship(BATTLESHIP *battleship){
     int bsh = get_battleship_height(battleship->class);
     int bsw = get_battleship_width(battleship->class);
 
+    float dx, dy;
+    int flags;
+
+    dx = battleship->dx-(bsw/2);
+    dy = battleship->dy-(bsh/2);
+
     if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
-        int flag = (battleship->owner == BATTLESHIP_OWNER_PLAYER)?ALLEGRO_FLIP_VERTICAL:0;
-        al_draw_bitmap(battleship->bmp,abs(500-(battleship->dx))-(bsw/2),abs(800-(battleship->dy))-(bsh/2),flag);
+        flags = (battleship->owner == BATTLESHIP_OWNER_PLAYER)?ALLEGRO_FLIP_VERTICAL:0;
+        dx = (float)fabs(DISPLAY_W - dx);
+        dy = (float)fabs(DISPLAY_H - dy);
+
     } else {
-        int flag = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)?ALLEGRO_FLIP_VERTICAL:0;
-        al_draw_bitmap(battleship->bmp,battleship->dx-(bsw/2),battleship->dy-(bsh/2),flag);
+        flags = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)?ALLEGRO_FLIP_VERTICAL:0;
     }
+
+    al_draw_bitmap(battleship->bmp,dx,dy,flags);
+    if (battleship->owner == BATTLESHIP_OWNER_OPPONENT && battleship->class != BATTLESHIP_CLASS_M){
+        al_draw_text(main_font_size_30,al_map_rgb(255,255,255),dx+(bsw/2),dy+bsh*(3/2),
+                     ALLEGRO_ALIGN_CENTER,battleship->word);
+    }
+
 
     if (DEBUG){
         if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT){

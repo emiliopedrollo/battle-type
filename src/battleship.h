@@ -54,6 +54,7 @@ typedef struct {
     int push_back_frame;
     int push_back_k;
     void (*push_back_callback)(void);
+    char *word;
 } BATTLESHIP;
 
 BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, float dx, float dy);
