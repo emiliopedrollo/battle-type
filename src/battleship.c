@@ -302,6 +302,8 @@ void draw_ship(BATTLESHIP *battleship){
     dx = battleship->dx;
     dy = battleship->dy;
 
+    bool draw_ship = true;
+
     if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
         flags = (battleship->owner == BATTLESHIP_OWNER_PLAYER)?ALLEGRO_FLIP_VERTICAL:0;
         dx = DISPLAY_W - dx;
@@ -312,6 +314,8 @@ void draw_ship(BATTLESHIP *battleship){
                          ALLEGRO_ALIGN_CENTER,battleship->word);
         }
 
+        if (PITTHAN_MODE) draw_ship = (battleship->owner != BATTLESHIP_OWNER_OPPONENT);
+
     } else {
         flags = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)?ALLEGRO_FLIP_VERTICAL:0;
 
@@ -319,7 +323,13 @@ void draw_ship(BATTLESHIP *battleship){
             al_draw_text(main_font_size_25,al_map_rgb(255,255,255),dx,dy+bsh/2,
                          ALLEGRO_ALIGN_CENTER,battleship->word);
         }
+
+        if (PITTHAN_MODE) draw_ship = (battleship->owner != BATTLESHIP_OWNER_PLAYER);
     }
+
+    if (PITTHAN_MODE && battleship->class == BATTLESHIP_CLASS_M) draw_ship = !draw_ship;
+
+    if (!draw_ship) return;
 
     al_draw_bitmap(battleship->bmp,dx-(bsw/2),dy-(bsh/2),flags);
 
@@ -396,6 +406,23 @@ void draw_ship(BATTLESHIP *battleship){
         }
 
 
+
+        switch (battleship->owner){
+            case BATTLESHIP_OWNER_NONE:
+            case BATTLESHIP_OWNER_PLAYER:
+                color = (battleship->turning_direction == TURNING_DIRECTION_NONE)?
+                        al_map_rgb(250,0,0): al_map_rgb(0,250,0);
+                break;
+            case BATTLESHIP_OWNER_OPPONENT:
+                color = (battleship->turning_direction == TURNING_DIRECTION_NONE)?
+                        al_map_rgb(0,0,255): al_map_rgb(0,250,0);
+                break;
+            case BATTLESHIP_OWNER_SPECIAL:
+            default:
+                color = (battleship->turning_direction == TURNING_DIRECTION_NONE)?
+                        al_map_rgb(255,255,153): al_map_rgb(0,250,0);
+                break;
+        }
 
         ALLEGRO_COLOR color = (battleship->turning_direction == TURNING_DIRECTION_NONE)?
                               al_map_rgb(250,0,0): al_map_rgb(0,250,0);

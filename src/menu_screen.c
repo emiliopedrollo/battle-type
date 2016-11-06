@@ -149,6 +149,7 @@ void init_demo_ship(){
     demo_ship = init_battleship(BATTLESHIP_CLASS_5,
         DISPLAY_W/2,DISPLAY_H/2);
 
+    demo_ship->owner = BATTLESHIP_OWNER_NONE;
     demo_ship->vx = 3;
     demo_ship->vxi = 3;
     demo_ship->vy = -1;
