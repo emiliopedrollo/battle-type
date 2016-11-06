@@ -48,8 +48,10 @@ void init_starter_battleships(){
 
     int ship_height = get_battleship_height(BATTLESHIP_CLASS_5);
 
-    for (int i = 0; i < 3; i++){
-        host_ships[i] = init_battleship(BATTLESHIP_CLASS_5,
+    for (int i = 0; i < 4; i++){
+        host_ships[i] = (i==3)? init_battleship(BATTLESHIP_CLASS_M,
+                                        DISPLAY_W/2, DISPLAY_H - ship_height ):
+                                init_battleship(BATTLESHIP_CLASS_5,
                                         (rand()%max_rand)+half_ship, DISPLAY_H + ship_height/2 );
         change_battleship_state(host_ships[i],BATTLESHIP_MOVE_STATE_IN_GAME);
         host_ships[i]->owner = BATTLESHIP_OWNER_PLAYER;
@@ -57,11 +59,14 @@ void init_starter_battleships(){
         host_ships[i]->word = get_word_from_pool(BATTLESHIP_OWNER_PLAYER);
 
 
-        client_ships[i] = init_battleship(BATTLESHIP_CLASS_5,
-                                          (rand()%max_rand)+half_ship,  -ship_height/2 );
+
+        client_ships[i] = (i==3)? init_battleship(BATTLESHIP_CLASS_M,
+                                                  DISPLAY_W/2, ship_height):
+                                  init_battleship(BATTLESHIP_CLASS_5,
+                                                  (rand()%max_rand)+half_ship,  -ship_height/2 );
         change_battleship_state(client_ships[i],BATTLESHIP_MOVE_STATE_IN_GAME);
         client_ships[i]->owner = BATTLESHIP_OWNER_OPPONENT;
-        client_ships[i]->limit = 800;//DISPLAY_H/2 - 10;
+        client_ships[i]->limit = 800;
         client_ships[i]->word = get_word_from_pool(BATTLESHIP_OWNER_OPPONENT);
     }
 

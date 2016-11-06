@@ -28,6 +28,8 @@ int get_battleship_height(BATTLESHIP_CLASS class){
     switch (class){
         case BATTLESHIP_CLASS_5:
             return 84;
+        case BATTLESHIP_CLASS_M:
+            return 84;
         default:
             return 0;
     }
@@ -36,6 +38,8 @@ int get_battleship_height(BATTLESHIP_CLASS class){
 int get_battleship_width(BATTLESHIP_CLASS class){
     switch (class){
         case BATTLESHIP_CLASS_5:
+            return 90;
+        case BATTLESHIP_CLASS_M:
             return 90;
         default:
             return 0;
@@ -55,6 +59,10 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, float dx, float dy){
         case BATTLESHIP_CLASS_5:
             battleship->bmp = bmp_bs_c5;
             vx = 3; vy = 1;
+            break;
+        case BATTLESHIP_CLASS_M:
+            battleship->bmp = bmp_bs_c5;
+            vx = 0; vy = 0;
             break;
         default:
             battleship->bmp = bmp_bs_c5;
@@ -204,7 +212,7 @@ void move_ship(BATTLESHIP *battleship) {
                         } else battleship->turning_frame = 0;
 
                 battleship->dx += battleship->vx;
-                battleship->dy = ((battleship->dy-45) >= game_bs_host_limit) ? battleship->dy - 1 : battleship->dy;
+                battleship->dy = ((battleship->dy-45) >= game_bs_host_limit) ? battleship->dy - battleship->vy : battleship->dy;
 
             }else if(battleship->owner == BATTLESHIP_OWNER_OPPONENT){
                         dist_r = (DISPLAY_W-(battleship->dx+bsw/2)<=0)?1:DISPLAY_W-(battleship->dx+bsw/2);
@@ -236,7 +244,7 @@ void move_ship(BATTLESHIP *battleship) {
                         } else battleship->turning_frame = 0;
 
                         battleship->dx += battleship->vx;
-                        battleship->dy = (((battleship->dy-45)+bsh) <= game_bs_client_limit) ? battleship->dy + battleship->vy : battleship->dy;
+                        battleship->dy = (battleship->dy+45 <= game_bs_client_limit) ? battleship->dy + battleship->vy : battleship->dy;
                     }
         }
             break;
@@ -273,6 +281,12 @@ void draw_ship(BATTLESHIP *battleship){
 
 
     if (DEBUG){
+        if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT){
+            battleship->dx=abs(DISPLAY_W-battleship->dx);
+            battleship->dy=abs(DISPLAY_H-battleship->dy);
+        }
+
+
         ALLEGRO_COLOR color = (battleship->turning_direction == TURNING_DIRECTION_NONE)?
                               al_map_rgb(250,0,0): al_map_rgb(0,250,0);
         al_draw_rectangle(battleship->dx-bsw/2,battleship->dy-bsh/2,
