@@ -28,9 +28,9 @@
 ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_BITMAP *bmp_background;
 ALLEGRO_FONT *main_font_size_45;
-ALLEGRO_FONT *main_font_size_30;
+ALLEGRO_FONT *main_font_size_25;
 int main_font_size_45_height;
-int main_font_size_30_height;
+int main_font_size_25_height;
 GAME_STATE current_game_state;
 GAME_FLOW_STATE current_game_flow_state;
 const int DISPLAY_H = 800, DISPLAY_W = 500;
@@ -185,11 +185,11 @@ void load_resources(){
 
     // Carrega a fonte principal da aplicação
     ALLEGRO_FILE* vt323_ttf_45 = al_open_memfile(font_VT323_ttf,font_VT323_ttf_len,"r");
-    ALLEGRO_FILE* vt323_ttf_30 = al_open_memfile(font_VT323_ttf,font_VT323_ttf_len,"r");
+    ALLEGRO_FILE* vt323_ttf_25 = al_open_memfile(font_VT323_ttf,font_VT323_ttf_len,"r");
     load_font(&main_font_size_45,&vt323_ttf_45,45,ALLEGRO_TTF_MONOCHROME);
-    load_font(&main_font_size_30,&vt323_ttf_30,30,ALLEGRO_TTF_MONOCHROME);
+    load_font(&main_font_size_25,&vt323_ttf_25,25,ALLEGRO_TTF_MONOCHROME);
     main_font_size_45_height = al_get_font_line_height(main_font_size_45);
-    main_font_size_30_height = al_get_font_line_height(main_font_size_30);
+    main_font_size_25_height = al_get_font_line_height(main_font_size_25);
 
     load_resources_menu_screen();
     load_resources_battleship();
@@ -220,6 +220,7 @@ void unload_resources(){
 
     al_destroy_bitmap(bmp_background);
     al_destroy_font(main_font_size_45);
+    al_destroy_font(main_font_size_25);
 }
 
 void destroy_display(){
