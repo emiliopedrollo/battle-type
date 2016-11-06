@@ -304,11 +304,11 @@ void draw_ship(BATTLESHIP *battleship){
 
     if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
         flags = (battleship->owner == BATTLESHIP_OWNER_PLAYER)?ALLEGRO_FLIP_VERTICAL:0;
-        dx = (float)fabs(DISPLAY_W - dx);
-        dy = (float)fabs(DISPLAY_H - dy);
+        dx = DISPLAY_W - dx;
+        dy = DISPLAY_H - dy;
 
         if (battleship->owner == BATTLESHIP_OWNER_PLAYER && battleship->class != BATTLESHIP_CLASS_M){
-            al_draw_text(main_font_size_30,al_map_rgb(255,255,255),dx,dy+bsh/2,
+            al_draw_text(main_font_size_25,al_map_rgb(255,255,255),dx,dy+bsh/2,
                          ALLEGRO_ALIGN_CENTER,battleship->word);
         }
 
@@ -316,7 +316,7 @@ void draw_ship(BATTLESHIP *battleship){
         flags = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)?ALLEGRO_FLIP_VERTICAL:0;
 
         if (battleship->owner == BATTLESHIP_OWNER_OPPONENT && battleship->class != BATTLESHIP_CLASS_M){
-            al_draw_text(main_font_size_30,al_map_rgb(255,255,255),dx,dy+bsh/2,
+            al_draw_text(main_font_size_25,al_map_rgb(255,255,255),dx,dy+bsh/2,
                          ALLEGRO_ALIGN_CENTER,battleship->word);
         }
     }
@@ -399,11 +399,11 @@ void draw_ship(BATTLESHIP *battleship){
         ALLEGRO_COLOR color = (battleship->turning_direction == TURNING_DIRECTION_NONE)?
                               al_map_rgb(250,0,0): al_map_rgb(0,250,0);
 
-        al_draw_rectangle(battleship->dx-bsw/2,battleship->dy-bsh/2,
-                          battleship->dx+bsw/2,battleship->dy+bsh/2,
+        al_draw_rectangle(dx-bsw/2,dy-bsh/2,
+                          dx+bsw/2,dy+bsh/2,
                           color,2);
-        al_draw_filled_rectangle(battleship->dx-2,battleship->dy-2,
-                                 battleship->dx+2,battleship->dy+2,
+        al_draw_filled_rectangle(dx-2,dy-2,
+                                 dx+2,dy+2,
                                  color);
     }
 }
