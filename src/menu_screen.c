@@ -118,28 +118,28 @@ void init_menu_buttons(){
     init_button_colors();
 
     //Main Menu
-    buttons[BTN_SINGLE_PLAYER] = init_button(main_font,"Single Player",DISPLAY_W/2,top_position);
+    buttons[BTN_SINGLE_PLAYER] = init_button(main_font_size_45,"Single Player",DISPLAY_W/2,top_position);
 
     coord = get_button_coordinate(buttons[0]);
     middle_position = coord.y2+buttons[0].h/2+margin;
-    buttons[BTN_MULTI_PLAYER] = init_button(main_font,"Multi Player",DISPLAY_W/2,middle_position);
+    buttons[BTN_MULTI_PLAYER] = init_button(main_font_size_45,"Multi Player",DISPLAY_W/2,middle_position);
 
     coord = get_button_coordinate(buttons[1]);
     bottom_position = coord.y2+buttons[1].h/2+margin;
-    buttons[BTN_EXIT] = init_button(main_font,"Sair",DISPLAY_W/2,bottom_position);
+    buttons[BTN_EXIT] = init_button(main_font_size_45,"Sair",DISPLAY_W/2,bottom_position);
 
 
     // Multiplayer Menu
-    buttons[BTN_MULTIPLAYER_JOIN] = init_button(main_font,"Join",DISPLAY_W/2,top_position);
-    buttons[BTN_MULTIPLAYER_HOST] = init_button(main_font,"Host",DISPLAY_W/2,middle_position);
-    buttons[BTN_MULTIPLAYER_BACK] = init_button(main_font,"Back",DISPLAY_W/2,bottom_position);
+    buttons[BTN_MULTIPLAYER_JOIN] = init_button(main_font_size_45,"Join",DISPLAY_W/2,top_position);
+    buttons[BTN_MULTIPLAYER_HOST] = init_button(main_font_size_45,"Host",DISPLAY_W/2,middle_position);
+    buttons[BTN_MULTIPLAYER_BACK] = init_button(main_font_size_45,"Back",DISPLAY_W/2,bottom_position);
 
     // Multiplayer Join Menu
-    buttons[BTN_MULTIPLAYER_JOIN_ENTER] = init_button(main_font,"Enter",DISPLAY_W/2,middle_position);
-    buttons[BTN_MULTIPLAYER_JOIN_CANCEL] = init_button(main_font,"Cancel",DISPLAY_W/2,bottom_position);
+    buttons[BTN_MULTIPLAYER_JOIN_ENTER] = init_button(main_font_size_45,"Enter",DISPLAY_W/2,middle_position);
+    buttons[BTN_MULTIPLAYER_JOIN_CANCEL] = init_button(main_font_size_45,"Cancel",DISPLAY_W/2,bottom_position);
 
     // Multiplayer Host Menu
-    buttons[BTN_MULTIPLAYER_HOST_CANCEL] = init_button(main_font,"Cancel",DISPLAY_W/2,bottom_position);
+    buttons[BTN_MULTIPLAYER_HOST_CANCEL] = init_button(main_font_size_45,"Cancel",DISPLAY_W/2,bottom_position);
 
     on_menu_change();
     
@@ -178,7 +178,7 @@ void draw_address_box(){
     int top = (DISPLAY_H - 280) - (height/2);
     int left = (DISPLAY_W)/2 - (width/2);
 
-    int fh = al_get_font_line_height(main_font);
+    int fh = al_get_font_line_height(main_font_size_45);
 
     ALLEGRO_COLOR bg = al_map_rgba(255,255,255,200);
     ALLEGRO_COLOR border = al_map_rgba(160,160,160,200);
@@ -187,7 +187,7 @@ void draw_address_box(){
     al_draw_rectangle(left,top,left+width,top+height,border,4);
     al_draw_filled_rectangle(left,top,left+width,top+height,bg);
 
-    al_draw_text(main_font,black,(DISPLAY_W)/2+20 - (width/2),(DISPLAY_H - 280) - (fh/2),
+    al_draw_text(main_font_size_45,black,(DISPLAY_W)/2+20 - (width/2),(DISPLAY_H - 280) - (fh/2),
                  ALLEGRO_ALIGN_LEFT,concat(remote_ip,pipe));
 }
 

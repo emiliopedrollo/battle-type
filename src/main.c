@@ -8,6 +8,8 @@
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_memfile.h>
 #include <getopt.h>
+#include <allegro5/bitmap.h>
+#include <allegro5/file.h>
 #include "main.h"
 #include "menu_screen.h"
 #include "resources/img/background.jpg.h"
@@ -25,12 +27,15 @@
  */
 ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_BITMAP *bmp_background;
-ALLEGRO_FONT *main_font;
+ALLEGRO_FONT *main_font_size_45;
+ALLEGRO_FONT *main_font_size_30;
+int main_font_size_45_height;
+int main_font_size_30_height;
 GAME_STATE current_game_state;
 GAME_FLOW_STATE current_game_flow_state;
 const int DISPLAY_H = 800, DISPLAY_W = 500;
 bool exiting = false;
-bool DEBUG = false;
+bool DEBUG = true;
 
 int change_game_state_step_remaining = 0;
 GAME_STATE changing_game_state;
@@ -179,8 +184,12 @@ void load_resources(){
     load_bitmap(&bmp_background,&background_jpg,".jpg");
 
     // Carrega a fonte principal da aplicação
-    ALLEGRO_FILE* vt323_ttf = al_open_memfile(font_VT323_ttf,font_VT323_ttf_len,"r");
-    load_font(&main_font,&vt323_ttf,45,ALLEGRO_TTF_MONOCHROME);
+    ALLEGRO_FILE* vt323_ttf_45 = al_open_memfile(font_VT323_ttf,font_VT323_ttf_len,"r");
+    ALLEGRO_FILE* vt323_ttf_30 = al_open_memfile(font_VT323_ttf,font_VT323_ttf_len,"r");
+    load_font(&main_font_size_45,&vt323_ttf_45,45,ALLEGRO_TTF_MONOCHROME);
+    load_font(&main_font_size_30,&vt323_ttf_30,30,ALLEGRO_TTF_MONOCHROME);
+    main_font_size_45_height = al_get_font_line_height(main_font_size_45);
+    main_font_size_30_height = al_get_font_line_height(main_font_size_30);
 
     load_resources_menu_screen();
     load_resources_battleship();
@@ -210,7 +219,7 @@ void unload_resources(){
     unload_resources_game();
 
     al_destroy_bitmap(bmp_background);
-    al_destroy_font(main_font);
+    al_destroy_font(main_font_size_45);
 }
 
 void destroy_display(){

@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_font.h>
+#include <allegro5/bitmap.h>
+#include <allegro5/display.h>
 
 #ifndef BATTLE_TYPE_MAIN_H
 #define BATTLE_TYPE_MAIN_H
@@ -33,7 +35,10 @@ typedef enum {
 extern GAME_STATE current_game_state;
 extern GAME_FLOW_STATE current_game_flow_state;
 extern ALLEGRO_BITMAP *bmp_background;
-extern ALLEGRO_FONT *main_font;
+extern ALLEGRO_FONT *main_font_size_45;
+extern ALLEGRO_FONT *main_font_size_30;
+extern int main_font_size_45_height;
+extern int main_font_size_30_height;
 
 void load_font(ALLEGRO_FONT* *font, ALLEGRO_FILE* *file,int size, int flags);
 void load_bitmap(ALLEGRO_BITMAP* *bitmap, ALLEGRO_FILE* *file, char* ident);
