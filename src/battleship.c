@@ -58,7 +58,7 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, float dx, float dy){
     switch (class){
         case BATTLESHIP_CLASS_5:
             battleship->bmp = bmp_bs_c5;
-            vx = 1.5f; vy = .3f;
+            vx = 1.5f; vy = .2f;
             break;
         case BATTLESHIP_CLASS_M:
             battleship->bmp = bmp_bs_c5;
