@@ -261,29 +261,38 @@ void draw_ship(BATTLESHIP *battleship){
     float dx, dy;
     int flags;
 
-    dx = battleship->dx-(bsw/2);
-    dy = battleship->dy-(bsh/2);
+    dx = battleship->dx;
+    dy = battleship->dy;
 
     if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
         flags = (battleship->owner == BATTLESHIP_OWNER_PLAYER)?ALLEGRO_FLIP_VERTICAL:0;
         dx = (float)fabs(DISPLAY_W - dx);
         dy = (float)fabs(DISPLAY_H - dy);
 
+        if (battleship->owner == BATTLESHIP_OWNER_PLAYER && battleship->class != BATTLESHIP_CLASS_M){
+            al_draw_text(main_font_size_30,al_map_rgb(255,255,255),dx,dy+bsh/2,
+                         ALLEGRO_ALIGN_CENTER,battleship->word);
+        }
+
     } else {
         flags = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)?ALLEGRO_FLIP_VERTICAL:0;
+
+        if (battleship->owner == BATTLESHIP_OWNER_OPPONENT && battleship->class != BATTLESHIP_CLASS_M){
+            al_draw_text(main_font_size_30,al_map_rgb(255,255,255),dx,dy+bsh/2,
+                         ALLEGRO_ALIGN_CENTER,battleship->word);
+        }
     }
 
-    al_draw_bitmap(battleship->bmp,dx,dy,flags);
-    if (battleship->owner == BATTLESHIP_OWNER_OPPONENT && battleship->class != BATTLESHIP_CLASS_M){
-        al_draw_text(main_font_size_30,al_map_rgb(255,255,255),dx+(bsw/2),dy+bsh*(3/2),
-                     ALLEGRO_ALIGN_CENTER,battleship->word);
-    }
+    al_draw_bitmap(battleship->bmp,dx-(bsw/2),dy-(bsh/2),flags);
+
+
+
 
 
     if (DEBUG){
         if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT){
-            battleship->dx=abs(DISPLAY_W-battleship->dx);
-            battleship->dy=abs(DISPLAY_H-battleship->dy);
+            battleship->dx=(float)fabs(DISPLAY_W-battleship->dx);
+            battleship->dy=(float)fabs(DISPLAY_H-battleship->dy);
         }
 
 
