@@ -33,7 +33,7 @@ $ make
 
 ## Executando o jogo
 
-Após compilado o executável do jogo estará em `~/battle-type/output/battle_type` você só precisa chama-lo pelo terminal ou com um duplo clique para abrir o jogo
+Após compilado o executável do jogo estará em `output/battle_type` você só precisa chama-lo pelo terminal ou com um duplo clique para abrir o jogo
 
 [Emílio B. Pedrollo]: <https://github.com/emiliopedrollo>
 [Fábio A. Pedroso]: <https://github.com/fapedroso>
