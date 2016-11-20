@@ -10,11 +10,11 @@
 #include "server.h"
 #include "client.h"
 
-
+int shortcut_key_pressed = -1;
 bool is_mouse_down = false;
 bool is_mouse_down_on_button = false;
 bool draw_menu_buttons = true;
-Button buttons[9];
+Button buttons[10];
 
 BATTLESHIP* demo_ship;
 
@@ -38,6 +38,7 @@ void on_menu_change(){
         case MENU_SCREEN_MAIN:
             buttons[BTN_SINGLE_PLAYER].visible = true;
             buttons[BTN_MULTI_PLAYER].visible = true;
+            buttons[BTN_RANK].visible = true;
             buttons[BTN_EXIT].visible = true;
             break;
         case MENU_SCREEN_MULTIPLAYER_SELECT:
@@ -109,7 +110,7 @@ void start_game_state_change_menu_screen(GAME_STATE new_state){
 //    return true;
 //}
 
-void init_menu_buttons(){  
+void init_menu_buttons(){
     int margin = 20;
     RectangleCoordinate coord;
     int top_position = (DISPLAY_H - 280);
@@ -118,31 +119,32 @@ void init_menu_buttons(){
     init_button_colors();
 
     //Main Menu
-    buttons[BTN_SINGLE_PLAYER] = init_button(main_font_size_45,"Single Player",DISPLAY_W/2,top_position);
+    buttons[BTN_SINGLE_PLAYER] = init_button(main_font_size_45,"&1 Jogador",DISPLAY_W/2,top_position,380);
 
     coord = get_button_coordinate(buttons[0]);
     middle_position = coord.y2+buttons[0].h/2+margin;
-    buttons[BTN_MULTI_PLAYER] = init_button(main_font_size_45,"Multi Player",DISPLAY_W/2,middle_position);
+    buttons[BTN_MULTI_PLAYER] = init_button(main_font_size_45,"&2 Jogadores",DISPLAY_W/2,middle_position,380);
 
     coord = get_button_coordinate(buttons[1]);
     bottom_position = coord.y2+buttons[1].h/2+margin;
-    buttons[BTN_EXIT] = init_button(main_font_size_45,"Sair",DISPLAY_W/2,bottom_position);
+    buttons[BTN_RANK] = init_button(main_font_size_45,"&Rank",(DISPLAY_W/4)+25,bottom_position,180);
+    buttons[BTN_EXIT] = init_button(main_font_size_45,"&Sair",(DISPLAY_W/4)*3-25,bottom_position,180);
 
 
     // Multiplayer Menu
-    buttons[BTN_MULTIPLAYER_JOIN] = init_button(main_font_size_45,"Join",DISPLAY_W/2,top_position);
-    buttons[BTN_MULTIPLAYER_HOST] = init_button(main_font_size_45,"Host",DISPLAY_W/2,middle_position);
-    buttons[BTN_MULTIPLAYER_BACK] = init_button(main_font_size_45,"Back",DISPLAY_W/2,bottom_position);
+    buttons[BTN_MULTIPLAYER_JOIN] = init_button(main_font_size_45,"&Conectar",DISPLAY_W/2,top_position,380);
+    buttons[BTN_MULTIPLAYER_HOST] = init_button(main_font_size_45,"&Hospedar",DISPLAY_W/2,middle_position,380);
+    buttons[BTN_MULTIPLAYER_BACK] = init_button(main_font_size_45,"&Voltar",DISPLAY_W/2,bottom_position,380);
 
     // Multiplayer Join Menu
-    buttons[BTN_MULTIPLAYER_JOIN_ENTER] = init_button(main_font_size_45,"Enter",DISPLAY_W/2,middle_position);
-    buttons[BTN_MULTIPLAYER_JOIN_CANCEL] = init_button(main_font_size_45,"Cancel",DISPLAY_W/2,bottom_position);
+    buttons[BTN_MULTIPLAYER_JOIN_ENTER] = init_button(main_font_size_45,"&Entrar",DISPLAY_W/2,middle_position,380);
+    buttons[BTN_MULTIPLAYER_JOIN_CANCEL] = init_button(main_font_size_45,"&Cancelar",DISPLAY_W/2,bottom_position,380);
 
     // Multiplayer Host Menu
-    buttons[BTN_MULTIPLAYER_HOST_CANCEL] = init_button(main_font_size_45,"Cancel",DISPLAY_W/2,bottom_position);
+    buttons[BTN_MULTIPLAYER_HOST_CANCEL] = init_button(main_font_size_45,"&Cancelar",DISPLAY_W/2,bottom_position,380);
 
     on_menu_change();
-    
+
 }
 
 void init_demo_ship(){
@@ -192,11 +194,11 @@ void draw_address_box(){
                  ALLEGRO_ALIGN_LEFT,concat(remote_ip,pipe));
 }
 
-void draw_menu(){    
-    
+void draw_menu(){
+
     int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
     for (int i = 0; i < total_buttons; i++){
-        draw_button(buttons[i]);        
+        draw_button(buttons[i]);
     }
 
     if (current_menu_screen == MENU_SCREEN_MULTIPLAYER_JOIN){
@@ -204,7 +206,7 @@ void draw_menu(){
     } else if (current_menu_screen == MENU_SCREEN_MULTIPLAYER_HOST){
 
     }
-    
+
 }
 
 void change_menu_state(MENU_SCREEN state){
@@ -298,72 +300,121 @@ void on_key_press_menu_screen(ALLEGRO_KEYBOARD_EVENT event){
     char *add = NULL;
     // 192.168.000.001
 
-    if (current_game_state == GAME_STATE_MAIN_MENU && current_menu_screen == MENU_SCREEN_MULTIPLAYER_JOIN){
-        switch (event.keycode){
-            case ALLEGRO_KEY_BACKSPACE:
-                if (itmp < 0) break;
-                substr(remote_ip, sizeof(remote_ip),remote_ip,itmp--);
-                break;
-            case ALLEGRO_KEY_PAD_DELETE:
-            case ALLEGRO_KEY_FULLSTOP:
-                add = ".";
-                break;
-            case ALLEGRO_KEY_PAD_0:
-            case ALLEGRO_KEY_0:
-                add = "0";
-                break;
-            case ALLEGRO_KEY_PAD_1:
-            case ALLEGRO_KEY_1:
-                add = "1";
-                break;
-            case ALLEGRO_KEY_PAD_2:
-            case ALLEGRO_KEY_2:
-                add = "2";
-                break;
-            case ALLEGRO_KEY_PAD_3:
-            case ALLEGRO_KEY_3:
-                add = "3";
-                break;
-            case ALLEGRO_KEY_PAD_4:
-            case ALLEGRO_KEY_4:
-                add = "4";
-                break;
+    switch (current_menu_screen){
+        case MENU_SCREEN_MULTIPLAYER_JOIN:
+            switch (event.keycode){
+                case ALLEGRO_KEY_BACKSPACE:
+                    if (itmp < 0) break;
+                    substr(remote_ip, sizeof(remote_ip),remote_ip,itmp--);
+                    break;
+                case ALLEGRO_KEY_PAD_DELETE:
+                case ALLEGRO_KEY_FULLSTOP:
+                    add = ".";
+                    break;
+                case ALLEGRO_KEY_PAD_0:
+                case ALLEGRO_KEY_0:
+                    add = "0";
+                    break;
+                case ALLEGRO_KEY_PAD_1:
+                case ALLEGRO_KEY_1:
+                    add = "1";
+                    break;
+                case ALLEGRO_KEY_PAD_2:
+                case ALLEGRO_KEY_2:
+                    add = "2";
+                    break;
+                case ALLEGRO_KEY_PAD_3:
+                case ALLEGRO_KEY_3:
+                    add = "3";
+                    break;
+                case ALLEGRO_KEY_PAD_4:
+                case ALLEGRO_KEY_4:
+                    add = "4";
+                    break;
 
-            case ALLEGRO_KEY_PAD_5:
-            case ALLEGRO_KEY_5:
-                add = "5";
-                break;
-            case ALLEGRO_KEY_PAD_6:
-            case ALLEGRO_KEY_6:
-                add = "6";
-                break;
-            case ALLEGRO_KEY_PAD_7:
-            case ALLEGRO_KEY_7:
-                add = "7";
-                break;
-            case ALLEGRO_KEY_PAD_8:
-            case ALLEGRO_KEY_8:
-                add = "8";
-                break;
-            case ALLEGRO_KEY_PAD_9:
-            case ALLEGRO_KEY_9:
-                add = "9";
-                break;
-            case ALLEGRO_KEY_PAD_ENTER:
-            case ALLEGRO_KEY_ENTER:
-                on_button_click(BTN_MULTIPLAYER_JOIN_ENTER);
-                break;
-            default:
-                break;
-        }
-        if (add != NULL && itmp < 14){
-            itmp++;
-            memmove(remote_ip,concat(remote_ip,add), strlen(concat(remote_ip,add)));
-        }
+                case ALLEGRO_KEY_PAD_5:
+                case ALLEGRO_KEY_5:
+                    add = "5";
+                    break;
+                case ALLEGRO_KEY_PAD_6:
+                case ALLEGRO_KEY_6:
+                    add = "6";
+                    break;
+                case ALLEGRO_KEY_PAD_7:
+                case ALLEGRO_KEY_7:
+                    add = "7";
+                    break;
+                case ALLEGRO_KEY_PAD_8:
+                case ALLEGRO_KEY_8:
+                    add = "8";
+                    break;
+                case ALLEGRO_KEY_PAD_9:
+                case ALLEGRO_KEY_9:
+                    add = "9";
+                    break;
+                case ALLEGRO_KEY_PAD_ENTER:
+                case ALLEGRO_KEY_ENTER:
+                    on_button_click(BTN_MULTIPLAYER_JOIN_ENTER);
+                    break;
+                case ALLEGRO_KEY_E:
+                    shortcut_key_pressed = BTN_MULTIPLAYER_JOIN_ENTER;
+                    break;
+                case ALLEGRO_KEY_C:
+                    shortcut_key_pressed = BTN_MULTIPLAYER_JOIN_CANCEL;
+                    break;
+                default:
+                    break;
+            }
+            if (add != NULL && itmp < 14){
+                itmp++;
+                memmove(remote_ip,concat(remote_ip,add), strlen(concat(remote_ip,add)));
+            }
+            break;
+        case MENU_SCREEN_MAIN:
+            switch (event.keycode){
+                case ALLEGRO_KEY_1:
+                    shortcut_key_pressed = BTN_SINGLE_PLAYER;
+                    break;
+                case ALLEGRO_KEY_2:
+                    shortcut_key_pressed = BTN_MULTI_PLAYER;
+                    break;
+                case ALLEGRO_KEY_R:
+                    shortcut_key_pressed = BTN_RANK;
+                    break;
+                case ALLEGRO_KEY_S:
+                    shortcut_key_pressed = BTN_EXIT;
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case MENU_SCREEN_MULTIPLAYER_SELECT:
+            switch (event.keycode){
+                case ALLEGRO_KEY_C:
+                    shortcut_key_pressed = BTN_MULTIPLAYER_JOIN;
+                    break;
+                case ALLEGRO_KEY_H:
+                    shortcut_key_pressed = BTN_MULTIPLAYER_HOST;
+                    break;
+                case ALLEGRO_KEY_V:
+                    shortcut_key_pressed = BTN_MULTIPLAYER_BACK;
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case MENU_SCREEN_MULTIPLAYER_HOST:
+            switch (event.keycode){
+                case ALLEGRO_KEY_C:
+                    shortcut_key_pressed = BTN_MULTIPLAYER_JOIN_CANCEL;
+                    break;
+                default:
+                    break;
+            }
+            break;
+        default:
+            break;
     }
-
-
-
 
     printf("Keycode: %d | Modifier %o\n",
            event.keycode,event.modifiers);
@@ -399,7 +450,7 @@ void on_mouse_move_menu_screen(int x, int y){
 }
 
 void on_mouse_down_menu_screen(int x, int y){
-    
+
     int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
     for (int i = 0; i < total_buttons; i++){
         if (buttons[i].visible && is_coordinate_inside_button(buttons[i], x, y)){
@@ -409,11 +460,11 @@ void on_mouse_down_menu_screen(int x, int y){
         }
     }
     is_mouse_down = true;
-    
+
 }
 
 void on_mouse_up_menu_screen(int x, int y){
-    
+
     int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
     for (int i = 0; i < total_buttons; i++){
         if (buttons[i].visible && buttons[i].state == BUTTON_STATE_ACTIVE){
@@ -425,11 +476,32 @@ void on_mouse_up_menu_screen(int x, int y){
             }
             break;
         }
-    }    
+    }
     is_mouse_down = false;
     is_mouse_down_on_button = false;
-    
+
     on_mouse_move_menu_screen(x,y);
+}
+
+void on_timer_menu_screen(){
+    int static frame_count = 0;
+
+    if (shortcut_key_pressed == -1) return;
+
+    switch (frame_count++){
+        case 0:
+            on_mouse_down_menu_screen(
+                    buttons[shortcut_key_pressed].x+1,buttons[shortcut_key_pressed].y+1);
+            break;
+        case 10:
+            on_mouse_up_menu_screen(
+                    buttons[shortcut_key_pressed].x+1,buttons[shortcut_key_pressed].y+1);
+            frame_count = 0;
+            shortcut_key_pressed = -1;
+            break;
+        default:
+            break;
+    }
 }
 
 void on_redraw_menu_screen(){

@@ -24,7 +24,7 @@ typedef struct {
 
 void init_button_colors();
 RectangleCoordinate get_button_coordinate(Button button);
-Button init_button(ALLEGRO_FONT* font, char* text, int cx, int cy);
+Button init_button(ALLEGRO_FONT* font, char* text, int cx, int cy, int w);
 void draw_button(Button button);
 bool is_coordinate_inside_button(Button button, int x, int y);
 

@@ -16,18 +16,20 @@ void on_key_press_menu_screen(ALLEGRO_KEYBOARD_EVENT event);
 void on_mouse_move_menu_screen(int x, int y);
 void on_mouse_down_menu_screen(int x, int y);
 void on_mouse_up_menu_screen(int x, int y);
+void on_timer_menu_screen();
 void on_redraw_menu_screen();
 
 typedef enum {
     BTN_SINGLE_PLAYER = 0,
     BTN_MULTI_PLAYER = 1,
-    BTN_EXIT = 2,
-    BTN_MULTIPLAYER_JOIN = 3,
-    BTN_MULTIPLAYER_HOST = 4,
-    BTN_MULTIPLAYER_BACK = 5,
-    BTN_MULTIPLAYER_JOIN_ENTER = 6,
-    BTN_MULTIPLAYER_JOIN_CANCEL = 7,
-    BTN_MULTIPLAYER_HOST_CANCEL = 8,
+    BTN_RANK = 2,
+    BTN_EXIT = 3,
+    BTN_MULTIPLAYER_JOIN = 4,
+    BTN_MULTIPLAYER_HOST = 5,
+    BTN_MULTIPLAYER_BACK = 6,
+    BTN_MULTIPLAYER_JOIN_ENTER = 7,
+    BTN_MULTIPLAYER_JOIN_CANCEL = 8,
+    BTN_MULTIPLAYER_HOST_CANCEL = 9,
 } BUTTON;
 
 typedef enum {
