@@ -15,6 +15,8 @@ void on_redraw_game();
 void load_resources_game();
 void unload_resources_game();
 
+void on_key_press_game(ALLEGRO_KEYBOARD_EVENT event);
+
 typedef struct {
     BATTLESHIP_CLASS class;
     BATTLESHIP_OWNER owner;
@@ -27,7 +29,8 @@ typedef struct {
 typedef struct {
     SERIAL_BATTLESHIP host_ships[NUMBER_OF_SHIPS_PER_PLAYER];
     SERIAL_BATTLESHIP client_ships[NUMBER_OF_SHIPS_PER_PLAYER];
-    int host_cash, client_cash;
+    unsigned short host_cash, client_cash;
+    char host_target, client_target;
 } GAME_SNAPSHOT;
 
 extern int game_bs_host_limit;

@@ -3,6 +3,7 @@
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_font.h>
 #include "buttons.h"
+#include "utils.h"
 
 ALLEGRO_COLOR btn_border_color;
 ALLEGRO_COLOR btn_light_color;
@@ -10,8 +11,6 @@ ALLEGRO_COLOR btn_dark_color;
 ALLEGRO_COLOR btn_fill_color;
 ALLEGRO_COLOR btn_text_color;
 ALLEGRO_COLOR btn_text_hover_color;
-
-char* remove_char(char *s, char c);
 
 void init_button_colors(){
     btn_border_color = al_map_rgb(61, 61, 61);
@@ -230,26 +229,6 @@ void draw_button(Button button){
 
         }
     }
-}
-
-char* remove_char(char *s, char c){
-    int writer = 0, reader = 0;
-
-    char* r = malloc(strlen(s)+1);
-
-    while (s[reader])
-    {
-        if (s[reader]!=c)
-        {
-            r[writer++] = s[reader];
-        }
-
-        reader++;
-    }
-
-    r[writer]=0;
-
-    return r;
 }
 
 bool is_coordinate_inside_button(Button button, int x, int y){
