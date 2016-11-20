@@ -204,7 +204,7 @@ void draw_menu(){
     if (current_menu_screen == MENU_SCREEN_MULTIPLAYER_JOIN){
         draw_address_box();
     } else if (current_menu_screen == MENU_SCREEN_MULTIPLAYER_HOST){
-
+        // TODO: Show ip address
     }
 
 }
