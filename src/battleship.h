@@ -47,7 +47,6 @@ typedef struct {
     float dx,dy;
     float vx,vy;
     float vxi,vyi;
-    bool locked;
     bool push_back_ended;
     bool push_back_done;
     bool push_back_set_speed;
@@ -66,6 +65,8 @@ void load_resources_battleship();
 void unload_resources_battleship();
 int get_battleship_height(BATTLESHIP_CLASS class);
 int get_battleship_width(BATTLESHIP_CLASS class);
+unsigned short remove_next_letter_from_battleship(BATTLESHIP *battleship);
+char get_next_letter_from_battleship(BATTLESHIP *battleship);
 
 
 #endif //BATTLE_TYPE_BATTLESHIP_H

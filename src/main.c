@@ -301,8 +301,9 @@ void on_key_press(ALLEGRO_KEYBOARD_EVENT keyboard_event){
             on_key_press_menu_screen(keyboard_event);
             break;
         case GAME_STATE_IN_GAME_SINGLE_PLAYER:
-            current_game_flow_state = (current_game_flow_state == GAME_FLOW_STATE_PAUSE)?
-                                      GAME_FLOW_STATE_RUNNING:GAME_FLOW_STATE_PAUSE;
+        case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
+        case GAME_STATE_IN_GAME_MULTIPLAYER_HOST:
+            on_key_press_game(keyboard_event);
             break;
         default:
             break;

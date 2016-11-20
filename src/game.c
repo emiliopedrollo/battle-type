@@ -12,6 +12,7 @@ BATTLESHIP* host_ships[NUMBER_OF_SHIPS_PER_PLAYER];
 BATTLESHIP* client_ships[NUMBER_OF_SHIPS_PER_PLAYER];
 BATTLESHIP* host_mothership;
 BATTLESHIP* client_mothership;
+char host_target = -1, client_target = -1;
 int host_ship_count = 0;
 int client_ship_count = 0;
 int next_host_ship_spawn = 0;
@@ -22,22 +23,24 @@ static int const SPAWN_WINDOW = 10 * 60; // 10 seconds
 
 GAME_SNAPSHOT game;
 
-              int game_bs_host_limit;
-              int game_bs_client_limit;
+int game_bs_host_limit;
+int game_bs_client_limit;
 
-              int frame_count;
+int frame_count;
 
-              int word_pool_start_pos;
-              int word_pool_end_pos;
+int word_pool_start_pos;
+int word_pool_end_pos;
 
-              void init_motherships();
-              void move_game_ships();
-              void draw_game_ships();
-              void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battleship);
-              char* get_word_from_pool(BATTLESHIP_OWNER owner);
-              void update_word_pool(bool pump_word_index);
+void init_motherships();
+void move_game_ships();
+void draw_game_ships();
+void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battleship);
+char* get_word_from_pool(BATTLESHIP_OWNER owner);
+bool exist_ship_starting_with(char letter, BATTLESHIP_OWNER targets);
+char get_index_of_ship_starting_with(char letter, BATTLESHIP_OWNER targets);
+void update_word_pool(bool pump_word_index);
 
-              void load_resources_game(){
+void load_resources_game(){
 
 }
 
@@ -62,8 +65,6 @@ void init_motherships(){
 }
 
 void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class, char* word){
-
-    static bool p_l = false;
 
     int ship_count = (owner == BATTLESHIP_OWNER_PLAYER)? host_ship_count : client_ship_count;
 
@@ -91,11 +92,6 @@ void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class, char* word){
             if (!client_ships[i] || !client_ships[i]->active){
                 client_ships[i] = battleship;
                 client_ship_count++;
-
-                if (!p_l){
-                    p_l = true;
-                    client_ships[i]->locked = true;
-                }
                 break;
             }
         }
@@ -138,34 +134,35 @@ void draw_game_ships(){
     draw_ship(host_mothership);
     draw_ship(client_mothership);
 
-    bool draw_lock = false;
-    bool ship_is_locked;
-    int locked_ship = -1;
-
-    for (int i =0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++){
+    for (int i =0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
         if (host_ships[i] && host_ships[i]->active) draw_ship(host_ships[i]);
         if (client_ships[i] && client_ships[i]->active) draw_ship(client_ships[i]);
-
-        ship_is_locked = (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_HOST)?
-                         host_ships[i] && host_ships[i]->active && host_ships[i]->locked :
-                         client_ships[i] && client_ships[i]->active && client_ships[i]->locked;
-
-        if (ship_is_locked) locked_ship = i;
-
-        draw_lock = draw_lock || ship_is_locked;
     }
 
-    if (draw_lock){
-        draw_target_lock((current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_HOST)?
-                         host_ships[locked_ship]:client_ships[locked_ship]);
+    switch (current_game_state){
+        case GAME_STATE_IN_GAME_SINGLE_PLAYER:
+        case GAME_STATE_IN_GAME_MULTIPLAYER_HOST:
+            if (host_target != -1){
+                draw_target_lock(client_ships[host_target]);
+            }
+            break;
+        case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
+            if (host_target != -1){
+                draw_target_lock(host_ships[client_target]);
+            }
+            break;
+        default:
+            break;
     }
 }
 
-void update_game_ships(){
+void update_game_from_snapshot(){
     for (int i =0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++){
         update_battleship(host_ships[i],game.host_ships[i]);
         update_battleship(client_ships[i],game.client_ships[i]);
     }
+    host_target = game.host_target;
+    client_target = game.client_target;
 }
 
 void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battleship){
@@ -177,7 +174,6 @@ void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battlesh
         battleship->owner  = serial_battleship.owner;
         battleship->active = serial_battleship.active;
         battleship->word   = serial_battleship.word;
-        battleship->locked = serial_battleship.looked;
 
     } else {
         if (battleship) battleship->active = false;
@@ -193,11 +189,10 @@ SERIAL_BATTLESHIP convert_battleship_to_serial(BATTLESHIP *battleship){
     serial.dx     = battleship->dx;
     serial.dy     = battleship->dy;
     serial.word   = battleship->word;
-    serial.looked = battleship->locked;
     return serial;
 }
 
-void update_game_snapshot(){
+void update_snapshot_from_game(){
     for (int i =0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++){
         if (host_ships[i] && host_ships[i]->active){
             game.host_ships[i] = convert_battleship_to_serial(host_ships[i]);
@@ -207,6 +202,8 @@ void update_game_snapshot(){
             game.client_ships[i] = convert_battleship_to_serial(client_ships[i]);
         } else game.client_ships[i].active = false;
     }
+    game.host_target = host_target;
+    game.client_target = client_target;
 }
 
 void update_word_pool(bool pump_word_index){
@@ -227,27 +224,182 @@ void update_word_pool(bool pump_word_index){
 }
 
 bool exist_ship_starting_with(char letter, BATTLESHIP_OWNER targets){
-    bool exists = false;
+    return (get_index_of_ship_starting_with(letter,targets) != -1);
+}
+
+char get_index_of_ship_starting_with(char letter, BATTLESHIP_OWNER targets){
     BATTLESHIP* ship;
-    for (int i=0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++){
+    for (char i=0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++){
         ship = (targets == BATTLESHIP_OWNER_OPPONENT)?client_ships[i]:host_ships[i];
-        if (!ship || !ship->word) continue;
-        if ((exists = (ship->word[0] == letter))) break;
+        if (!ship || !ship->active || !ship->word) continue;
+        if (ship->word[0] == letter) return i;
     }
-    return exists;
+    return -1;
 }
 
 char* get_word_from_pool(BATTLESHIP_OWNER owner){
     int pool_size = word_pool_end_pos-word_pool_start_pos;
-    char* word;
+    char* word = malloc(strlen(dictionary[dictionary_len])+1);
     int tries = 0;
 
     do {
-        word = dictionary[rand()%(pool_size+1)];
+        strcpy(word,dictionary[rand()%(pool_size+1)]);
         if (tries++ % 5 == 0) update_word_pool(false);
     } while ( exist_ship_starting_with(word[0],owner) );
 
     return word;
+}
+
+void on_key_press_game(ALLEGRO_KEYBOARD_EVENT event){
+
+    char key;
+
+    switch (event.keycode) {
+        case ALLEGRO_KEY_ESCAPE:
+            if (current_game_state == GAME_STATE_IN_GAME_SINGLE_PLAYER) {
+                current_game_flow_state = (current_game_flow_state == GAME_FLOW_STATE_PAUSE) ?
+                                          GAME_FLOW_STATE_RUNNING : GAME_FLOW_STATE_PAUSE;
+            }
+            break;
+        default:
+            break;
+    }
+
+    if (current_game_state == GAME_FLOW_STATE_PAUSE) return;
+
+    switch (event.keycode) {
+        case ALLEGRO_KEY_A:
+            key = 'A';
+            break;
+        case ALLEGRO_KEY_B:
+            key = 'B';
+            break;
+        case ALLEGRO_KEY_C:
+        case ALLEGRO_KEY_BACKSLASH2: // Ç
+            key = 'C';
+            break;
+        case ALLEGRO_KEY_D:
+            key = 'D';
+            break;
+        case ALLEGRO_KEY_E:
+            key = 'E';
+            break;
+        case ALLEGRO_KEY_F:
+            key = 'F';
+            break;
+        case ALLEGRO_KEY_G:
+            key = 'G';
+            break;
+        case ALLEGRO_KEY_H:
+            key = 'H';
+            break;
+        case ALLEGRO_KEY_I:
+            key = 'I';
+            break;
+        case ALLEGRO_KEY_J:
+            key = 'J';
+            break;
+        case ALLEGRO_KEY_K:
+            key = 'K';
+            break;
+        case ALLEGRO_KEY_L:
+            key = 'L';
+            break;
+        case ALLEGRO_KEY_M:
+            key = 'M';
+            break;
+        case ALLEGRO_KEY_N:
+            key = 'N';
+            break;
+        case ALLEGRO_KEY_O:
+            key = 'O';
+            break;
+        case ALLEGRO_KEY_P:
+            key = 'P';
+            break;
+        case ALLEGRO_KEY_Q:
+            key = 'Q';
+            break;
+        case ALLEGRO_KEY_R:
+            key = 'R';
+            break;
+        case ALLEGRO_KEY_S:
+            key = 'S';
+            break;
+        case ALLEGRO_KEY_T:
+            key = 'T';
+            break;
+        case ALLEGRO_KEY_U:
+            key = 'U';
+            break;
+        case ALLEGRO_KEY_V:
+            key = 'V';
+            break;
+        case ALLEGRO_KEY_W:
+            key = 'W';
+            break;
+        case ALLEGRO_KEY_X:
+            key = 'X';
+            break;
+        case ALLEGRO_KEY_Y:
+            key = 'Y';
+            break;
+        case ALLEGRO_KEY_Z:
+            key = 'Z';
+            break;
+        case ALLEGRO_KEY_MINUS:
+            key = '-';
+            break;
+        default:
+            key = 0;
+            break;
+    }
+
+
+    BATTLESHIP *battleship = NULL;
+    if (key != 0){
+        char next_letter = 0;
+        switch (current_game_state){
+            case GAME_STATE_IN_GAME_SINGLE_PLAYER:
+            case GAME_STATE_IN_GAME_MULTIPLAYER_HOST:
+                if (host_target == -1){
+                    host_target = get_index_of_ship_starting_with(key,BATTLESHIP_OWNER_OPPONENT);
+                }
+                if (host_target != -1){
+                    battleship = client_ships[host_target];
+                }
+                break;
+            case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
+                if (client_target == -1){
+                    client_target = get_index_of_ship_starting_with(key,BATTLESHIP_OWNER_PLAYER);
+                }
+                if (client_target != -1){
+                    battleship = host_ships[client_target];
+                }
+            default:
+                break;
+        }
+        if (battleship != NULL){
+            next_letter = get_next_letter_from_battleship(battleship);
+            if (key == next_letter){
+                if (remove_next_letter_from_battleship(battleship) == 0){
+                    battleship->active = false;
+                    switch (current_game_state){
+                        case GAME_STATE_IN_GAME_SINGLE_PLAYER:
+                        case GAME_STATE_IN_GAME_MULTIPLAYER_HOST:
+                            host_target = -1;
+                            client_ship_count--;
+                            break;
+                        case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
+                            client_target = -1;
+                            host_ship_count--;
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
+    }
 }
 
 void on_redraw_game(){
@@ -278,9 +430,9 @@ void on_redraw_game(){
         }
 
         move_game_ships();
-        update_game_snapshot();
+        update_snapshot_from_game();
     } else if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT){
-        update_game_ships();
+        update_game_from_snapshot();
     }
     draw_game_ships();
 }

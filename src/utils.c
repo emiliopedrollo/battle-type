@@ -15,6 +15,25 @@
 #include <unistd.h> // for usleep
 #endif
 
+char* remove_char(char *s, char c){
+    int writer = 0, reader = 0;
+
+    char* r = malloc(strlen(s)+1);
+
+    while (s[reader])
+    {
+        if (s[reader]!=c)
+        {
+            r[writer++] = s[reader];
+        }
+
+        reader++;
+    }
+
+    r[writer]=0;
+
+    return r;
+}
 
 char *concat(char* part1, char* part2){
     char* result = malloc(strlen(part1)+1+strlen(part2));
