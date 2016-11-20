@@ -310,15 +310,43 @@ void on_key_press(ALLEGRO_KEYBOARD_EVENT keyboard_event){
 }
 
 void on_mouse_move(int x, int y){
-    on_mouse_move_menu_screen(x,y);
+    switch (current_game_state) {
+        case GAME_STATE_MAIN_MENU:
+            on_mouse_move_menu_screen(x,y);
+            break;
+        default:
+            break;
+    }
 }
 
 void on_mouse_down(int x, int y){
-    on_mouse_down_menu_screen(x,y);
+    switch (current_game_state) {
+        case GAME_STATE_MAIN_MENU:
+            on_mouse_down_menu_screen(x,y);
+            break;
+        default:
+            break;
+    }
 }
 
 void on_mouse_up(int x, int y){
-    on_mouse_up_menu_screen(x,y);
+    switch (current_game_state) {
+        case GAME_STATE_MAIN_MENU:
+            on_mouse_up_menu_screen(x,y);
+            break;
+        default:
+            break;
+    }
+}
+
+void on_timer(){
+    switch (current_game_state) {
+        case GAME_STATE_MAIN_MENU:
+            on_timer_menu_screen();
+            break;
+        default:
+            break;
+    }
 }
 
 void on_redraw(){
@@ -357,6 +385,7 @@ void do_the_loop(ALLEGRO_EVENT_QUEUE *queue){
                 break;
             case ALLEGRO_EVENT_TIMER:
                 redraw = true;
+                on_timer();
                 break;
             case ALLEGRO_EVENT_MOUSE_AXES:
                 on_mouse_move(event.mouse.x,event.mouse.y);
