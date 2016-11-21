@@ -15,6 +15,48 @@
 #include <unistd.h> // for usleep
 #endif
 
+bool is_next_char(char *haystack, char *needle){
+    if (strstr(haystack,needle)){
+        return strstr(haystack,needle)-haystack == 0;
+    } else return false;
+}
+
+char get_next_ascii_char(char *s){
+    if (is_next_char(s,"Á") ||
+        is_next_char(s,"Â") ||
+        is_next_char(s,"Ã") ||
+        is_next_char(s,"Ä") ||
+        is_next_char(s,"À")) {
+        return 'A';
+    } else if (is_next_char(s,"É") ||
+               is_next_char(s,"Ê") ||
+               is_next_char(s,"Ẽ") ||
+               is_next_char(s,"Ë") ||
+               is_next_char(s,"È")) {
+        return 'E';
+    } else if (is_next_char(s,"Í") ||
+               is_next_char(s,"Î") ||
+               is_next_char(s,"Ĩ") ||
+               is_next_char(s,"Ï") ||
+               is_next_char(s,"Ì")) {
+        return 'I';
+    } else if (is_next_char(s,"Ó") ||
+               is_next_char(s,"Ô") ||
+               is_next_char(s,"Õ") ||
+               is_next_char(s,"Ö") ||
+               is_next_char(s,"Ò")) {
+        return 'O';
+    } else if (is_next_char(s,"Ú") ||
+               is_next_char(s,"Û") ||
+               is_next_char(s,"Ũ") ||
+               is_next_char(s,"Ü") ||
+               is_next_char(s,"Ù")) {
+        return 'U';
+    } else if (is_next_char(s,"Ç")) {
+        return 'C';
+    } else return s[0];
+}
+
 char* remove_char(char *s, char c){
     int writer = 0, reader = 0;
 

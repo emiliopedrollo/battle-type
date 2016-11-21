@@ -593,44 +593,11 @@ unsigned short remove_next_letter_from_battleship(BATTLESHIP *battleship){
     return (unsigned short)strlen(battleship->word)-i-(unsigned short)1;
 }
 
-bool is_next_char(char *haystack, char *needle){
-    if (strstr(haystack,needle)){
-        return strstr(haystack,needle)-haystack == 0;
-    } else return false;
-}
-
 char get_next_letter_from_battleship(BATTLESHIP *battleship){
 
     for (int i=0;i<strlen(battleship->word);i++){
         if (battleship->word[i] != ' ') {
-            if (is_next_char(battleship->word+i,"Á") ||
-                    is_next_char(battleship->word+i,"Â") ||
-                    is_next_char(battleship->word+i,"Ã") ||
-                    is_next_char(battleship->word+i,"À")) {
-                return 'A';
-            } else if (is_next_char(battleship->word+i,"É") ||
-                       is_next_char(battleship->word+i,"Ê") ||
-                       is_next_char(battleship->word+i,"Ẽ") ||
-                       is_next_char(battleship->word+i,"È")) {
-                return 'E';
-            } else if (is_next_char(battleship->word+i,"Í") ||
-                       is_next_char(battleship->word+i,"Î") ||
-                       is_next_char(battleship->word+i,"Ĩ") ||
-                       is_next_char(battleship->word+i,"Ì")) {
-                return 'I';
-            } else if (is_next_char(battleship->word+i,"Ó") ||
-                       is_next_char(battleship->word+i,"Ô") ||
-                       is_next_char(battleship->word+i,"Õ") ||
-                       is_next_char(battleship->word+i,"Ò")) {
-                return 'O';
-            } else if (is_next_char(battleship->word+i,"Ú") ||
-                       is_next_char(battleship->word+i,"Û") ||
-                       is_next_char(battleship->word+i,"Ũ") ||
-                       is_next_char(battleship->word+i,"Ù")) {
-                return 'U';
-            } else if (is_next_char(battleship->word+i,"Ç")) {
-                return 'C';
-            } else return battleship->word[i];
+            return get_next_ascii_char(battleship->word+i);
         }
     }
     return 0;
