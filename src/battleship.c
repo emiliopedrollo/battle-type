@@ -439,22 +439,10 @@ void draw_ship(BATTLESHIP *battleship){
 
     if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
         flags = (battleship->owner == BATTLESHIP_OWNER_PLAYER)?ALLEGRO_FLIP_VERTICAL:0;
-
-        if (battleship->owner == BATTLESHIP_OWNER_PLAYER && battleship->class != BATTLESHIP_CLASS_M){
-            al_draw_text(main_font_size_25,al_map_rgb(255,255,255),dx,dy+bsh/2,
-                         ALLEGRO_ALIGN_CENTER,battleship->word);
-        }
-
         if (PITTHAN_MODE) draw_ship = (battleship->owner != BATTLESHIP_OWNER_OPPONENT);
 
     } else {
         flags = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)?ALLEGRO_FLIP_VERTICAL:0;
-
-        if (battleship->owner == BATTLESHIP_OWNER_OPPONENT && battleship->class != BATTLESHIP_CLASS_M){
-            al_draw_text(main_font_size_25,al_map_rgb(255,255,255),dx,dy+bsh/2,
-                         ALLEGRO_ALIGN_CENTER,battleship->word);
-        }
-
         if (PITTHAN_MODE) draw_ship = (battleship->owner != BATTLESHIP_OWNER_PLAYER);
     }
 
@@ -465,6 +453,17 @@ void draw_ship(BATTLESHIP *battleship){
     al_draw_bitmap(battleship->bmp, get_left_dx(battleship), get_top_dy(battleship),flags);
 
     if (DEBUG) draw_debug(battleship);
+}
+
+void draw_ship_word(BATTLESHIP *battleship,bool is_target){
+    int bsh = get_battleship_height(battleship->class);
+    float dx = get_normalized_dx(battleship);
+    float dy = get_normalized_dy(battleship);
+
+    ALLEGRO_COLOR color = (is_target)?al_map_rgb(200,115,0):al_map_rgb(255,255,255);
+
+    al_draw_text(main_font_size_25,color,dx,dy+bsh/2,
+                 ALLEGRO_ALIGN_CENTER,battleship->word);
 }
 
 unsigned short remove_next_letter_from_battleship(BATTLESHIP *battleship){
