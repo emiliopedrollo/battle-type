@@ -4,9 +4,11 @@
 
 #include <math.h>
 #include <allegro5/allegro_primitives.h>
+#include <ctype.h>
 #include "game.h"
 #include "resources/dictionary.h"
 #include "battleship.h"
+#include "utils.h"
 
 BATTLESHIP* host_ships[NUMBER_OF_SHIPS_PER_PLAYER];
 BATTLESHIP* client_ships[NUMBER_OF_SHIPS_PER_PLAYER];
@@ -35,6 +37,7 @@ int word_pool_end_pos;
 void init_motherships();
 void move_game_ships();
 void draw_game_ships();
+void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class);
 void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battleship);
 char* get_word_from_pool(BATTLESHIP_OWNER owner);
 bool exist_ship_starting_with(char letter, BATTLESHIP_OWNER targets);
@@ -65,7 +68,7 @@ void init_motherships(){
 
 }
 
-void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class, char* word){
+void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class){
 
     int ship_count = (owner == BATTLESHIP_OWNER_PLAYER)? host_ship_count : client_ship_count;
 
@@ -80,7 +83,7 @@ void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class, char* word){
                                              (rand()%max_rand)+half_ship, y_pos);
     change_battleship_state(battleship,BATTLESHIP_MOVE_STATE_IN_GAME);
     battleship->owner = owner;
-    battleship->word = word;
+    battleship->word = get_word_from_pool(owner);
 
     for (int i=0;i<NUMBER_OF_SHIPS_PER_PLAYER;i++){
         if (owner == BATTLESHIP_OWNER_PLAYER) {
@@ -233,7 +236,7 @@ char get_index_of_ship_starting_with(char letter, BATTLESHIP_OWNER targets){
     for (char i=0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++){
         ship = (targets == BATTLESHIP_OWNER_OPPONENT)?client_ships[i]:host_ships[i];
         if (!ship || !ship->active || !ship->word) continue;
-        if (ship->word[0] == letter) return i;
+        if (get_next_letter_from_battleship(ship) == letter) return i;
     }
     return -1;
 }
@@ -246,7 +249,7 @@ char* get_word_from_pool(BATTLESHIP_OWNER owner){
     do {
         strcpy(word,dictionary[rand()%(pool_size+1)]);
         if (tries++ % 5 == 0) update_word_pool(false);
-    } while ( exist_ship_starting_with(word[0],owner) );
+    } while ( exist_ship_starting_with(get_next_ascii_char(word),owner) );
 
     return word;
 }
@@ -413,14 +416,12 @@ void on_redraw_game(){
         }
 
         if (next_host_ship_spawn-- == 0){
-            spawn_ship(BATTLESHIP_OWNER_PLAYER,BATTLESHIP_CLASS_5,
-                       get_word_from_pool(BATTLESHIP_OWNER_PLAYER));
+            spawn_ship(BATTLESHIP_OWNER_PLAYER,BATTLESHIP_CLASS_5);
             next_host_ship_spawn = (rand()%(SPAWN_WINDOW+1))+MINIMUM_SPAWN_WAIT;
         }
 
         if (next_client_ship_spawn-- == 0){
-            spawn_ship(BATTLESHIP_OWNER_OPPONENT,BATTLESHIP_CLASS_5,
-                       get_word_from_pool(BATTLESHIP_OWNER_OPPONENT));
+            spawn_ship(BATTLESHIP_OWNER_OPPONENT,BATTLESHIP_CLASS_5);
             next_client_ship_spawn = (rand()%(SPAWN_WINDOW+1))+MINIMUM_SPAWN_WAIT;
         }
 
