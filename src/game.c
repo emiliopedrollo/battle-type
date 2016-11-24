@@ -1,12 +1,14 @@
 //
 // Created by ubuntu on 10/20/16.
 //
+#define _GNU_SOURCE
 
 #include <math.h>
 #include <allegro5/allegro_primitives.h>
 #include <ctype.h>
+#include <stdio.h>
+#include <bits/stdio.h>
 #include "game.h"
-#include "resources/dictionary.h"
 #include "battleship.h"
 #include "utils.h"
 
@@ -14,6 +16,8 @@ BATTLESHIP *host_ships[NUMBER_OF_SHIPS_PER_PLAYER];
 BATTLESHIP *client_ships[NUMBER_OF_SHIPS_PER_PLAYER];
 BATTLESHIP *host_mothership;
 BATTLESHIP *client_mothership;
+char **dictionary;
+int dictionary_len;
 char host_target = -1, client_target = -1;
 int host_ship_count = 0;
 int client_ship_count = 0;
@@ -52,7 +56,29 @@ char get_index_of_ship_starting_with(char letter, BATTLESHIP_OWNER targets);
 void update_word_pool(bool pump_word_index);
 
 void load_resources_game() {
+    FILE *dictionary_file = fopen("dictionary","r");
 
+    int dic_size = 500;
+
+    dictionary = malloc(sizeof(char*)*dic_size);
+
+    ssize_t read;
+
+
+
+    dictionary_len = 0;
+    while (((dictionary[dictionary_len] = NULL),
+            (read = getline(&dictionary[dictionary_len],NULL,dictionary_file))) != -1) {
+
+        printf("%s\n", dictionary[dictionary_len]);
+
+        if (dictionary_len++ >= dic_size){
+            dic_size *= 2;
+            dictionary = realloc(dictionary,sizeof(char*)*dic_size);
+        }
+
+    }
+    exit(EXIT_SUCCESS);
 }
 
 void unload_resources_game() {
