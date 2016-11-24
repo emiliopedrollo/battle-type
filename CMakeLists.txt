@@ -16,7 +16,7 @@ SET(SOURCE_FILES
     src/buttons.h
     src/main.c
     src/menu_screen.c
-    src/menu_screen.h src/utils.c src/utils.h src/battleship.c src/battleship.h src/main.h src/game.c src/game.h src/server.c src/server.h src/enet_common.h src/client.c src/client.h src/resources/dictionary.h)
+    src/menu_screen.h src/utils.c src/utils.h src/battleship.c src/battleship.h src/main.h src/game.c src/game.h src/server.c src/server.h src/enet_common.h src/client.c src/client.h)
 
 # Cria arquivo cabeçalho para cada recurso utilizado
 SET(RESOURCE_COMPILER "xxd")
