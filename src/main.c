@@ -148,7 +148,8 @@ void init_display(){
 
     // Carrega Allegro
     if(!al_init()) {
-        fprintf(stderr, "failed to initialize allegro!\n");
+        fprintf(stderr, "failed to initialize allegro (error %d)\n",al_get_errno());
+        printf("%0x\n%0x\n", ALLEGRO_VERSION_INT, al_get_allegro_version());
         exit(EXIT_FAILURE);
     }
 
@@ -201,7 +202,7 @@ void load_resources(){
 void load_font(ALLEGRO_FONT* *font, ALLEGRO_FILE* *file,int size, int flags){
     *font = al_load_ttf_font_f(*file,NULL,size,flags);
     if (!*font) {
-        fprintf(stderr,"failed to load font resource!\n");
+        fprintf(stderr,"failed to load font resource (error %d)\n",al_get_errno());
         exit(EXIT_FAILURE);
     }
 }
@@ -209,7 +210,7 @@ void load_font(ALLEGRO_FONT* *font, ALLEGRO_FILE* *file,int size, int flags){
 void load_bitmap(ALLEGRO_BITMAP* *bitmap, ALLEGRO_FILE* *file, char* ident){
     *bitmap = al_load_bitmap_f(*file,ident);
     if (!*bitmap) {
-        fprintf(stderr,"failed to load bitmap resource!\n");
+        fprintf(stderr,"failed to load bitmap resource (error %d)\n",al_get_errno());
         exit(EXIT_FAILURE);
     }
 }
