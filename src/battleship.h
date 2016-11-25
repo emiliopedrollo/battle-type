@@ -47,6 +47,8 @@ typedef struct {
     float dx,dy;
     float vx,vy;
     float vxi,vyi;
+    float mr,ml;
+    float lr,ll;
     float limit;
     bool push_back_ended;
     bool push_back_done;

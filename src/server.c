@@ -96,7 +96,8 @@ void update_game(){
                                             sizeof(SERVER_MESSAGE),
                                             ENET_PACKET_FLAG_RELIABLE);
 
-    enet_peer_send(client, 0, packet);
+//    enet_peer_send(client, 0, packet);
+    enet_host_broadcast(host, 0, packet);
 
 }
 
@@ -143,7 +144,7 @@ ENetHost *create_server(ENetAddress listener) {
     ENetHost *host;
 
     host = enet_host_create(&listener /* the address to bind the server host to */,
-                              1      /* allow up to 32 clients and/or outgoing connections */,
+                              2      /* allow up to 32 clients and/or outgoing connections */,
                               2      /* allow up to 2 channels to be used, 0 and 1 */,
                               0      /* assume any amount of incoming bandwidth */,
                               0      /* assume any amount of outgoing bandwidth */);

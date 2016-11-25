@@ -13,6 +13,7 @@ BATTLESHIP* host_mothership;
 BATTLESHIP* client_mothership;
 
 GAME_SNAPSHOT game;
+int coef[3];
 
 int game_bs_host_limit;
 int game_bs_client_limit;
@@ -55,7 +56,7 @@ void init_starter_battleships(){
     client_mothership = init_battleship(BATTLESHIP_CLASS_M,DISPLAY_W/2,ship_height);
     client_mothership->owner = BATTLESHIP_OWNER_OPPONENT;
 
-    for (int i = 0; i < 3; i++){
+    for (int i = 0; i < 1; i++){
         host_ships[i] = init_battleship(BATTLESHIP_CLASS_5,(rand()%max_rand)+half_ship, DISPLAY_H + ship_height/2 );
         change_battleship_state(host_ships[i],BATTLESHIP_MOVE_STATE_IN_GAME);
         host_ships[i]->owner = BATTLESHIP_OWNER_PLAYER;
