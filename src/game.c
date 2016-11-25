@@ -56,33 +56,41 @@ char get_index_of_ship_starting_with(char letter, BATTLESHIP_OWNER targets);
 void update_word_pool(bool pump_word_index);
 
 void load_resources_game() {
+
+    // Abre arquivo "dictionary" para leitura apenas
     FILE *dictionary_file = fopen("dictionary","r");
 
-    int dic_size = 500;
+    int dic_size = 1000;
+    char *pos;
 
+    // aloca espaço para 1000 ponteiros de char em memória
     dictionary = malloc(sizeof(char*)*dic_size);
 
-    ssize_t read;
-
-
+    size_t len = 0;
 
     dictionary_len = 0;
-    while (((dictionary[dictionary_len] = NULL),
-            (read = getline(&dictionary[dictionary_len],NULL,dictionary_file))) != -1) {
+    while (((dictionary[dictionary_len] = NULL), // A cada iteração inicializa como NULL o endereço para a próxima palavra
+            (getline(&dictionary[dictionary_len],&len,dictionary_file))) != -1) { // Lê uma linha inteira do arquivo e armazena em dictionary
 
-        printf("%s\n", dictionary[dictionary_len]);
+        // Se posição (pos) de \n na palavra recem-lida for diferente de NULL, sobrescreve com \0
+        if ((pos=strchr(dictionary[dictionary_len], '\n')) != NULL) *pos = '\0';
 
+        // Se o numero de palavras lidas alcançou o numero de espaços no vetor dictionary, duplica-se o seu valor
         if (dictionary_len++ >= dic_size){
             dic_size *= 2;
             dictionary = realloc(dictionary,sizeof(char*)*dic_size);
         }
-
     }
-    exit(EXIT_SUCCESS);
+
+    // Fecha o arquivo "dictionary"
+    fclose(dictionary_file);
 }
 
 void unload_resources_game() {
-
+    for (int i = 0; i < dictionary_len; i++){
+        free(dictionary[i]);
+    }
+    free(dictionary);
 }
 
 void init_game() {
