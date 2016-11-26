@@ -16,14 +16,14 @@ void load_resources_game();
 void unload_resources_game();
 
 void on_key_press_game(ALLEGRO_KEYBOARD_EVENT event);
+void process_key_press(int keycode, PLAYER player);
 
 typedef struct {
     BATTLESHIP_CLASS class;
     BATTLESHIP_OWNER owner;
     bool active;
-    bool looked;
     float dx,dy;
-    char* word;
+    char word[30];
 } SERIAL_BATTLESHIP;
 
 typedef struct {
@@ -31,6 +31,7 @@ typedef struct {
     SERIAL_BATTLESHIP client_ships[NUMBER_OF_SHIPS_PER_PLAYER];
     unsigned short host_cash, client_cash;
     char host_target, client_target;
+    unsigned short host_ship_dx, client_ship_dx;
 } GAME_SNAPSHOT;
 
 extern int game_bs_host_limit;

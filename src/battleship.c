@@ -431,10 +431,13 @@ void draw_target_lock(BATTLESHIP *battleship){
 
     int stop = (bsw > bsh) ? bsw : bsh;
 
-    float ldx = battleship->dx - stop/2 - outer_margin;
-    float tdy = battleship->dy - stop/2 - outer_margin;
-    float rdx = battleship->dx + stop/2 + outer_margin;
-    float bdy = battleship->dy + stop/2 + outer_margin;
+    float dx = get_normalized_dx(battleship);
+    float dy = get_normalized_dy(battleship);
+
+    float ldx = dx - stop/2 - outer_margin;
+    float tdy = dy - stop/2 - outer_margin;
+    float rdx = dx + stop/2 + outer_margin;
+    float bdy = dy + stop/2 + outer_margin;
 
 
     float stop_x = (stop+2*outer_margin) / 6.0f;
@@ -495,25 +498,25 @@ void draw_target_lock(BATTLESHIP *battleship){
 
 
     //cross lines
-    al_draw_line(ldx + stop_x * 1, battleship->dy,
-                 ldx + stop_x * 2, battleship->dy,
+    al_draw_line(ldx + stop_x * 1, dy,
+                 ldx + stop_x * 2, dy,
                  color,2);
 
-    al_draw_line(rdx - stop_x * 2, battleship->dy,
-                 rdx - stop_x * 1, battleship->dy,
+    al_draw_line(rdx - stop_x * 2, dy,
+                 rdx - stop_x * 1, dy,
                  color,2);
 
-    al_draw_line(battleship->dx, tdy + stop_y * 1,
-                 battleship->dx, tdy + stop_y * 2,
+    al_draw_line(dx, tdy + stop_y * 1,
+                 dx, tdy + stop_y * 2,
                  color,2);
 
-    al_draw_line(battleship->dx, bdy - stop_y * 2,
-                 battleship->dx, bdy - stop_y * 1,
+    al_draw_line(dx, bdy - stop_y * 2,
+                 dx, bdy - stop_y * 1,
                  color,2);
 
     // center dot
-    al_draw_filled_rectangle(battleship->dx-2,battleship->dy-2,
-                             battleship->dx+2,battleship->dy+2,
+    al_draw_filled_rectangle(dx-2,dy-2,
+                             dx+2,dy+2,
                              color);
 
 }

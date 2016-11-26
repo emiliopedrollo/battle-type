@@ -64,6 +64,7 @@ void stop_server(){
 
 void server_send_receive(){
     ENetEvent event;
+    CLIENT_KEY_PRESS *msg;
     while (enet_host_service(host, &event, 0) > 0) {
         switch (event.type){
             case ENET_EVENT_TYPE_CONNECT:
@@ -75,6 +76,14 @@ void server_send_receive(){
                 break;
             case ENET_EVENT_TYPE_DISCONNECT:
                 printf("Server: client disconnected.\n");
+                break;
+
+            case ENET_EVENT_TYPE_RECEIVE:
+                msg = (CLIENT_KEY_PRESS *) event.packet->data;
+
+                process_key_press(msg->KEY_PRESSED,PLAYER_CLIENT);
+
+                enet_packet_destroy(event.packet);
                 break;
             case ENET_EVENT_TYPE_NONE:
             default:

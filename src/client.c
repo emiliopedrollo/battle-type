@@ -21,6 +21,7 @@ bool connection_set_to_close;
 pthread_t client_thread;
 ENetHost *client;
 ENetPeer *peer;
+CLIENT_KEY_PRESS *key_press_list;
 
 ENetHost* create_client(void);
 pthread_t init_client_thread(ENetAddress host_address, unsigned short port);
@@ -79,6 +80,9 @@ void *client_loop(void *arguments){
 
     if (connected) on_success_client_connect(); else on_failure_client_connect();
 
+    key_press_list = malloc(sizeof(CLIENT_KEY_PRESS)*20);
+    for (int i=0;i<20;i++) key_press_list[i].KEY_PRESSED = 0;
+
     while(!connection_set_to_close && connected){
         client_send_receive(client);
         msleep(16);
@@ -94,9 +98,36 @@ void *client_loop(void *arguments){
 
 }
 
+void send_key_press(unsigned char key_press){
+
+    CLIENT_KEY_PRESS msg;
+    msg.KEY_PRESSED = key_press;
+
+
+    ENetPacket *packet = enet_packet_create(&msg,sizeof(CLIENT_KEY_PRESS),ENET_PACKET_FLAG_RELIABLE);
+    enet_peer_send(peer, 0, packet);
+
+    for (int i=0;i<20;i++){
+        if (key_press_list[i].KEY_PRESSED == 0){
+            key_press_list[i] = msg;
+            break;
+        }
+
+    }
+}
+
 void client_send_receive(ENetHost *client){
     ENetEvent event;
     SERVER_MESSAGE *msg;
+
+    for (int i=0;i<20;i++){
+        if (key_press_list[i].KEY_PRESSED != 0){
+//            ENetPacket *packet = enet_packet_create(&key_press_list[i],sizeof(CLIENT_KEY_PRESS),ENET_PACKET_FLAG_RELIABLE);
+//            enet_peer_send(peer, 0, packet);
+//            key_press_list[i].KEY_PRESSED = 0;
+        }
+
+    }
 
     // Check if we have any queued incoming messages, but do not wait otherwise.
     // This also sends outgoing messages queued with enet_peer_send.

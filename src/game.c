@@ -11,6 +11,7 @@
 #include "game.h"
 #include "battleship.h"
 #include "utils.h"
+#include "client.h"
 
 BATTLESHIP *host_ships[NUMBER_OF_SHIPS_PER_PLAYER];
 BATTLESHIP *client_ships[NUMBER_OF_SHIPS_PER_PLAYER];
@@ -118,6 +119,13 @@ void init_motherships() {
     change_battleship_state(host_mothership, BATTLESHIP_MOVE_STATE_IN_GAME);
     change_battleship_state(client_mothership, BATTLESHIP_MOVE_STATE_IN_GAME);
 
+    if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT){
+        for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
+            host_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_PLAYER,0,0);
+            client_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_OPPONENT,0,0);
+        }
+    }
+
 }
 
 void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class) {
@@ -212,7 +220,7 @@ void draw_game_ships() {
             }
             break;
         case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
-            if (host_target != -1 && host_ships[client_target] &&
+            if (client_target != -1 && host_ships[client_target] &&
                 host_ships[client_target]->active) {
                 draw_target_lock(host_ships[client_target]);
                 draw_ship_word(host_ships[client_target], true);
@@ -233,6 +241,9 @@ void update_game_from_snapshot() {
     }
     host_target = game.host_target;
     client_target = game.client_target;
+
+    host_mothership->dx = game.host_ship_dx;
+    client_mothership->dx = game.client_ship_dx;
 }
 
 void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battleship) {
@@ -243,7 +254,14 @@ void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battlesh
         battleship->dx = serial_battleship.dx;
         battleship->dy = serial_battleship.dy;
         battleship->active = serial_battleship.active;
-        battleship->word = serial_battleship.word;
+
+        free(battleship->word);
+
+        char *word = serial_battleship.word;
+//        battleship->word = malloc(sizeof word);
+        battleship->word = strdup(word);
+
+//        strcpy(battleship->word,word);
 
     } else {
         if (battleship) battleship->active = false;
@@ -258,7 +276,7 @@ SERIAL_BATTLESHIP convert_battleship_to_serial(BATTLESHIP *battleship) {
     serial.class = battleship->class;
     serial.dx = battleship->dx;
     serial.dy = battleship->dy;
-    serial.word = battleship->word;
+    strcpy(serial.word,battleship->word);
     return serial;
 }
 
@@ -274,6 +292,9 @@ void update_snapshot_from_game() {
     }
     game.host_target = host_target;
     game.client_target = client_target;
+
+    game.host_ship_dx = (unsigned short)host_mothership->dx;
+    game.client_ship_dx = (unsigned short)client_mothership->dx;
 }
 
 void update_word_pool(bool pump_word_index) {
@@ -322,7 +343,6 @@ char *get_word_from_pool(BATTLESHIP_OWNER owner) {
 
 void on_key_press_game(ALLEGRO_KEYBOARD_EVENT event) {
 
-    char key;
 
     switch (event.keycode) {
         case ALLEGRO_KEY_ESCAPE:
@@ -337,7 +357,27 @@ void on_key_press_game(ALLEGRO_KEYBOARD_EVENT event) {
 
     if (current_game_state == GAME_FLOW_STATE_PAUSE) return;
 
-    switch (event.keycode) {
+
+    switch (current_game_state) {
+        case GAME_STATE_IN_GAME_SINGLE_PLAYER:
+            process_key_press(event.keycode, PLAYER_SINGLE);
+            break;
+        case GAME_STATE_IN_GAME_MULTIPLAYER_HOST:
+            process_key_press(event.keycode, PLAYER_HOST);
+            break;
+        case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
+            send_key_press((unsigned char)event.keycode);
+            break;
+        default:
+            break;
+    }
+}
+
+void process_key_press(int keycode, PLAYER player){
+
+    char key;
+
+    switch (keycode) {
         case ALLEGRO_KEY_A:
             key = 'A';
             break;
@@ -429,9 +469,9 @@ void on_key_press_game(ALLEGRO_KEYBOARD_EVENT event) {
     BATTLESHIP *battleship = NULL;
     if (key != 0) {
         char next_letter = 0;
-        switch (current_game_state) {
-            case GAME_STATE_IN_GAME_SINGLE_PLAYER:
-            case GAME_STATE_IN_GAME_MULTIPLAYER_HOST:
+        switch (player) {
+            case PLAYER_SINGLE:
+            case PLAYER_HOST:
                 if (host_target == -1) {
                     host_target = get_index_of_ship_starting_with(key, BATTLESHIP_OWNER_OPPONENT);
                 }
@@ -439,7 +479,7 @@ void on_key_press_game(ALLEGRO_KEYBOARD_EVENT event) {
                     battleship = client_ships[host_target];
                 }
                 break;
-            case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
+            case PLAYER_CLIENT:
                 if (client_target == -1) {
                     client_target = get_index_of_ship_starting_with(key, BATTLESHIP_OWNER_PLAYER);
                 }
@@ -454,13 +494,13 @@ void on_key_press_game(ALLEGRO_KEYBOARD_EVENT event) {
             if (key == next_letter) {
                 if (remove_next_letter_from_battleship(battleship) == 0) {
                     battleship->active = false;
-                    switch (current_game_state) {
-                        case GAME_STATE_IN_GAME_SINGLE_PLAYER:
-                        case GAME_STATE_IN_GAME_MULTIPLAYER_HOST:
+                    switch (player) {
+                        case PLAYER_SINGLE:
+                        case PLAYER_HOST:
                             host_target = -1;
                             client_ship_count--;
                             break;
-                        case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
+                        case PLAYER_CLIENT:
                             client_target = -1;
                             host_ship_count--;
                         default:

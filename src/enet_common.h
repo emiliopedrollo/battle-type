@@ -19,4 +19,8 @@ typedef struct {
     GAME_SNAPSHOT game;
 } SERVER_MESSAGE;
 
+typedef struct {
+    unsigned char KEY_PRESSED;
+} CLIENT_KEY_PRESS;
+
 #endif //BATTLE_TYPE_ENET_COMMON_H
