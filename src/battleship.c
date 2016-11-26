@@ -78,6 +78,8 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, float dx, float dy){
 
     battleship->dx = dx;
     battleship->dy = dy;
+    battleship->dxi = dx;
+    battleship->dyi = dy;
 
     battleship->ll = battleship->dx - 100;
     battleship->lr = battleship->dx + 100;
@@ -256,8 +258,9 @@ void move_ship(BATTLESHIP *battleship) {
                             if (battleship->turning_frame > 10){
                                 battleship->turning_direction = TURNING_DIRECTION_NONE;
                                 battleship->vx = ((battleship->vx > 0) ? 1 : -1) * (float)fabs(battleship->vxi);
+                                battleship->turning_frame = 0;
                             }
-                        } else battleship->turning_frame = 0;
+                        }
 
                         battleship->dx += battleship->vx;
                         battleship->dy = (battleship->dy+45 <= game_bs_client_limit) ? battleship->dy + battleship->vy : battleship->dy;
@@ -301,11 +304,21 @@ void draw_ship(BATTLESHIP *battleship){
 
     al_draw_bitmap(battleship->bmp,dx-(bsw/2),dy-(bsh/2),flags);
 
+    static bool started = false;
 
-    if (DEBUG){
+    if (DEBUG && battleship->owner == BATTLESHIP_OWNER_OPPONENT && battleship->class != BATTLESHIP_CLASS_M){
         float x = DISPLAY_W / 2, y = DISPLAY_H - bsh;
-        static float dyp = -45, dxp = 50, dypl, dxpl;
-        static float dxe = 50 - 200, dxd = 50 + 200, dxel, dxdl;
+        static float dyp, dxp, dypl, dxpl;
+        static float dxe, dxd, dxel, dxdl;
+
+        if (!started){
+            dyp = battleship->dyi;
+            dxp = battleship->dxi;
+            dxe = dxp - 200;
+            dxd = dxp + 200;
+            started = true;
+        }
+
         const float m = (dyp - y) / (dxp - x);
         const float me = (dyp - y) / (dxe - x), md = (dyp - y) / (dxd - x);
         int i;
@@ -346,7 +359,7 @@ void draw_ship(BATTLESHIP *battleship){
                                              al_map_rgb(255, 0, 0));
                 }
             }
-            for (i = dypl; i < DISPLAY_H - bsh; i++) {
+            for (i = (int)dypl; i < DISPLAY_H - bsh; i++) {
                 dypl += 1;
                 dxpl = ((dypl - y) / m) + x;
 
