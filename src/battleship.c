@@ -74,13 +74,17 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, float dx, float dy){
             break;
     }
 
-    float x = DISPLAY_W / 2, y = DISPLAY_H - 90;
+    float x = DISPLAY_W / 2, y ;
+
+    y = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)? DISPLAY_H - 90 : 90 ;
 
     battleship->dx = dx;
     battleship->dy = dy;
     battleship->dxi = dx;
     battleship->dyi = dy;
 
+    //battleship->ll = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)? battleship->dx - 100 : battleship->dx + 100 ;
+    //battleship->lr = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)? battleship->dx + 100 : battleship->dx - 100 ;
     battleship->ll = battleship->dx - 100;
     battleship->lr = battleship->dx + 100;
 
@@ -133,7 +137,9 @@ void move_ship(BATTLESHIP *battleship) {
     int bsh = al_get_bitmap_height(battleship->bmp);
     int n_frames_pushback_placement = 120;
 
-    float x = DISPLAY_W / 2, y = DISPLAY_H - bsh;
+    float x = DISPLAY_W / 2, y;
+
+    y = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)? DISPLAY_H - bsh: bsh ;
 
     switch (battleship->state) {
         case BATTLESHIP_MOVE_STATE_DEMO:
@@ -194,8 +200,16 @@ void move_ship(BATTLESHIP *battleship) {
         case BATTLESHIP_MOVE_STATE_IN_GAME: {
             //int margin = 200;
             if (battleship->owner == BATTLESHIP_OWNER_PLAYER) {
-                dist_r = (DISPLAY_W - (battleship->dx + bsw / 2) <= 0) ? 1 : DISPLAY_W - (battleship->dx + bsw / 2);
-                dist_l = (battleship->dx + bsw / 2 <= 0) ? 1 : battleship->dx + bsw / 2;
+                battleship->ll = (((battleship->dy - y) / battleship->ml) + x < 0 + bsw/2)?
+                                 0 + bsw/2 : ((battleship->dy - y) / battleship->ml) + x ;
+                battleship->lr = (((battleship->dy - y) / battleship->mr) + x > DISPLAY_W - bsw/2)?
+                                 DISPLAY_W - bsw/2 :((battleship->dy - y) / battleship->mr) + x;
+
+                dist_r = (battleship->lr-(battleship->dx+bsw/2)<=0)?1:battleship->lr-(battleship->dx+bsw/2);
+                dist_l = ((battleship->dx-bsw/2)-battleship->ll<=0)?1:(battleship->dx-bsw/2)-battleship->ll;
+
+                printf("me:%f\nmd:%f\nll:%f\nlr:%f\ndx:%f\n\n",battleship->ml,battleship->mr,battleship->ll,battleship->lr,battleship->dx);
+
                 //static int turning_frame = 0;
                 double prob, mod = (rand() % 100) / 100.0;
 
@@ -221,21 +235,26 @@ void move_ship(BATTLESHIP *battleship) {
                             if (battleship->turning_frame > 10) {
                                 battleship->turning_direction = TURNING_DIRECTION_NONE;
                                 battleship->vx = ((battleship->vx > 0) ? 1 : -1) * (float) fabs(battleship->vxi);
+                                battleship->turning_frame = 0;
                             }
-                        } else battleship->turning_frame = 0;
+                        }
 
                 battleship->dx += battleship->vx;
                 battleship->dy = ((battleship->dy-45) >= game_bs_host_limit) ? battleship->dy - battleship->vy : battleship->dy;
 
             }else if(battleship->owner == BATTLESHIP_OWNER_OPPONENT) {
                         //battleship->dy += 0.5;
-                        battleship->ll = ((battleship->dy - y) / battleship->ml) + x;
-                        battleship->lr = ((battleship->dy - y) / battleship->mr) + x;
+                        battleship->ll = (((battleship->dy - y) / battleship->ml) + x < 0 + bsw/2 )?
+                                 0 + bsw/2 : ((battleship->dy - y) / battleship->ml) + x ;
+                        battleship->lr = (((battleship->dy - y) / battleship->mr) + x > DISPLAY_W - bsw/2)?
+                                 DISPLAY_W - bsw/2 :((battleship->dy - y) / battleship->mr) + x;
+
+
 
                         dist_r = (battleship->lr-(battleship->dx+bsw/2)<=0)?1:battleship->lr-(battleship->dx+bsw/2);
                         dist_l = ((battleship->dx-bsw/2)-battleship->ll<=0)?1:(battleship->dx-bsw/2)-battleship->ll;
 
-                        printf("me:%f\nmd:%f\nll:%f\nlr:%f\ndx:%f\n\n",battleship->ml,battleship->mr,battleship->ll,battleship->lr,battleship->dx);
+
                         //static int turning_frame = 0;
                         double prob,mod=(rand()%100)/100.0;
 
