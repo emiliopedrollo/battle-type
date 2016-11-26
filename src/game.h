@@ -8,7 +8,7 @@
 #include "battleship.h"
 #include "main.h"
 
-#define NUMBER_OF_SHIPS_PER_PLAYER 5
+#define NUMBER_OF_SHIPS_PER_PLAYER 10
 
 void init_game();
 void on_redraw_game();

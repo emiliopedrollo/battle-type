@@ -25,8 +25,8 @@ int client_ship_count = 0;
 int next_host_ship_spawn = 0;
 int next_client_ship_spawn = 0;
 
-static int const MINIMUM_SPAWN_WAIT = 5 * 60; // 5 seconds
-static int const SPAWN_WINDOW = 10 * 60; // 10 seconds
+static int const MINIMUM_SPAWN_WAIT = 1 * 60; // 5 seconds
+static int const SPAWN_WINDOW = 2 * 60; // 10 seconds
 
 GAME_SNAPSHOT game;
 int coef[3];
