@@ -121,8 +121,8 @@ void init_motherships() {
 
     if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT){
         for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
-            host_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_PLAYER,0,0);
-            client_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_OPPONENT,0,0);
+            host_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_PLAYER,0,0,client_mothership->dx);
+            client_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_OPPONENT,0,0,host_mothership->dx);
         }
     }
 

@@ -101,7 +101,7 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, floa
     battleship->dxi = dx;
     battleship->dyi = dy;
 
-    if(BATTLESHIP_CLASS_MISSILE == battleship->class) {
+    if (BATTLESHIP_CLASS_MISSILE == battleship->class) {
         float y;
 
         y = (battleship->owner == BATTLESHIP_OWNER_OPPONENT) ? DISPLAY_H - 90 : 90;
