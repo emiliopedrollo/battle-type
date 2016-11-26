@@ -68,6 +68,10 @@ int get_battleship_height(BATTLESHIP_CLASS class);
 int get_battleship_width(BATTLESHIP_CLASS class);
 unsigned short remove_next_letter_from_battleship(BATTLESHIP *battleship);
 char get_next_letter_from_battleship(BATTLESHIP *battleship);
+float get_left_dx(BATTLESHIP *battleship);
+float get_top_dy(BATTLESHIP *battleship);
+float get_righ_dx(BATTLESHIP *battleship);
+float get_bottom_dy(BATTLESHIP *battleship);
 
 
 #endif //BATTLE_TYPE_BATTLESHIP_H

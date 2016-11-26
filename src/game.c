@@ -149,10 +149,10 @@ void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class) {
 
 void move_game_ships() {
 
-    game_bs_host_limit = 0;
-    game_bs_client_limit = DISPLAY_H;
+    game_bs_host_limit = (int)get_bottom_dy(client_mothership);
+    game_bs_client_limit = (int)get_top_dy(host_mothership);
 
-    int ship_bound;
+//    int ship_bound;
 
     // Encontra limite para movimento dos battleships do host
     /*for (int i=0;i< MAX_SHIPS_FOR_PLAYERS;i++) {
@@ -162,6 +162,7 @@ void move_game_ships() {
     }*/
 
     //Move os battleships do host
+    move_ship(host_mothership);
     for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
         if (host_ships[i] && host_ships[i]->active) move_ship(host_ships[i]);
     }
@@ -174,6 +175,7 @@ void move_game_ships() {
     }*/
 
     //Move os battleships do client
+    move_ship(client_mothership);
     for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
         if (client_ships[i] && client_ships[i]->active) move_ship(client_ships[i]);
     }
