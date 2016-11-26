@@ -109,10 +109,10 @@ void init_motherships() {
     int ship_height = get_battleship_height(BATTLESHIP_CLASS_SPACESHIP);
 
     host_mothership = init_battleship(BATTLESHIP_CLASS_SPACESHIP,
-                                      BATTLESHIP_OWNER_PLAYER, DISPLAY_W / 2, DISPLAY_H - ship_height);
+                                      BATTLESHIP_OWNER_PLAYER, DISPLAY_W / 2, DISPLAY_H - ship_height, 0);
 
     client_mothership = init_battleship(BATTLESHIP_CLASS_SPACESHIP,
-                                        BATTLESHIP_OWNER_OPPONENT, DISPLAY_W / 2, ship_height);
+                                        BATTLESHIP_OWNER_OPPONENT, DISPLAY_W / 2, ship_height, 0);
 
 
     change_battleship_state(host_mothership, BATTLESHIP_MOVE_STATE_IN_GAME);
@@ -128,8 +128,10 @@ void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class) {
 
     float dx = (owner == BATTLESHIP_OWNER_OPPONENT)? client_mothership->dx : host_mothership->dx;
     float dy = (owner == BATTLESHIP_OWNER_OPPONENT)? client_mothership->dy : host_mothership->dy;
+    float x = (owner == BATTLESHIP_OWNER_OPPONENT)? host_mothership->dx : client_mothership->dx ;
 
-    BATTLESHIP *battleship = init_battleship(class,owner,dx, dy);
+
+    BATTLESHIP *battleship = init_battleship(class,owner,dx, dy, x);
 
     change_battleship_state(battleship, BATTLESHIP_MOVE_STATE_IN_GAME);
     battleship->word = get_word_from_pool(owner);
@@ -166,9 +168,9 @@ void move_game_ships() {
     }*/
 
     //Move os battleships do host
-    move_ship(host_mothership);
+    move_ship(host_mothership,0);
     for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
-        if (host_ships[i] && host_ships[i]->active) move_ship(host_ships[i]);
+        if (host_ships[i] && host_ships[i]->active) move_ship(host_ships[i],client_mothership->dx);
     }
 
     // Encontra limite para movimento dos battleships do client
@@ -179,9 +181,9 @@ void move_game_ships() {
     }*/
 
     //Move os battleships do client
-    move_ship(client_mothership);
+    move_ship(client_mothership,0);
     for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
-        if (client_ships[i] && client_ships[i]->active) move_ship(client_ships[i]);
+        if (client_ships[i] && client_ships[i]->active) move_ship(client_ships[i],host_mothership->dx);
     }
 }
 
@@ -238,7 +240,7 @@ void update_game_from_snapshot() {
 void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battleship) {
     if (serial_battleship.active) {
         if (!battleship) battleship = init_battleship(serial_battleship.class,
-                                                      serial_battleship.owner,0,0);
+                                                      serial_battleship.owner,0,0,0);
 
         battleship->dx = serial_battleship.dx;
         battleship->dy = serial_battleship.dy;

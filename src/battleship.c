@@ -69,10 +69,10 @@ int get_battleship_width(BATTLESHIP_CLASS class){
     }
 }
 
-BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, float dx, float dy){
+BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, float dx, float dy, float x) {
 
-    BATTLESHIP* battleship = malloc(sizeof(BATTLESHIP));
-    float vx = 0,vy = 0;
+    BATTLESHIP *battleship = malloc(sizeof(BATTLESHIP));
+    float vx = 0, vy = 0;
 
     battleship->active = true;
 
@@ -80,35 +80,40 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, floa
 
     battleship->class = class;
 
-    switch (class){
+    switch (class) {
         case BATTLESHIP_CLASS_MISSILE:
-            battleship->bmp = (owner == BATTLESHIP_OWNER_OPPONENT)?bmp_missile_red:bmp_missile_blue;
-            vx = 1.5; vy = 0.5;
+            battleship->bmp = (owner == BATTLESHIP_OWNER_OPPONENT) ? bmp_missile_red : bmp_missile_blue;
+            vx = 1.5;
+            vy = 0.5;
             break;
         case BATTLESHIP_CLASS_SPACESHIP:
-            battleship->bmp = (owner == BATTLESHIP_OWNER_OPPONENT)?bmp_spaceship_red:bmp_spaceship_blue;
-            vx = 1; vy = 0;
+            battleship->bmp = (owner == BATTLESHIP_OWNER_OPPONENT) ? bmp_spaceship_red : bmp_spaceship_blue;
+            vx = 1;
+            vy = 0;
             break;
         default:
             break;
     }
 
-    float x = DISPLAY_W / 2, y ;
-
-    y = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)? DISPLAY_H - 90 : 90 ;
 
     battleship->dx = dx;
     battleship->dy = dy;
     battleship->dxi = dx;
     battleship->dyi = dy;
 
-    //battleship->ll = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)? battleship->dx - 100 : battleship->dx + 100 ;
-    //battleship->lr = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)? battleship->dx + 100 : battleship->dx - 100 ;
-    battleship->ll = battleship->dx - 100;
-    battleship->lr = battleship->dx + 100;
+    if(BATTLESHIP_CLASS_MISSILE == battleship->class) {
+        float y;
 
-    battleship->ml = (battleship->dy - y) / (battleship->ll - x);
-    battleship->mr = (battleship->dy - y) / (battleship->lr - x);
+        y = (battleship->owner == BATTLESHIP_OWNER_OPPONENT) ? DISPLAY_H - 90 : 90;
+
+        //battleship->ll = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)? battleship->dx - 100 : battleship->dx + 100 ;
+        //battleship->lr = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)? battleship->dx + 100 : battleship->dx - 100 ;
+        battleship->ll = battleship->dx - 100;
+        battleship->lr = battleship->dx + 100;
+
+        battleship->ml = (battleship->dy - y) / (battleship->ll - x);
+        battleship->mr = (battleship->dy - y) / (battleship->lr - x);
+    }
 
     battleship->vx = vx;
     battleship->vy = vy;
@@ -160,7 +165,7 @@ void calcule_ship_turn_frame(BATTLESHIP *battleship){
     }
 }
 
-void move_ship(BATTLESHIP *battleship) {
+void move_ship(BATTLESHIP *battleship, float x) {
 
     //static TURNING_DIRECTION turning_direction = TURNING_DIRECTION_NONE;
     //const float dvx = 0.8;
@@ -176,9 +181,12 @@ void move_ship(BATTLESHIP *battleship) {
 
     mod = (rand() % 100) / 100.0;
 
-    float x = DISPLAY_W / 2, y;
 
-    y = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)? DISPLAY_H - bsh: bsh ;
+
+    float y;
+
+    y = (battleship->owner == BATTLESHIP_OWNER_OPPONENT) ? DISPLAY_H - bsh : bsh;
+
 
     switch (battleship->state) {
         case BATTLESHIP_MOVE_STATE_DEMO:
