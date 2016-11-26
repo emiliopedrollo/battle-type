@@ -12,7 +12,7 @@
 #include <allegro5/file.h>
 #include "main.h"
 #include "menu_screen.h"
-#include "resources/img/background.jpg.h"
+#include "resources/img/background.png.h"
 #include "resources/font/VT323.ttf.h"
 #include "battleship.h"
 //#include "server.h"
@@ -182,8 +182,8 @@ void init_display(){
 void load_resources(){
 
     // Carrega as imagens necessárias para a tela do menu
-    ALLEGRO_FILE* background_jpg = al_open_memfile(img_background_jpg,img_background_jpg_len,"r");
-    load_bitmap(&bmp_background,&background_jpg,".jpg");
+    ALLEGRO_FILE* background_png = al_open_memfile(img_background_png,img_background_png_len,"r");
+    load_bitmap(&bmp_background,&background_png,".png");
 
     // Carrega a fonte principal da aplicação
     ALLEGRO_FILE* vt323_ttf_45 = al_open_memfile(font_VT323_ttf,font_VT323_ttf_len,"r");

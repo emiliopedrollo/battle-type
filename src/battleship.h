@@ -22,12 +22,8 @@ typedef enum {
 } BATTLESHIP_OWNER;
 
 typedef enum {
-    BATTLESHIP_CLASS_1,
-    BATTLESHIP_CLASS_2,
-    BATTLESHIP_CLASS_3,
-    BATTLESHIP_CLASS_4,
-    BATTLESHIP_CLASS_5,
-    BATTLESHIP_CLASS_M,
+    BATTLESHIP_CLASS_MISSILE,
+    BATTLESHIP_CLASS_SPACESHIP,
 } BATTLESHIP_CLASS;
 
 typedef enum {
@@ -45,8 +41,12 @@ typedef struct {
     bool active;
     int turning_frame;
     float dx,dy;
+    float dxi,dyi;
     float vx,vy;
     float vxi,vyi;
+    float mr,ml;
+    float lr,ll;
+    float limit;
     bool push_back_ended;
     bool push_back_done;
     bool push_back_set_speed;
@@ -56,7 +56,7 @@ typedef struct {
     char *word;
 } BATTLESHIP;
 
-BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, float dx, float dy);
+BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, float dx, float dy);
 void change_battleship_state(BATTLESHIP *battleship,BATTLESHIP_MOVE_STATE state);
 void draw_target_lock(BATTLESHIP *battleship);
 void move_ship(BATTLESHIP *battleship);
