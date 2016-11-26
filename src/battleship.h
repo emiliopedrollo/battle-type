@@ -45,6 +45,7 @@ typedef struct {
     bool active;
     int turning_frame;
     float dx,dy;
+    float dxi,dyi;
     float vx,vy;
     float vxi,vyi;
     float mr,ml;
