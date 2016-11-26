@@ -114,6 +114,10 @@ void init_motherships() {
     client_mothership = init_battleship(BATTLESHIP_CLASS_SPACESHIP,
                                         BATTLESHIP_OWNER_OPPONENT, DISPLAY_W / 2, ship_height);
 
+
+    change_battleship_state(host_mothership, BATTLESHIP_MOVE_STATE_IN_GAME);
+    change_battleship_state(client_mothership, BATTLESHIP_MOVE_STATE_IN_GAME);
+
 }
 
 void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class) {

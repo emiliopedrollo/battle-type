@@ -227,13 +227,18 @@ void move_ship(BATTLESHIP *battleship) {
             break;
         case BATTLESHIP_MOVE_STATE_IN_GAME:
 
-            battleship->ll = (((battleship->dy - y) / battleship->ml) + x < 0 + bsw/2)?
-                             0 + bsw/2 : ((battleship->dy - y) / battleship->ml) + x ;
-            battleship->lr = (((battleship->dy - y) / battleship->mr) + x > DISPLAY_W - bsw/2)?
-                             DISPLAY_W - bsw/2 :((battleship->dy - y) / battleship->mr) + x;
+            if (battleship->class == BATTLESHIP_CLASS_MISSILE){
+                battleship->ll = (((battleship->dy - y) / battleship->ml) + x < 0 + bsw/2)?
+                                 0 + bsw/2 : ((battleship->dy - y) / battleship->ml) + x ;
+                battleship->lr = (((battleship->dy - y) / battleship->mr) + x > DISPLAY_W - bsw/2)?
+                                 DISPLAY_W - bsw/2 :((battleship->dy - y) / battleship->mr) + x;
 
-            dist_r = (battleship->lr-(battleship->dx+bsw/2)<=0)?1:battleship->lr-(battleship->dx+bsw/2);
-            dist_l = ((battleship->dx-bsw/2)-battleship->ll<=0)?1:(battleship->dx-bsw/2)-battleship->ll;
+                dist_r = (battleship->lr-(battleship->dx+bsw/2)<=0)?1:battleship->lr-(battleship->dx+bsw/2);
+                dist_l = ((battleship->dx-bsw/2)-battleship->ll<=0)?1:(battleship->dx-bsw/2)-battleship->ll;
+            } else {
+                dist_r = (DISPLAY_W-(battleship->dx+bsw/2)<=0)?1:DISPLAY_W-(battleship->dx+bsw/2);
+                dist_l = (battleship->dx-bsw/2<=0)?1:battleship->dx-bsw/2;
+            }
 
             prob=(battleship->vx>0)?(1.0/pow(dist_r,7.0/8.0))+mod:(1.0/pow(dist_l,7.0/8.0))+mod;
 
@@ -250,6 +255,7 @@ void move_ship(BATTLESHIP *battleship) {
             }else if(battleship->owner == BATTLESHIP_OWNER_OPPONENT) {
                 battleship->dy = (get_bottom_dy(battleship) <= game_bs_client_limit) ? battleship->dy + battleship->vy : battleship->dy;
             }
+
             break;
         default:
             break;
