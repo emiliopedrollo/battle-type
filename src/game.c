@@ -61,6 +61,11 @@ void load_resources_game() {
     // Abre arquivo "dictionary" para leitura apenas
     FILE *dictionary_file = fopen("dictionary","r");
 
+    if (dictionary_file == NULL){
+        fprintf(stderr,"Could not found dictionary file!");
+        exit(EXIT_FAILURE);
+    }
+
     int dic_size = 1000;
     char *pos;
 
@@ -110,23 +115,23 @@ void init_motherships() {
                                         BATTLESHIP_OWNER_OPPONENT, DISPLAY_W / 2, ship_height);
 
 
-    int max_rand = DISPLAY_W - get_battleship_width(BATTLESHIP_CLASS_MISSILE);
-    int half_ship = get_battleship_width(BATTLESHIP_CLASS_MISSILE) / 2;
+//    int max_rand = DISPLAY_W - get_battleship_width(BATTLESHIP_CLASS_MISSILE);
+//    int half_ship = get_battleship_width(BATTLESHIP_CLASS_MISSILE) / 2;
 
-    for (int i = 0; i < 3; i++) {
-        host_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE, BATTLESHIP_OWNER_PLAYER,
-                                        (rand() % max_rand) + half_ship, DISPLAY_H + ship_height / 2);
-        change_battleship_state(host_ships[i], BATTLESHIP_MOVE_STATE_IN_GAME);
-        host_ships[i]->limit = 800;//DISPLAY_H/2 + 10;
-        host_ships[i]->word = get_word_from_pool(BATTLESHIP_OWNER_PLAYER);
-
-
-        client_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE, BATTLESHIP_OWNER_OPPONENT,
-                                          (rand() % max_rand) + half_ship,  -ship_height/2 );
-        change_battleship_state(client_ships[i],BATTLESHIP_MOVE_STATE_IN_GAME);
-        client_ships[i]->limit = 800;
-        client_ships[i]->word = get_word_from_pool(BATTLESHIP_OWNER_OPPONENT);
-    }
+//    for (int i = 0; i < 3; i++) {
+//        host_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE, BATTLESHIP_OWNER_PLAYER,
+//                                        (rand() % max_rand) + half_ship, DISPLAY_H + ship_height / 2);
+//        change_battleship_state(host_ships[i], BATTLESHIP_MOVE_STATE_IN_GAME);
+//        host_ships[i]->limit = 800;//DISPLAY_H/2 + 10;
+//        host_ships[i]->word = get_word_from_pool(BATTLESHIP_OWNER_PLAYER);
+//
+//
+//        client_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE, BATTLESHIP_OWNER_OPPONENT,
+//                                          (rand() % max_rand) + half_ship,  -ship_height/2 );
+//        change_battleship_state(client_ships[i],BATTLESHIP_MOVE_STATE_IN_GAME);
+//        client_ships[i]->limit = 800;
+//        client_ships[i]->word = get_word_from_pool(BATTLESHIP_OWNER_OPPONENT);
+//    }
 
 }
 
@@ -136,13 +141,16 @@ void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class) {
 
     if (ship_count >= NUMBER_OF_SHIPS_PER_PLAYER) return;
 
-    int max_rand = DISPLAY_W - get_battleship_width(class);
-    int half_ship = get_battleship_width(class) / 2;
-    int ship_height = get_battleship_height(class);
-    int y_pos = (owner == BATTLESHIP_OWNER_PLAYER) ? DISPLAY_H + ship_height / 2 : -ship_height / 2;
+//    int max_rand = DISPLAY_W - get_battleship_width(class);
+//    int half_ship = get_battleship_width(class) / 2;
+//    int ship_height = get_battleship_height(class);
+//    int y_pos = (owner == BATTLESHIP_OWNER_PLAYER) ? DISPLAY_H + ship_height / 2 : -ship_height / 2;
 
-    BATTLESHIP *battleship = init_battleship(class,owner,
-                                             (rand() % max_rand) + half_ship, y_pos);
+    float dx = (owner == BATTLESHIP_OWNER_OPPONENT)? client_mothership->dx : host_mothership->dx;
+    float dy = (owner == BATTLESHIP_OWNER_OPPONENT)? client_mothership->dy : host_mothership->dy;
+
+    BATTLESHIP *battleship = init_battleship(class,owner,dx, dy);
+
     change_battleship_state(battleship, BATTLESHIP_MOVE_STATE_IN_GAME);
     battleship->word = get_word_from_pool(owner);
 
