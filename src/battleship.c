@@ -244,7 +244,7 @@ void move_ship(BATTLESHIP *battleship) {
                         //battleship->vy=((battleship->vy>0 && (bsh+battleship->dy+(bsh/2))==DISPLAY_H-270)||
                         //                (battleship->vy<0 && battleship->dy-(bsh/2)==20))?battleship->vy*(-1):battleship->vy;
 
-                        if (prob >= 1 && battleship->turning_direction == TURNING_DIRECTION_NONE)
+                        if (prob >= 1.0 && battleship->turning_direction == TURNING_DIRECTION_NONE)
                             battleship->turning_direction = (battleship->vx>0)?TURNING_DIRECTION_LEFT:TURNING_DIRECTION_RIGHT;
 
                         if (battleship->turning_direction != TURNING_DIRECTION_NONE){
