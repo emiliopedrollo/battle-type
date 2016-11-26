@@ -165,7 +165,7 @@ void calcule_ship_turn_frame(BATTLESHIP *battleship){
     }
 }
 
-void move_ship(BATTLESHIP *battleship, float x) {
+void move_ship(BATTLESHIP *battleship, float target_dx) {
 
     //static TURNING_DIRECTION turning_direction = TURNING_DIRECTION_NONE;
     //const float dvx = 0.8;
@@ -236,10 +236,10 @@ void move_ship(BATTLESHIP *battleship, float x) {
         case BATTLESHIP_MOVE_STATE_IN_GAME:
 
             if (battleship->class == BATTLESHIP_CLASS_MISSILE){
-                battleship->ll = (((battleship->dy - y) / battleship->ml) + x < 0 + bsw/2)?
-                                 0 + bsw/2 : ((battleship->dy - y) / battleship->ml) + x ;
-                battleship->lr = (((battleship->dy - y) / battleship->mr) + x > DISPLAY_W - bsw/2)?
-                                 DISPLAY_W - bsw/2 :((battleship->dy - y) / battleship->mr) + x;
+                battleship->ll = (((battleship->dy - y) / battleship->ml) + target_dx < 0 + bsw/2)?
+                                 0 + bsw/2 : ((battleship->dy - y) / battleship->ml) + target_dx ;
+                battleship->lr = (((battleship->dy - y) / battleship->mr) + target_dx > DISPLAY_W - bsw/2)?
+                                 DISPLAY_W - bsw/2 :((battleship->dy - y) / battleship->mr) + target_dx;
 
                 dist_r = (battleship->lr-(battleship->dx+bsw/2)<=0)?1:battleship->lr-(battleship->dx+bsw/2);
                 dist_l = ((battleship->dx-bsw/2)-battleship->ll<=0)?1:(battleship->dx-bsw/2)-battleship->ll;
