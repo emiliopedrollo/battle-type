@@ -12,30 +12,47 @@
 #include <allegro5/allegro_font.h>
 #include <ctype.h>
 #include "main.h"
-#include "resources/img/battleship.png.h"
+#include "resources/img/spaceship_r.png.h"
+#include "resources/img/spaceship_b.png.h"
+#include "resources/img/missile_r.png.h"
+#include "resources/img/missile_b.png.h"
 #include "game.h"
 #include "utils.h"
 
 
-ALLEGRO_BITMAP *bmp_bs_c5;
+ALLEGRO_BITMAP *bmp_spaceship_blue;
+ALLEGRO_BITMAP *bmp_spaceship_red;
+ALLEGRO_BITMAP *bmp_missile_blue;
+ALLEGRO_BITMAP *bmp_missile_red;
 
 
 void load_resources_battleship(){
-    ALLEGRO_FILE* battleship_c5_png = al_open_memfile(img_battleship_png,img_battleship_png_len,"r");
-    load_bitmap(&bmp_bs_c5,&battleship_c5_png,".png");
+    ALLEGRO_FILE* spaceship_blue_png = al_open_memfile(img_spaceship_b_png,img_spaceship_b_png_len,"r");
+    load_bitmap(&bmp_spaceship_blue,&spaceship_blue_png,".png");
 
+    ALLEGRO_FILE* spaceship_red_png = al_open_memfile(img_spaceship_r_png,img_spaceship_r_png_len,"r");
+    load_bitmap(&bmp_spaceship_red,&spaceship_red_png,".png");
+
+    ALLEGRO_FILE* missile_blue_png = al_open_memfile(img_missile_b_png,img_missile_b_png_len,"r");
+    load_bitmap(&bmp_missile_blue,&missile_blue_png,".png");
+
+    ALLEGRO_FILE* missile_red_png = al_open_memfile(img_missile_r_png,img_missile_r_png_len,"r");
+    load_bitmap(&bmp_missile_red,&missile_red_png,".png");
 }
 
 void unload_resources_battleship(){
-    al_destroy_bitmap(bmp_bs_c5);
+    al_destroy_bitmap(bmp_spaceship_blue);
+    al_destroy_bitmap(bmp_spaceship_red);
+    al_destroy_bitmap(bmp_missile_blue);
+    al_destroy_bitmap(bmp_missile_red);
 }
 
 int get_battleship_height(BATTLESHIP_CLASS class){
     switch (class){
-        case BATTLESHIP_CLASS_5:
-            return 84;
-        case BATTLESHIP_CLASS_M:
-            return 84;
+        case BATTLESHIP_CLASS_MISSILE:
+            return 15;
+        case BATTLESHIP_CLASS_SPACESHIP:
+            return 90;
         default:
             return 0;
     }
@@ -43,36 +60,36 @@ int get_battleship_height(BATTLESHIP_CLASS class){
 
 int get_battleship_width(BATTLESHIP_CLASS class){
     switch (class){
-        case BATTLESHIP_CLASS_5:
-            return 90;
-        case BATTLESHIP_CLASS_M:
+        case BATTLESHIP_CLASS_MISSILE:
+            return 8;
+        case BATTLESHIP_CLASS_SPACESHIP:
             return 90;
         default:
             return 0;
     }
 }
 
-BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, float dx, float dy){
+BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, float dx, float dy){
 
     BATTLESHIP* battleship = malloc(sizeof(BATTLESHIP));
     float vx,vy;
 
     battleship->active = true;
 
+    battleship->owner = owner;
+
     battleship->class = class;
 
     switch (class){
-        case BATTLESHIP_CLASS_5:
-            battleship->bmp = bmp_bs_c5;
+        case BATTLESHIP_CLASS_MISSILE:
+            battleship->bmp = (owner == BATTLESHIP_OWNER_OPPONENT)?bmp_missile_red:bmp_missile_blue;
             vx = 1.5; vy = 0.5;
             break;
-        case BATTLESHIP_CLASS_M:
-            battleship->bmp = bmp_bs_c5;
+        case BATTLESHIP_CLASS_SPACESHIP:
+            battleship->bmp = (owner == BATTLESHIP_OWNER_OPPONENT)?bmp_spaceship_red:bmp_spaceship_blue;
             vx = 0; vy = 0;
             break;
         default:
-            battleship->bmp = bmp_bs_c5;
-            vx = 3; vy = 1;
             break;
     }
 
@@ -344,7 +361,7 @@ void draw_debug(BATTLESHIP *battleship) {
 
     static bool started = false;
 
-    if (DEBUG && battleship->owner == BATTLESHIP_OWNER_OPPONENT && battleship->class != BATTLESHIP_CLASS_M) {
+    if (DEBUG && battleship->owner == BATTLESHIP_OWNER_OPPONENT && battleship->class != BATTLESHIP_CLASS_SPACESHIP) {
         float x = DISPLAY_W / 2, y = DISPLAY_H - bsh;
         static float dyp, dxp, dypl, dxpl;
         static float dxe, dxd, dxel, dxdl;
@@ -414,7 +431,6 @@ void draw_debug(BATTLESHIP *battleship) {
             battleship->dy = (float) fabs(DISPLAY_H - battleship->dy);
         }
 
-
         ALLEGRO_COLOR color;
 
         switch (battleship->owner) {
@@ -434,12 +450,12 @@ void draw_debug(BATTLESHIP *battleship) {
                 break;
         }
 
-        al_draw_rectangle(dx - bsw / 2, dy - bsh / 2,
-                          dx + bsw / 2, dy + bsh / 2,
+        al_draw_rectangle(battleship->dx - bsw / 2, battleship->dy - bsh / 2,
+                          battleship->dx + bsw / 2, battleship->dy + bsh / 2,
                           color, 2);
-        al_draw_filled_rectangle(dx - 2, dy - 2,
-                                 dx + 2, dy + 2, color);
-
+        al_draw_filled_rectangle(battleship->dx - 2, battleship->dy - 2,
+                                 battleship->dx + 2, battleship->dy + 2,
+                                 color);
     }
 }
 
@@ -447,16 +463,30 @@ void draw_target_lock(BATTLESHIP *battleship){
 
     int outer_margin = 4;
 
-    float ldx = get_left_dx(battleship) - outer_margin;
-    float tdy = get_top_dy(battleship) - outer_margin;
-    float rdx = get_righ_dx(battleship) + outer_margin;
-    float bdy = get_bottom_dy(battleship) + outer_margin;
+//    float ldx = get_left_dx(battleship) - outer_margin;
+//    float tdy = get_top_dy(battleship) - outer_margin;
+//    float rdx = get_righ_dx(battleship) + outer_margin;
+//    float bdy = get_bottom_dy(battleship) + outer_margin;
+//
+//    int bsw = get_battleship_width(battleship->class);
+//    int bsh = get_battleship_height(battleship->class);
+//
+//    float stop_x = (bsw+2*outer_margin) / 6.0f;
+//    float stop_y = (bsh+2*outer_margin) / 6.0f;
 
     int bsw = get_battleship_width(battleship->class);
     int bsh = get_battleship_height(battleship->class);
 
-    float stop_x = (bsw+2*outer_margin) / 6.0f;
-    float stop_y = (bsh+2*outer_margin) / 6.0f;
+    int stop = (bsw > bsh) ? bsw : bsh;
+
+    float ldx = battleship->dx - stop/2 - outer_margin;
+    float tdy = battleship->dy - stop/2 - outer_margin;
+    float rdx = battleship->dx + stop/2 + outer_margin;
+    float bdy = battleship->dy + stop/2 + outer_margin;
+
+
+    float stop_x = (stop+2*outer_margin) / 6.0f;
+    float stop_y = (stop+2*outer_margin) / 6.0f;
 
     ALLEGRO_COLOR color = al_map_rgb(165,0,0);
 
@@ -549,21 +579,21 @@ void draw_ship(BATTLESHIP *battleship){
     bool draw_ship = true;
 
     if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
-        flags = (battleship->owner == BATTLESHIP_OWNER_PLAYER)?ALLEGRO_FLIP_VERTICAL:0;
+        flags = (battleship->owner == BATTLESHIP_OWNER_PLAYER)?ALLEGRO_FLIP_VERTICAL|ALLEGRO_FLIP_HORIZONTAL:0;
         if (PITTHAN_MODE) draw_ship = (battleship->owner != BATTLESHIP_OWNER_OPPONENT);
 
     } else {
-        flags = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)?ALLEGRO_FLIP_VERTICAL:0;
+        flags = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)?ALLEGRO_FLIP_VERTICAL|ALLEGRO_FLIP_HORIZONTAL:0;
         if (PITTHAN_MODE) draw_ship = (battleship->owner != BATTLESHIP_OWNER_PLAYER);
     }
 
-    if (PITTHAN_MODE && battleship->class == BATTLESHIP_CLASS_M) draw_ship = !draw_ship;
+    if (PITTHAN_MODE && battleship->class == BATTLESHIP_CLASS_SPACESHIP) draw_ship = !draw_ship;
 
     if (!draw_ship) return;
 
     al_draw_bitmap(battleship->bmp, get_left_dx(battleship), get_top_dy(battleship),flags);
 
-    if (DEBUG) draw_debug(battleship);
+    //if (DEBUG) draw_debug(battleship);
 }
 
 void draw_ship_word(BATTLESHIP *battleship,bool is_target){
@@ -592,11 +622,11 @@ unsigned short remove_next_letter_from_battleship(BATTLESHIP *battleship){
     return (unsigned short)strlen(battleship->word)-i-(unsigned short)1;
 }
 
-char get_next_letter_from_battleship(BATTLESHIP *battleship){
+char get_next_letter_from_battleship(BATTLESHIP *battleship) {
 
-    for (int i=0;i<strlen(battleship->word);i++){
+    for (int i = 0; i < strlen(battleship->word); i++) {
         if (battleship->word[i] != ' ') {
-            return get_next_ascii_char(battleship->word+i);
+            return get_next_ascii_char(battleship->word + i);
         }
     }
     return 0;

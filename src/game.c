@@ -101,12 +101,32 @@ void init_game() {
 
 void init_motherships() {
 
-    int ship_height = get_battleship_height(BATTLESHIP_CLASS_M);
+    int ship_height = get_battleship_height(BATTLESHIP_CLASS_SPACESHIP);
 
-    host_mothership = init_battleship(BATTLESHIP_CLASS_M, DISPLAY_W / 2, DISPLAY_H - ship_height);
-    host_mothership->owner = BATTLESHIP_OWNER_PLAYER;
-    client_mothership = init_battleship(BATTLESHIP_CLASS_M, DISPLAY_W / 2, ship_height);
-    client_mothership->owner = BATTLESHIP_OWNER_OPPONENT;
+    host_mothership = init_battleship(BATTLESHIP_CLASS_SPACESHIP,
+                                      BATTLESHIP_OWNER_PLAYER, DISPLAY_W / 2, DISPLAY_H - ship_height);
+
+    client_mothership = init_battleship(BATTLESHIP_CLASS_SPACESHIP,
+                                        BATTLESHIP_OWNER_OPPONENT, DISPLAY_W / 2, ship_height);
+
+
+    int max_rand = DISPLAY_W - get_battleship_width(BATTLESHIP_CLASS_MISSILE);
+    int half_ship = get_battleship_width(BATTLESHIP_CLASS_MISSILE) / 2;
+
+    for (int i = 0; i < 3; i++) {
+        host_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE, BATTLESHIP_OWNER_PLAYER,
+                                        (rand() % max_rand) + half_ship, DISPLAY_H + ship_height / 2);
+        change_battleship_state(host_ships[i], BATTLESHIP_MOVE_STATE_IN_GAME);
+        host_ships[i]->limit = 800;//DISPLAY_H/2 + 10;
+        host_ships[i]->word = get_word_from_pool(BATTLESHIP_OWNER_PLAYER);
+
+
+        client_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE, BATTLESHIP_OWNER_OPPONENT,
+                                          (rand() % max_rand) + half_ship,  -ship_height/2 );
+        change_battleship_state(client_ships[i],BATTLESHIP_MOVE_STATE_IN_GAME);
+        client_ships[i]->limit = 800;
+        client_ships[i]->word = get_word_from_pool(BATTLESHIP_OWNER_OPPONENT);
+    }
 
 }
 
@@ -121,10 +141,9 @@ void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class) {
     int ship_height = get_battleship_height(class);
     int y_pos = (owner == BATTLESHIP_OWNER_PLAYER) ? DISPLAY_H + ship_height / 2 : -ship_height / 2;
 
-    BATTLESHIP *battleship = init_battleship(class,
+    BATTLESHIP *battleship = init_battleship(class,owner,
                                              (rand() % max_rand) + half_ship, y_pos);
     change_battleship_state(battleship, BATTLESHIP_MOVE_STATE_IN_GAME);
-    battleship->owner = owner;
     battleship->word = get_word_from_pool(owner);
 
     for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
@@ -177,9 +196,6 @@ void move_game_ships() {
 }
 
 void draw_game_ships() {
-    draw_ship(host_mothership);
-    draw_ship(client_mothership);
-
     for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
         if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
             if (client_ships[i] && client_ships[i]->active) draw_ship(client_ships[i]);
@@ -215,6 +231,9 @@ void draw_game_ships() {
         default:
             break;
     }
+
+    draw_ship(host_mothership);
+    draw_ship(client_mothership);
 }
 
 void update_game_from_snapshot() {
@@ -228,11 +247,11 @@ void update_game_from_snapshot() {
 
 void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battleship) {
     if (serial_battleship.active) {
-        if (!battleship) battleship = init_battleship(serial_battleship.class, 0, 0);
+        if (!battleship) battleship = init_battleship(serial_battleship.class,
+                                                      serial_battleship.owner,0,0);
 
         battleship->dx = serial_battleship.dx;
         battleship->dy = serial_battleship.dy;
-        battleship->owner = serial_battleship.owner;
         battleship->active = serial_battleship.active;
         battleship->word = serial_battleship.word;
 
@@ -473,12 +492,12 @@ void on_redraw_game() {
         }
 
         if (next_host_ship_spawn-- == 0) {
-            spawn_ship(BATTLESHIP_OWNER_PLAYER, BATTLESHIP_CLASS_5);
+            spawn_ship(BATTLESHIP_OWNER_PLAYER, BATTLESHIP_CLASS_MISSILE);
             next_host_ship_spawn = (rand() % (SPAWN_WINDOW + 1)) + MINIMUM_SPAWN_WAIT;
         }
 
         if (next_client_ship_spawn-- == 0) {
-            spawn_ship(BATTLESHIP_OWNER_OPPONENT, BATTLESHIP_CLASS_5);
+            spawn_ship(BATTLESHIP_OWNER_OPPONENT, BATTLESHIP_CLASS_MISSILE);
             next_client_ship_spawn = (rand() % (SPAWN_WINDOW + 1)) + MINIMUM_SPAWN_WAIT;
         }
 
