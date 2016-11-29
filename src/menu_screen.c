@@ -10,9 +10,9 @@
 #include "server.h"
 #include "client.h"
 
-int shortcut_key_pressed = -1;
-bool is_mouse_down = false;
-bool is_mouse_down_on_button = false;
+int shortcut_key_pressed_menu_principal = -1;
+bool is_mouse_down_menu_screen = false;
+bool is_mouse_down_on_button_menu_screen = false;
 bool draw_menu_buttons = true;
 Button buttons[10];
 
@@ -23,7 +23,7 @@ void init_demo_ship();
 
 void draw_demo_ship();
 void draw_menu();
-void on_button_click(int index);
+void on_button_click_menu_screen(int index);
 
 void on_menu_change();
 void draw_address_box();
@@ -77,6 +77,8 @@ int on_game_state_changing_count_steps_menu_screen(GAME_STATE new_state){
         case GAME_STATE_IN_GAME_MULTIPLAYER_HOST:
         case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
             return 1;
+        case GAME_STATE_VISUALIZING_RANK:
+            return 0;
         default:
             return -1;
     }
@@ -231,7 +233,7 @@ void on_client_connect(){
 
 }
 
-void on_button_click(int index){
+void on_button_click_menu_screen(int index){
 
     switch (index){
         case BTN_SINGLE_PLAYER:
@@ -242,6 +244,9 @@ void on_button_click(int index){
             break;
         case BTN_MULTI_PLAYER:
             change_menu_state(MENU_SCREEN_MULTIPLAYER_SELECT);
+            break;
+        case BTN_RANK:
+            change_game_state(GAME_STATE_VISUALIZING_RANK);
             break;
         case BTN_EXIT:
             exiting = true;
@@ -353,13 +358,13 @@ void on_key_press_menu_screen(ALLEGRO_KEYBOARD_EVENT event){
                     break;
                 case ALLEGRO_KEY_PAD_ENTER:
                 case ALLEGRO_KEY_ENTER:
-                    on_button_click(BTN_MULTIPLAYER_JOIN_ENTER);
+                    on_button_click_menu_screen(BTN_MULTIPLAYER_JOIN_ENTER);
                     break;
                 case ALLEGRO_KEY_E:
-                    shortcut_key_pressed = BTN_MULTIPLAYER_JOIN_ENTER;
+                    shortcut_key_pressed_menu_principal = BTN_MULTIPLAYER_JOIN_ENTER;
                     break;
                 case ALLEGRO_KEY_C:
-                    shortcut_key_pressed = BTN_MULTIPLAYER_JOIN_CANCEL;
+                    shortcut_key_pressed_menu_principal = BTN_MULTIPLAYER_JOIN_CANCEL;
                     break;
                 default:
                     break;
@@ -372,16 +377,16 @@ void on_key_press_menu_screen(ALLEGRO_KEYBOARD_EVENT event){
         case MENU_SCREEN_MAIN:
             switch (event.keycode){
                 case ALLEGRO_KEY_1:
-                    shortcut_key_pressed = BTN_SINGLE_PLAYER;
+                    shortcut_key_pressed_menu_principal = BTN_SINGLE_PLAYER;
                     break;
                 case ALLEGRO_KEY_2:
-                    shortcut_key_pressed = BTN_MULTI_PLAYER;
+                    shortcut_key_pressed_menu_principal = BTN_MULTI_PLAYER;
                     break;
                 case ALLEGRO_KEY_R:
-                    shortcut_key_pressed = BTN_RANK;
+                    shortcut_key_pressed_menu_principal = BTN_RANK;
                     break;
                 case ALLEGRO_KEY_S:
-                    shortcut_key_pressed = BTN_EXIT;
+                    shortcut_key_pressed_menu_principal = BTN_EXIT;
                     break;
                 default:
                     break;
@@ -390,13 +395,13 @@ void on_key_press_menu_screen(ALLEGRO_KEYBOARD_EVENT event){
         case MENU_SCREEN_MULTIPLAYER_SELECT:
             switch (event.keycode){
                 case ALLEGRO_KEY_C:
-                    shortcut_key_pressed = BTN_MULTIPLAYER_JOIN;
+                    shortcut_key_pressed_menu_principal = BTN_MULTIPLAYER_JOIN;
                     break;
                 case ALLEGRO_KEY_H:
-                    shortcut_key_pressed = BTN_MULTIPLAYER_HOST;
+                    shortcut_key_pressed_menu_principal = BTN_MULTIPLAYER_HOST;
                     break;
                 case ALLEGRO_KEY_V:
-                    shortcut_key_pressed = BTN_MULTIPLAYER_BACK;
+                    shortcut_key_pressed_menu_principal = BTN_MULTIPLAYER_BACK;
                     break;
                 default:
                     break;
@@ -405,7 +410,7 @@ void on_key_press_menu_screen(ALLEGRO_KEYBOARD_EVENT event){
         case MENU_SCREEN_MULTIPLAYER_HOST:
             switch (event.keycode){
                 case ALLEGRO_KEY_C:
-                    shortcut_key_pressed = BTN_MULTIPLAYER_JOIN_CANCEL;
+                    shortcut_key_pressed_menu_principal = BTN_MULTIPLAYER_JOIN_CANCEL;
                     break;
                 default:
                     break;
@@ -425,7 +430,7 @@ void on_mouse_move_menu_screen(int x, int y){
 
         bool is_over_button = false;
 
-        if (!is_mouse_down){
+        if (!is_mouse_down_menu_screen){
             int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
             for (int i = 0; i < total_buttons; i++){
                 if (!buttons[i].visible) continue;
@@ -439,7 +444,7 @@ void on_mouse_move_menu_screen(int x, int y){
             }
         }
 
-        if (is_over_button || is_mouse_down_on_button)
+        if (is_over_button || is_mouse_down_on_button_menu_screen)
             al_set_system_mouse_cursor(display,
                                        ALLEGRO_SYSTEM_MOUSE_CURSOR_ALT_SELECT);
         else
@@ -453,12 +458,12 @@ void on_mouse_down_menu_screen(int x, int y){
     int total_buttons = sizeof(buttons)/sizeof(buttons[0]);
     for (int i = 0; i < total_buttons; i++){
         if (buttons[i].visible && is_coordinate_inside_button(buttons[i], x, y)){
-            is_mouse_down_on_button = true;
+            is_mouse_down_on_button_menu_screen = true;
             buttons[i].state = BUTTON_STATE_ACTIVE;
             break;
         }
     }
-    is_mouse_down = true;
+    is_mouse_down_menu_screen = true;
 
 }
 
@@ -469,15 +474,15 @@ void on_mouse_up_menu_screen(int x, int y){
         if (buttons[i].visible && buttons[i].state == BUTTON_STATE_ACTIVE){
             if (is_coordinate_inside_button(buttons[i], x, y)){
                 buttons[i].state = BUTTON_STATE_HOVER;
-                on_button_click(i);
+                on_button_click_menu_screen(i);
             } else {
                 buttons[i].state = BUTTON_STATE_NORMAL;
             }
             break;
         }
     }
-    is_mouse_down = false;
-    is_mouse_down_on_button = false;
+    is_mouse_down_menu_screen = false;
+    is_mouse_down_on_button_menu_screen = false;
 
     on_mouse_move_menu_screen(x,y);
 }
@@ -485,18 +490,18 @@ void on_mouse_up_menu_screen(int x, int y){
 void on_timer_menu_screen(){
     int static frame_count = 0;
 
-    if (shortcut_key_pressed == -1) return;
+    if (shortcut_key_pressed_menu_principal == -1) return;
 
     switch (frame_count++){
         case 0:
             on_mouse_down_menu_screen(
-                    buttons[shortcut_key_pressed].x+1,buttons[shortcut_key_pressed].y+1);
+                    buttons[shortcut_key_pressed_menu_principal].x+1,buttons[shortcut_key_pressed_menu_principal].y+1);
             break;
         case 10:
             on_mouse_up_menu_screen(
-                    buttons[shortcut_key_pressed].x+1,buttons[shortcut_key_pressed].y+1);
+                    buttons[shortcut_key_pressed_menu_principal].x+1,buttons[shortcut_key_pressed_menu_principal].y+1);
             frame_count = 0;
-            shortcut_key_pressed = -1;
+            shortcut_key_pressed_menu_principal = -1;
             break;
         default:
             break;

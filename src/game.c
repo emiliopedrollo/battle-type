@@ -1,13 +1,12 @@
-//
-// Created by ubuntu on 10/20/16.
-//
 #define _GNU_SOURCE
 
 #include <math.h>
 #include <allegro5/allegro_primitives.h>
+#include <allegro5/allegro_native_dialog.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <bits/stdio.h>
+#include <allegro5/allegro_memfile.h>
 #include "game.h"
 #include "battleship.h"
 #include "utils.h"
@@ -57,6 +56,10 @@ char get_index_of_ship_starting_with(char letter, BATTLESHIP_OWNER targets);
 
 void update_word_pool(bool pump_word_index);
 
+unsigned int get_last_game_score() {
+    return 0;
+}
+
 void load_resources_game() {
 
     // Abre arquivo "dictionary" para leitura apenas
@@ -64,6 +67,8 @@ void load_resources_game() {
 
     if (dictionary_file == NULL){
         fprintf(stderr,"Could not found dictionary file!");
+        al_show_native_message_box(display,"Error","File missing",
+                                   "Could not found dictionary file!",NULL,ALLEGRO_MESSAGEBOX_ERROR);
         exit(EXIT_FAILURE);
     }
 

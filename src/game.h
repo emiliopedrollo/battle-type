@@ -17,6 +17,7 @@ void unload_resources_game();
 
 void on_key_press_game(ALLEGRO_KEYBOARD_EVENT event);
 void process_key_press(int keycode, PLAYER player);
+unsigned int get_last_game_score();
 
 typedef struct {
     BATTLESHIP_CLASS class;

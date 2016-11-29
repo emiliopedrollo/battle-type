@@ -26,6 +26,7 @@ typedef enum {
     GAME_STATE_IN_GAME_SINGLE_PLAYER,
     GAME_STATE_IN_GAME_MULTIPLAYER_HOST,
     GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT,
+    GAME_STATE_VISUALIZING_RANK
 } GAME_STATE;
 
 typedef enum {
@@ -36,6 +37,7 @@ typedef enum {
 extern GAME_STATE current_game_state;
 extern GAME_FLOW_STATE current_game_flow_state;
 extern ALLEGRO_BITMAP *bmp_background;
+extern ALLEGRO_FONT *main_font_size_60;
 extern ALLEGRO_FONT *main_font_size_45;
 extern ALLEGRO_FONT *main_font_size_25;
 extern int main_font_size_45_height;

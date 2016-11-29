@@ -19,6 +19,7 @@
 #include "../alphas/allegro_samples/ex_enet_server.h"
 #include "../alphas/allegro_samples/ex_enet_client.h"
 #include "game.h"
+#include "rank.h"
 //#include "alphas/allegro_samples/ex_enet_server.h"
 //#include "alphas/allegro_samples/ex_enet_client.h"
 
@@ -27,8 +28,10 @@
  */
 ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_BITMAP *bmp_background;
+ALLEGRO_FONT *main_font_size_60;
 ALLEGRO_FONT *main_font_size_45;
 ALLEGRO_FONT *main_font_size_25;
+int main_font_size_60_height;
 int main_font_size_45_height;
 int main_font_size_25_height;
 GAME_STATE current_game_state;
@@ -186,10 +189,13 @@ void load_resources(){
     load_bitmap(&bmp_background,&background_png,".png");
 
     // Carrega a fonte principal da aplicação
+    ALLEGRO_FILE* vt323_ttf_60 = al_open_memfile(font_VT323_ttf,font_VT323_ttf_len,"r");
     ALLEGRO_FILE* vt323_ttf_45 = al_open_memfile(font_VT323_ttf,font_VT323_ttf_len,"r");
     ALLEGRO_FILE* vt323_ttf_25 = al_open_memfile(font_VT323_ttf,font_VT323_ttf_len,"r");
+    load_font(&main_font_size_60,&vt323_ttf_60,60,ALLEGRO_TTF_MONOCHROME);
     load_font(&main_font_size_45,&vt323_ttf_45,45,ALLEGRO_TTF_MONOCHROME);
     load_font(&main_font_size_25,&vt323_ttf_25,25,ALLEGRO_TTF_MONOCHROME);
+    main_font_size_60_height = al_get_font_line_height(main_font_size_60);
     main_font_size_45_height = al_get_font_line_height(main_font_size_45);
     main_font_size_25_height = al_get_font_line_height(main_font_size_25);
 
@@ -221,6 +227,7 @@ void unload_resources(){
     unload_resources_game();
 
     al_destroy_bitmap(bmp_background);
+    al_destroy_font(main_font_size_60);
     al_destroy_font(main_font_size_45);
     al_destroy_font(main_font_size_25);
 }
@@ -273,13 +280,16 @@ void on_changed_game_state(){
         case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
             init_game();
             break;
+        case GAME_STATE_VISUALIZING_RANK:
+            init_rank();
+            break;
         default:
             break;
     }
 }
 
 void check_game_state_complete(){
-    if (--change_game_state_step_remaining == 0){
+    if (--change_game_state_step_remaining <= 0){
         if (changing_game_state != GAME_STATE_NONE){
             current_game_state = changing_game_state;
             on_changed_game_state();
@@ -306,6 +316,9 @@ void on_key_press(ALLEGRO_KEYBOARD_EVENT keyboard_event){
         case GAME_STATE_IN_GAME_MULTIPLAYER_HOST:
             on_key_press_game(keyboard_event);
             break;
+        case GAME_STATE_VISUALIZING_RANK:
+            on_key_press_rank(keyboard_event);
+            break;
         default:
             break;
     }
@@ -315,6 +328,9 @@ void on_mouse_move(int x, int y){
     switch (current_game_state) {
         case GAME_STATE_MAIN_MENU:
             on_mouse_move_menu_screen(x,y);
+            break;
+        case GAME_STATE_VISUALIZING_RANK:
+            on_mouse_move_rank(x,y);
             break;
         default:
             break;
@@ -326,6 +342,9 @@ void on_mouse_down(int x, int y){
         case GAME_STATE_MAIN_MENU:
             on_mouse_down_menu_screen(x,y);
             break;
+        case GAME_STATE_VISUALIZING_RANK:
+            on_mouse_down_rank(x,y);
+            break;
         default:
             break;
     }
@@ -335,6 +354,9 @@ void on_mouse_up(int x, int y){
     switch (current_game_state) {
         case GAME_STATE_MAIN_MENU:
             on_mouse_up_menu_screen(x,y);
+            break;
+        case GAME_STATE_VISUALIZING_RANK:
+            on_mouse_up_rank(x,y);
             break;
         default:
             break;
@@ -346,6 +368,8 @@ void on_timer(){
         case GAME_STATE_MAIN_MENU:
             on_timer_menu_screen();
             break;
+        case GAME_STATE_VISUALIZING_RANK:
+            on_timer_rank();
         default:
             break;
     }
@@ -364,6 +388,8 @@ void on_redraw(){
         case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
             on_redraw_game();
             break;
+        case GAME_STATE_VISUALIZING_RANK:
+            on_redraw_rank();
         default:
             break;
     }

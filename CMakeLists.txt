@@ -28,7 +28,9 @@ SET(SOURCE_FILES
     src/server.h
     src/enet_common.h
     src/client.c
-    src/client.h)
+    src/client.h
+    src/rank.c
+    src/rank.h src/sha256.c src/sha256.h)
 
 # Cria arquivo cabeçalho para cada recurso utilizado
 SET(RESOURCE_COMPILER "xxd")
@@ -70,3 +72,4 @@ TARGET_LINK_LIBRARIES(battle_type allegro_primitives) # -lallegro_primitives
 TARGET_LINK_LIBRARIES(battle_type allegro_font) # -lallegro_font
 TARGET_LINK_LIBRARIES(battle_type allegro_ttf) # -lallegro_ttf
 TARGET_LINK_LIBRARIES(battle_type allegro_memfile) # -lallegro_memfile
+TARGET_LINK_LIBRARIES(battle_type allegro_dialog) # -lallegro_dialog
