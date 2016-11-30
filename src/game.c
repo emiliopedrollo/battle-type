@@ -327,12 +327,26 @@ bool exist_ship_starting_with(char letter, BATTLESHIP_OWNER targets) {
 
 char get_index_of_ship_starting_with(char letter, BATTLESHIP_OWNER targets) {
     BATTLESHIP *ship;
+    char index = -1;
+
     for (char i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
         ship = (targets == BATTLESHIP_OWNER_OPPONENT) ? client_ships[i] : host_ships[i];
         if (!ship || !ship->active || !ship->word) continue;
-        if (get_next_letter_from_battleship(ship) == letter) return i;
+        if (get_next_letter_from_battleship(ship) == letter) {
+            if (index == -1){
+                index = i;
+            } else {
+                if (targets == BATTLESHIP_OWNER_OPPONENT){
+                    // maior Y | mais abaixo
+                    index = (client_ships[i]->dy > client_ships[index]->dy)? i : index;
+                } else {
+                    // menor Y | mais acima
+                    index = (host_ships[i]->dy < host_ships[index]->dy)? i : index;
+                }
+            }
+        };
     }
-    return -1;
+    return index;
 }
 
 char *get_word_from_pool(BATTLESHIP_OWNER owner) {
@@ -343,7 +357,7 @@ char *get_word_from_pool(BATTLESHIP_OWNER owner) {
     do {
         strcpy(word, dictionary[rand() % (pool_size + 1)]);
         if (tries++ % 5 == 0) update_word_pool(false);
-    } while (exist_ship_starting_with(get_next_ascii_char(word), owner));
+    } while (exist_ship_starting_with(get_next_ascii_char(word), owner) && (tries < 50));
 
     return word;
 }

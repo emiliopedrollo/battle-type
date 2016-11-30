@@ -237,7 +237,7 @@ void on_key_press_rank(ALLEGRO_KEYBOARD_EVENT event){
                 break;
         }
     } else {
-        char key = NULL;
+        char key = 0;
         short len;
 
         switch (event.keycode) {
@@ -331,7 +331,7 @@ void on_key_press_rank(ALLEGRO_KEYBOARD_EVENT event){
                 break;
         }
 
-        if (key != NULL){
+        if (key != 0){
             char *add = calloc(2,sizeof(char));
             add[0] = key;
             strcat(rank[new_rank_pos].name,add);
@@ -446,7 +446,7 @@ void on_redraw_rank(){
 
     int top;
     char *score = malloc(1);
-    score[0] = NULL;
+    score[0] = 0;
 
 
     for (int i = 0; i < 10; i++){
