@@ -12,7 +12,7 @@ Primeiro é necessário habilitar as fonte de software 'universe':
 Agora iremos instalar todas nossas dependências:
 
 ```sh
-# apt-get install liballegro5.0 liballegro5-dev libenet7 libenet-dev git
+# apt-get install -y liballegro5.0 liballegro5-dev libenet7 libenet-dev git
 ```
 
 ## Fazendo Checkout
