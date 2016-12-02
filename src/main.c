@@ -61,17 +61,10 @@ void on_redraw();
 ALLEGRO_EVENT_QUEUE* create_queue();
 
 int main(int argc, char** argv) {
-    bool is_server = false;
-    bool is_demo = false;
-    char* host = "localhost";
-    int port = 0;
-
     int c;
     static struct option long_options[] = {
-        {"server",  no_argument,       0,  0 },
-        {"demo",    no_argument,       0,  0 },
-        {"port",    required_argument, 0,  0 },
-        {"host",    required_argument, 0,  0 },
+        {"pitthan", no_argument,       0,  0 },
+        {"debug",   no_argument,       0,  0 },
         {0,         0,                 0,  0 }
     };
 
@@ -84,26 +77,16 @@ int main(int argc, char** argv) {
             break;
 
         if (c == 0){
-            if (long_options[option_index].name == "server") {
-                is_server = true;
-            } else if (long_options[option_index].name == "demo"){
-                is_demo = true;
-            } else if (long_options[option_index].name == "port") {
-                port = atoi(optarg);
-            } else if (long_options[option_index].name == "host") {
-                host = optarg;
+            if (long_options[option_index].name == "pitthan") {
+                PITTHAN_MODE = true;
+            } else if (long_options[option_index].name == "debug") {
+                DEBUG = true;
             }
         }
 
     }
 
-    if (is_server){
-        return start_ex_server("0.0.0.0",port);
-    } else if (is_demo) {
-        return init_client(host,port);
-    } else {
-        return show_screen();
-    }
+    return show_screen();
 
 }
 
