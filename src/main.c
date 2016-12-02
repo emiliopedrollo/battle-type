@@ -362,7 +362,7 @@ void on_redraw(){
         case GAME_STATE_IN_GAME_SINGLE_PLAYER:
         case GAME_STATE_IN_GAME_MULTIPLAYER_HOST:
         case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
-            on_redraw_game();
+                on_redraw_game();
             break;
         default:
             break;

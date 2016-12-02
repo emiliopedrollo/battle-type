@@ -3,6 +3,8 @@
 //
 #define _GNU_SOURCE
 
+#include <allegro5/allegro_memfile.h>
+
 #include <math.h>
 #include <allegro5/allegro_primitives.h>
 #include <ctype.h>
@@ -12,11 +14,28 @@
 #include "battleship.h"
 #include "utils.h"
 #include "client.h"
+#include "resources/img/1.png.h"
+#include "resources/img/2.png.h"
+#include "resources/img/3.png.h"
+#include "resources/img/4.png.h"
+#include "resources/img/5.png.h"
+#include "resources/img/6.png.h"
+#include "resources/img/7.png.h"
+#include "resources/img/8.png.h"
+#include "resources/img/9.png.h"
+#include "resources/img/10.png.h"
+#include "resources/img/11.png.h"
+#include "resources/img/12.png.h"
+#include "resources/img/13.png.h"
+#include "resources/img/14.png.h"
+#include "resources/img/15.png.h"
+#include "resources/img/16.png.h"
 
 BATTLESHIP *host_ships[NUMBER_OF_SHIPS_PER_PLAYER];
 BATTLESHIP *client_ships[NUMBER_OF_SHIPS_PER_PLAYER];
 BATTLESHIP *host_mothership;
 BATTLESHIP *client_mothership;
+ALLEGRO_BITMAP *rsc_explosion[16];
 char **dictionary;
 int dictionary_len;
 char host_target = -1, client_target = -1;
@@ -91,6 +110,54 @@ void load_resources_game() {
 
     // Fecha o arquivo "dictionary"
     fclose(dictionary_file);
+
+    ALLEGRO_FILE *explosion_1 = al_open_memfile(img_1_png, img_1_png_len, "r");
+    load_bitmap(&rsc_explosion[0], &explosion_1, ".png");
+
+    ALLEGRO_FILE *explosion_2 = al_open_memfile(img_2_png, img_2_png_len, "r");
+    load_bitmap(&rsc_explosion[1], &explosion_2, ".png");
+
+    ALLEGRO_FILE *explosion_3 = al_open_memfile(img_3_png, img_3_png_len, "r");
+    load_bitmap(&rsc_explosion[2], &explosion_3, ".png");
+
+    ALLEGRO_FILE *explosion_4 = al_open_memfile(img_4_png, img_4_png_len, "r");
+    load_bitmap(&rsc_explosion[3], &explosion_4, ".png");
+
+    ALLEGRO_FILE *explosion_5 = al_open_memfile(img_5_png, img_5_png_len, "r");
+    load_bitmap(&rsc_explosion[4], &explosion_5, ".png");
+
+    ALLEGRO_FILE *explosion_6 = al_open_memfile(img_6_png, img_6_png_len, "r");
+    load_bitmap(&rsc_explosion[5], &explosion_6, ".png");
+
+    ALLEGRO_FILE *explosion_7 = al_open_memfile(img_7_png, img_7_png_len, "r");
+    load_bitmap(&rsc_explosion[6], &explosion_7, ".png");
+
+    ALLEGRO_FILE *explosion_8 = al_open_memfile(img_8_png, img_8_png_len, "r");
+    load_bitmap(&rsc_explosion[7], &explosion_8, ".png");
+
+    ALLEGRO_FILE *explosion_9 = al_open_memfile(img_9_png, img_9_png_len, "r");
+    load_bitmap(&rsc_explosion[8], &explosion_9, ".png");
+
+    ALLEGRO_FILE *explosion_10 = al_open_memfile(img_10_png, img_10_png_len, "r");
+    load_bitmap(&rsc_explosion[9], &explosion_10, ".png");
+
+    ALLEGRO_FILE *explosion_11 = al_open_memfile(img_11_png, img_11_png_len, "r");
+    load_bitmap(&rsc_explosion[10], &explosion_11, ".png");
+
+    ALLEGRO_FILE *explosion_12 = al_open_memfile(img_12_png, img_12_png_len, "r");
+    load_bitmap(&rsc_explosion[11], &explosion_12, ".png");
+
+    ALLEGRO_FILE *explosion_13 = al_open_memfile(img_13_png, img_13_png_len, "r");
+    load_bitmap(&rsc_explosion[12], &explosion_13, ".png");
+
+    ALLEGRO_FILE *explosion_14 = al_open_memfile(img_14_png, img_14_png_len, "r");
+    load_bitmap(&rsc_explosion[13], &explosion_14, ".png");
+
+    ALLEGRO_FILE *explosion_15 = al_open_memfile(img_15_png, img_15_png_len, "r");
+    load_bitmap(&rsc_explosion[14], &explosion_15, ".png");
+
+    ALLEGRO_FILE *explosion_16 = al_open_memfile(img_16_png, img_16_png_len, "r");
+    load_bitmap(&rsc_explosion[15], &explosion_16, ".png");
 }
 
 void unload_resources_game() {
@@ -98,6 +165,10 @@ void unload_resources_game() {
         free(dictionary[i]);
     }
     free(dictionary);
+
+    for(int i=0; i<16; i++){
+        al_destroy_bitmap(rsc_explosion[i]);
+    }
 }
 
 void init_game() {
@@ -121,8 +192,8 @@ void init_motherships() {
 
     if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT){
         for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
-            host_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_PLAYER,0,0);
-            client_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_OPPONENT,0,0);
+            host_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_PLAYER,0,0,0);
+            client_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_OPPONENT,0,0,0);
         }
     }
 
@@ -523,26 +594,67 @@ void on_redraw_game() {
             update_word_pool(true);
         }
 
-        if (next_host_ship_spawn-- == 0) {
-            spawn_ship(BATTLESHIP_OWNER_PLAYER, BATTLESHIP_CLASS_MISSILE);
-            next_host_ship_spawn = (rand() % (SPAWN_WINDOW + 1)) + MINIMUM_SPAWN_WAIT;
-        }
+        if (current_game_flow_state == GAME_FLOW_STATE_RUNNING) {
+            if (next_host_ship_spawn-- == 0) {
+                spawn_ship(BATTLESHIP_OWNER_PLAYER, BATTLESHIP_CLASS_MISSILE);
+                next_host_ship_spawn = (rand() % (SPAWN_WINDOW + 1)) + MINIMUM_SPAWN_WAIT;
+            }
 
-        if (next_client_ship_spawn-- == 0) {
-            spawn_ship(BATTLESHIP_OWNER_OPPONENT, BATTLESHIP_CLASS_MISSILE);
-            next_client_ship_spawn = (rand() % (SPAWN_WINDOW + 1)) + MINIMUM_SPAWN_WAIT;
+            if (next_client_ship_spawn-- == 0) {
+                spawn_ship(BATTLESHIP_OWNER_OPPONENT, BATTLESHIP_CLASS_MISSILE);
+                next_client_ship_spawn = (rand() % (SPAWN_WINDOW + 1)) + MINIMUM_SPAWN_WAIT;
+            }
         }
-
 
         if (DEBUG) {
             al_draw_line(5, 5, 5, 5 + dictionary_len / 2, al_map_rgb(255, 255, 153), 2);
             al_draw_line(5, 5 + word_pool_start_pos / 2, 5, 5 + word_pool_end_pos / 2, al_map_rgb(0, 0, 255), 2);
         }
 
-        move_game_ships();
+        if(current_game_flow_state == GAME_FLOW_STATE_RUNNING) {
+            move_game_ships();
+        }
         update_snapshot_from_game();
     } else if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
         update_game_from_snapshot();
     }
     draw_game_ships();
+    if(current_game_flow_state == GAME_FLOW_STATE_HOST_BOOM || current_game_flow_state == GAME_FLOW_STATE_CLIENT_BOOM) {
+        float dx = (current_game_flow_state == GAME_FLOW_STATE_HOST_BOOM)? host_mothership->dx : client_mothership->dx ;
+        float dy = (current_game_flow_state == GAME_FLOW_STATE_HOST_BOOM)? host_mothership->dy : client_mothership->dy ;
+
+        static int i = 0, j = 2, k = 4, l = 6, cont = 0;
+        static int modi = 0, modj = 0, modk = 0, modl = 0;
+
+        al_draw_bitmap(rsc_explosion[i], (dx - 30) - modi, (dy - 30) - modi, 0);
+        al_draw_bitmap(rsc_explosion[j], (dx - 30) - modj, (dy - 30) + modj, 0);
+        al_draw_bitmap(rsc_explosion[k], (dx - 30) + modk, (dy - 30) - modk, 0);
+        al_draw_bitmap(rsc_explosion[l], (dx - 30) + modl, (dy - 30) + modl, 0);
+
+        if (cont > 5) {
+            i++;
+            j++;
+            k++;
+            l++;
+            cont = 0;
+        }
+        cont++;
+
+        if (i > 15) {
+            i = 0;
+            modi = rand() % 45;
+        }
+        if (j > 15) {
+            j = 0;
+            modj = rand() % 45;
+        }
+        if (k > 15) {
+            k = 0;
+            modk = rand() % 45;
+        }
+        if (l > 15) {
+            l = 0;
+            modl = rand() % 45;
+        }
+    }
 }
