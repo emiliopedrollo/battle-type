@@ -6,7 +6,7 @@
 #define SCREEN_W 640
 #define SCREEN_H 480
 
-#define FPS 30           // framerate
+#define FPS 30           // frame rate
 #define PLAYER_SIZE 16   // radius of player circle
 #define PLAYER_SPEED 200 // movement rate of player in pixels/sec
 #define MAX_PLAYER_COUNT 32
@@ -41,7 +41,7 @@ struct
 {
    bool active;
    int x, y;   // current position
-   int dx, dy; // direction of movemnt
+   int dx, dy; // direction of movement
    ALLEGRO_COLOR color;
 } players[MAX_PLAYER_COUNT];
 

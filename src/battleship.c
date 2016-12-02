@@ -149,7 +149,7 @@ void change_battleship_state(BATTLESHIP *battleship,BATTLESHIP_MOVE_STATE state)
 
 }
 
-void calcule_ship_turn_frame(BATTLESHIP *battleship){
+void calculate_ship_turn_frame(BATTLESHIP *battleship){
     float dvx;
     if (battleship->turning_direction != TURNING_DIRECTION_NONE) {
         battleship->turning_frame++;
@@ -206,7 +206,7 @@ void move_ship(BATTLESHIP *battleship, float target_dx) {
             if (prob >= 1 && battleship->turning_direction == TURNING_DIRECTION_NONE)
                 battleship->turning_direction = (battleship->vx > 0) ? TURNING_DIRECTION_LEFT : TURNING_DIRECTION_RIGHT;
 
-            calcule_ship_turn_frame(battleship);
+            calculate_ship_turn_frame(battleship);
 
             battleship->dx += battleship->vx;
             battleship->dy += battleship->vy;
@@ -254,7 +254,7 @@ void move_ship(BATTLESHIP *battleship, float target_dx) {
                 battleship->turning_direction = (battleship->vx > 0) ? TURNING_DIRECTION_LEFT:TURNING_DIRECTION_RIGHT;
             }
 
-            calcule_ship_turn_frame(battleship);
+            calculate_ship_turn_frame(battleship);
 
             battleship->dx += battleship->vx;
 
