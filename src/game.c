@@ -42,6 +42,10 @@ int host_ship_count = 0;
 int client_ship_count = 0;
 int next_host_ship_spawn = 0;
 int next_client_ship_spawn = 0;
+char game_winner = -1;
+
+static int const GAME_WINNER_PLAYER = 0;
+static int const GAME_WINNER_OPONENT = 1;
 
 static int const MINIMUM_SPAWN_WAIT = 1 * 60; // 5 seconds
 static int const SPAWN_WINDOW = 2 * 60; // 10 seconds
@@ -67,6 +71,8 @@ bool exist_ship_starting_with(char letter, BATTLESHIP_OWNER targets);
 char get_index_of_ship_starting_with(char letter, BATTLESHIP_OWNER targets);
 void update_word_pool(bool pump_word_index);
 void draw_pause_overlay();
+
+void draw_explosions(bool update_frame);
 
 unsigned int get_last_game_score() {
     return 0;
@@ -234,33 +240,32 @@ void move_game_ships() {
 
     game_bs_host_limit = (int)get_bottom_dy(client_mothership);
     game_bs_client_limit = (int)get_top_dy(host_mothership);
-
-//    int ship_bound;
-
-    // Encontra limite para movimento dos battleships do host
-    /*for (int i=0;i< MAX_SHIPS_FOR_PLAYERS;i++) {
-        if (!client_ships[i]) continue;
-        ship_bound = (int) client_ships[i]->dy + get_battleship_height(client_ships[i]->class) / 2;
-        game_bs_host_limit = (ship_bound > game_bs_host_limit) ? ship_bound : game_bs_host_limit;
-    }*/
+    bool game_ending = false;
 
     //Move os battleships do host
     move_ship(host_mothership,0);
     for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
-        if (host_ships[i] && host_ships[i]->active) move_ship(host_ships[i],client_mothership->dx);
+        if (host_ships[i] && host_ships[i]->active)
+            game_ending = move_ship(host_ships[i],client_mothership->dx) || game_ending;
     }
 
-    // Encontra limite para movimento dos battleships do client
-    /*for (int i=0;i< MAX_SHIPS_FOR_PLAYERS;i++){
-        if (!host_ships[i]) continue;
-        ship_bound = (int)host_ships[i]->dy - get_battleship_height(host_ships[i]->class)/2;
-        game_bs_client_limit = ( ship_bound < game_bs_client_limit ) ? ship_bound : game_bs_client_limit;
-    }*/
+    if (game_ending){
+        game_winner = GAME_WINNER_PLAYER;
+    }
 
     //Move os battleships do client
     move_ship(client_mothership,0);
     for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
-        if (client_ships[i] && client_ships[i]->active) move_ship(client_ships[i],host_mothership->dx);
+        if (client_ships[i] && client_ships[i]->active)
+            game_ending = move_ship(client_ships[i],host_mothership->dx) || game_ending;
+    }
+
+    if (game_ending && game_winner == -1){
+        game_winner = GAME_WINNER_OPONENT;
+    }
+
+    if (game_ending){
+        current_game_flow_state = GAME_FLOW_STATE_ENDING;
     }
 }
 
@@ -436,8 +441,10 @@ void on_key_press_game(ALLEGRO_KEYBOARD_EVENT event) {
     switch (event.keycode) {
         case ALLEGRO_KEY_ESCAPE:
             if (is_single_player()) {
-                current_game_flow_state = (current_game_flow_state == GAME_FLOW_STATE_PAUSE) ?
-                                          GAME_FLOW_STATE_RUNNING : GAME_FLOW_STATE_PAUSE;
+                if (current_game_flow_state != GAME_FLOW_STATE_ENDING){
+                    current_game_flow_state = (current_game_flow_state == GAME_FLOW_STATE_PAUSE) ?
+                                              GAME_FLOW_STATE_RUNNING : GAME_FLOW_STATE_PAUSE;
+                }
             }
             break;
         default:
@@ -638,6 +645,53 @@ void draw_pause_overlay(){
     al_draw_filled_rectangle(x3,y1,x4,y2,al_map_rgba(50,50,50,200));
 }
 
+
+
+void draw_explosions(bool update_frame) {
+    if(current_game_flow_state == GAME_FLOW_STATE_ENDING) {
+
+        float dx = (game_winner == GAME_WINNER_OPONENT)? host_mothership->dx : client_mothership->dx ;
+        float dy = (game_winner == GAME_WINNER_OPONENT)? host_mothership->dy : client_mothership->dy ;
+
+        static int i = 0, j = 2, k = 4, l = 6, cont = 0;
+        static int modi = 0, modj = 0, modk = 0, modl = 0;
+
+        al_draw_bitmap(rsc_explosion[i], (dx - 30) - modi, (dy - 30) - modi, 0);
+        al_draw_bitmap(rsc_explosion[j], (dx - 30) - modj, (dy - 30) + modj, 0);
+        al_draw_bitmap(rsc_explosion[k], (dx - 30) + modk, (dy - 30) - modk, 0);
+        al_draw_bitmap(rsc_explosion[l], (dx - 30) + modl, (dy - 30) + modl, 0);
+
+        if (update_frame){
+            if (cont > 5) {
+                i++;
+                j++;
+                k++;
+                l++;
+                cont = 0;
+            }
+            cont++;
+
+            if (i > 15) {
+                i = 0;
+                modi = rand() % 45;
+            }
+            if (j > 15) {
+                j = 0;
+                modj = rand() % 45;
+            }
+            if (k > 15) {
+                k = 0;
+                modk = rand() % 45;
+            }
+            if (l > 15) {
+                l = 0;
+                modl = rand() % 45;
+            }
+        }
+
+    }
+}
+
 void on_redraw_game() {
 
 
@@ -665,7 +719,9 @@ void on_redraw_game() {
                 al_draw_line(5, 5 + word_pool_start_pos / 2, 5, 5 + word_pool_end_pos / 2, al_map_rgb(0, 0, 255), 2);
             }
 
-            move_game_ships();
+            if (current_game_flow_state != GAME_FLOW_STATE_ENDING){
+                move_game_ships();
+            }
 
         }
 
@@ -674,44 +730,8 @@ void on_redraw_game() {
         update_game_from_snapshot();
     }
     draw_game_ships();
-    if(current_game_flow_state == GAME_FLOW_STATE_HOST_BOOM || current_game_flow_state == GAME_FLOW_STATE_CLIENT_BOOM) {
-        float dx = (current_game_flow_state == GAME_FLOW_STATE_HOST_BOOM)? host_mothership->dx : client_mothership->dx ;
-        float dy = (current_game_flow_state == GAME_FLOW_STATE_HOST_BOOM)? host_mothership->dy : client_mothership->dy ;
 
-        static int i = 0, j = 2, k = 4, l = 6, cont = 0;
-        static int modi = 0, modj = 0, modk = 0, modl = 0;
-
-        al_draw_bitmap(rsc_explosion[i], (dx - 30) - modi, (dy - 30) - modi, 0);
-        al_draw_bitmap(rsc_explosion[j], (dx - 30) - modj, (dy - 30) + modj, 0);
-        al_draw_bitmap(rsc_explosion[k], (dx - 30) + modk, (dy - 30) - modk, 0);
-        al_draw_bitmap(rsc_explosion[l], (dx - 30) + modl, (dy - 30) + modl, 0);
-
-        if (cont > 5) {
-            i++;
-            j++;
-            k++;
-            l++;
-            cont = 0;
-        }
-        cont++;
-
-        if (i > 15) {
-            i = 0;
-            modi = rand() % 45;
-        }
-        if (j > 15) {
-            j = 0;
-            modj = rand() % 45;
-        }
-        if (k > 15) {
-            k = 0;
-            modk = rand() % 45;
-        }
-        if (l > 15) {
-            l = 0;
-            modl = rand() % 45;
-        }
-    }
+    draw_explosions(!is_game_paused());
 
     if (is_game_paused()){
         draw_pause_overlay();

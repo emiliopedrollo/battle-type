@@ -168,7 +168,7 @@ void calculate_ship_turn_frame(BATTLESHIP *battleship){
     }
 }
 
-void move_ship(BATTLESHIP *battleship, float target_dx) {
+bool move_ship(BATTLESHIP *battleship, float target_dx) {
 
     //static TURNING_DIRECTION turning_direction = TURNING_DIRECTION_NONE;
     //const float dvx = 0.8;
@@ -268,14 +268,16 @@ void move_ship(BATTLESHIP *battleship, float target_dx) {
             }
 
             if(battleship->dy >= game_bs_client_limit - bsh/2 && battleship->owner == BATTLESHIP_OWNER_OPPONENT)
-                current_game_flow_state = GAME_FLOW_STATE_HOST_BOOM;
+                return true;
             else if(battleship->dy <= game_bs_host_limit + bsh/2 && battleship->owner == BATTLESHIP_OWNER_PLAYER
-                     && (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT || current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_HOST))
-                current_game_flow_state = GAME_FLOW_STATE_CLIENT_BOOM;
-            break;
+                     && !PITTHAN_MODE)
+                return true;
+            else
+                return false;
         default:
             break;
     }
+    return false;
 }
 
 float get_normalized_dx(BATTLESHIP *battleship){
