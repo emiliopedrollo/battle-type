@@ -47,6 +47,7 @@ char *get_word_from_pool(BATTLESHIP_OWNER owner);
 bool exist_ship_starting_with(char letter, BATTLESHIP_OWNER targets);
 char get_index_of_ship_starting_with(char letter, BATTLESHIP_OWNER targets);
 void update_word_pool(bool pump_word_index);
+void draw_pause_overlay();
 
 unsigned int get_last_game_score() {
     return 0;
