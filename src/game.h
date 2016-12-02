@@ -14,9 +14,15 @@ void init_game();
 void on_redraw_game();
 void load_resources_game();
 void unload_resources_game();
+bool is_single_player();
+bool is_multiplayer_host();
+bool is_multiplayer_client();
+bool is_multiplayer();
+bool is_game_paused();
 
 void on_key_press_game(ALLEGRO_KEYBOARD_EVENT event);
 void process_key_press(int keycode, PLAYER player);
+unsigned int get_last_game_score();
 
 typedef struct {
     BATTLESHIP_CLASS class;

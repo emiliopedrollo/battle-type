@@ -1,15 +1,14 @@
-//
-// Created by ubuntu on 10/20/16.
-//
 #define _GNU_SOURCE
 
 #include <allegro5/allegro_memfile.h>
 
 #include <math.h>
 #include <allegro5/allegro_primitives.h>
+#include <allegro5/allegro_native_dialog.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <bits/stdio.h>
+#include <allegro5/allegro_memfile.h>
 #include "game.h"
 #include "battleship.h"
 #include "utils.h"
@@ -44,8 +43,8 @@ int client_ship_count = 0;
 int next_host_ship_spawn = 0;
 int next_client_ship_spawn = 0;
 
-static int const MINIMUM_SPAWN_WAIT = 5 * 60; // 5 seconds
-static int const SPAWN_WINDOW = 10 * 60; // 10 seconds
+static int const MINIMUM_SPAWN_WAIT = 1 * 60; // 5 seconds
+static int const SPAWN_WINDOW = 2 * 60; // 10 seconds
 
 GAME_SNAPSHOT game;
 int coef[3];
@@ -59,22 +58,19 @@ int word_pool_start_pos;
 int word_pool_end_pos;
 
 void init_motherships();
-
 void move_game_ships();
-
 void draw_game_ships();
-
 void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class);
-
 void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battleship);
-
 char *get_word_from_pool(BATTLESHIP_OWNER owner);
-
 bool exist_ship_starting_with(char letter, BATTLESHIP_OWNER targets);
-
 char get_index_of_ship_starting_with(char letter, BATTLESHIP_OWNER targets);
-
 void update_word_pool(bool pump_word_index);
+void draw_pause_overlay();
+
+unsigned int get_last_game_score() {
+    return 0;
+}
 
 void load_resources_game() {
 
@@ -83,6 +79,8 @@ void load_resources_game() {
 
     if (dictionary_file == NULL){
         fprintf(stderr,"Could not found dictionary file!");
+        al_show_native_message_box(display,"Error","File missing",
+                                   "Could not found dictionary file!",NULL,ALLEGRO_MESSAGEBOX_ERROR);
         exit(EXIT_FAILURE);
     }
 
@@ -190,10 +188,10 @@ void init_motherships() {
     change_battleship_state(host_mothership, BATTLESHIP_MOVE_STATE_IN_GAME);
     change_battleship_state(client_mothership, BATTLESHIP_MOVE_STATE_IN_GAME);
 
-    if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT){
+    if (is_multiplayer_client()){
         for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
-            host_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_PLAYER,0,0,0);
-            client_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_OPPONENT,0,0,0);
+            host_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_PLAYER,0,0,client_mothership->dx);
+            client_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_OPPONENT,0,0,host_mothership->dx);
         }
     }
 
@@ -268,17 +266,19 @@ void move_game_ships() {
 
 void draw_game_ships() {
     for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
-        if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
+        if (is_multiplayer_client()) {
             if (client_ships[i] && client_ships[i]->active) draw_ship(client_ships[i]);
             if (host_ships[i] && host_ships[i]->active) {
                 draw_ship(host_ships[i]);
-                draw_ship_word(host_ships[i], false);
+                if (!is_game_paused())
+                    draw_ship_word(host_ships[i], false);
             }
         } else {
             if (host_ships[i] && host_ships[i]->active) draw_ship(host_ships[i]);
             if (client_ships[i] && client_ships[i]->active) {
                 draw_ship(client_ships[i]);
-                draw_ship_word(client_ships[i], false);
+                if (!is_game_paused())
+                    draw_ship_word(client_ships[i], false);
             }
         }
     }
@@ -289,14 +289,16 @@ void draw_game_ships() {
             if (host_target != -1 && client_ships[host_target] &&
                 client_ships[host_target]->active) {
                 draw_target_lock(client_ships[host_target]);
-                draw_ship_word(client_ships[host_target], true);
+                if (!is_game_paused())
+                    draw_ship_word(client_ships[host_target], true);
             }
             break;
         case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
             if (client_target != -1 && host_ships[client_target] &&
                 host_ships[client_target]->active) {
                 draw_target_lock(host_ships[client_target]);
-                draw_ship_word(host_ships[client_target], true);
+                if (!is_game_paused())
+                    draw_ship_word(host_ships[client_target], true);
             }
             break;
         default:
@@ -393,12 +395,26 @@ bool exist_ship_starting_with(char letter, BATTLESHIP_OWNER targets) {
 
 char get_index_of_ship_starting_with(char letter, BATTLESHIP_OWNER targets) {
     BATTLESHIP *ship;
+    char index = -1;
+
     for (char i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
         ship = (targets == BATTLESHIP_OWNER_OPPONENT) ? client_ships[i] : host_ships[i];
         if (!ship || !ship->active || !ship->word) continue;
-        if (get_next_letter_from_battleship(ship) == letter) return i;
+        if (get_next_letter_from_battleship(ship) == letter) {
+            if (index == -1){
+                index = i;
+            } else {
+                if (targets == BATTLESHIP_OWNER_OPPONENT){
+                    // maior Y | mais abaixo
+                    index = (client_ships[i]->dy > client_ships[index]->dy)? i : index;
+                } else {
+                    // menor Y | mais acima
+                    index = (host_ships[i]->dy < host_ships[index]->dy)? i : index;
+                }
+            }
+        };
     }
-    return -1;
+    return index;
 }
 
 char *get_word_from_pool(BATTLESHIP_OWNER owner) {
@@ -409,7 +425,7 @@ char *get_word_from_pool(BATTLESHIP_OWNER owner) {
     do {
         strcpy(word, dictionary[rand() % (pool_size + 1)]);
         if (tries++ % 5 == 0) update_word_pool(false);
-    } while (exist_ship_starting_with(get_next_ascii_char(word), owner));
+    } while (exist_ship_starting_with(get_next_ascii_char(word), owner) && (tries < 50));
 
     return word;
 }
@@ -419,7 +435,7 @@ void on_key_press_game(ALLEGRO_KEYBOARD_EVENT event) {
 
     switch (event.keycode) {
         case ALLEGRO_KEY_ESCAPE:
-            if (current_game_state == GAME_STATE_IN_GAME_SINGLE_PLAYER) {
+            if (is_single_player()) {
                 current_game_flow_state = (current_game_flow_state == GAME_FLOW_STATE_PAUSE) ?
                                           GAME_FLOW_STATE_RUNNING : GAME_FLOW_STATE_PAUSE;
             }
@@ -585,16 +601,54 @@ void process_key_press(int keycode, PLAYER player){
     }
 }
 
+bool is_single_player(){
+    return current_game_state == GAME_STATE_IN_GAME_SINGLE_PLAYER;
+}
+
+bool is_multiplayer_host(){
+    return current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_HOST;
+}
+
+bool is_multiplayer_client(){
+    return current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT;
+}
+
+bool is_multiplayer(){
+    return (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_HOST) ||
+        (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT);
+}
+
+bool is_game_paused(){
+    return is_single_player() && current_game_flow_state == GAME_FLOW_STATE_PAUSE;
+}
+
+void draw_pause_overlay(){
+    al_draw_filled_rectangle(0,0,DISPLAY_W,DISPLAY_H,al_map_rgba(20,20,20,100));
+
+
+    int x1 = DISPLAY_W/2-50;
+    int x2 = DISPLAY_W/2-10;
+    int x3 = DISPLAY_W/2+10;
+    int x4 = DISPLAY_W/2+50;
+
+    int y1 = DISPLAY_H/2-50;
+    int y2 = DISPLAY_H/2+50;
+
+    al_draw_filled_rectangle(x1,y1,x2,y2,al_map_rgba(50,50,50,200));
+    al_draw_filled_rectangle(x3,y1,x4,y2,al_map_rgba(50,50,50,200));
+}
+
 void on_redraw_game() {
 
-    if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_HOST ||
-        current_game_state == GAME_STATE_IN_GAME_SINGLE_PLAYER) {
 
-        if (frame_count++ % 30 == 0) {
-            update_word_pool(true);
-        }
+    if (is_multiplayer_host() || is_single_player()) {
 
-        if (current_game_flow_state == GAME_FLOW_STATE_RUNNING) {
+        if (!is_game_paused()){
+
+            if (frame_count++ % 30 == 0) {
+                update_word_pool(true);
+            }
+
             if (next_host_ship_spawn-- == 0) {
                 spawn_ship(BATTLESHIP_OWNER_PLAYER, BATTLESHIP_CLASS_MISSILE);
                 next_host_ship_spawn = (rand() % (SPAWN_WINDOW + 1)) + MINIMUM_SPAWN_WAIT;
@@ -604,18 +658,19 @@ void on_redraw_game() {
                 spawn_ship(BATTLESHIP_OWNER_OPPONENT, BATTLESHIP_CLASS_MISSILE);
                 next_client_ship_spawn = (rand() % (SPAWN_WINDOW + 1)) + MINIMUM_SPAWN_WAIT;
             }
-        }
 
-        if (DEBUG) {
-            al_draw_line(5, 5, 5, 5 + dictionary_len / 2, al_map_rgb(255, 255, 153), 2);
-            al_draw_line(5, 5 + word_pool_start_pos / 2, 5, 5 + word_pool_end_pos / 2, al_map_rgb(0, 0, 255), 2);
-        }
 
-        if(current_game_flow_state == GAME_FLOW_STATE_RUNNING) {
+            if (DEBUG) {
+                al_draw_line(5, 5, 5, 5 + dictionary_len / 2, al_map_rgb(255, 255, 153), 2);
+                al_draw_line(5, 5 + word_pool_start_pos / 2, 5, 5 + word_pool_end_pos / 2, al_map_rgb(0, 0, 255), 2);
+            }
+
             move_game_ships();
+
         }
+
         update_snapshot_from_game();
-    } else if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
+    } else if (is_multiplayer_client()) {
         update_game_from_snapshot();
     }
     draw_game_ships();
@@ -656,5 +711,9 @@ void on_redraw_game() {
             l = 0;
             modl = rand() % 45;
         }
+    }
+
+    if (is_game_paused()){
+        draw_pause_overlay();
     }
 }
