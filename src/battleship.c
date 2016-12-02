@@ -41,10 +41,13 @@ void load_resources_battleship(){
 }
 
 void unload_resources_battleship(){
+    int i=0;
+
     al_destroy_bitmap(bmp_spaceship_blue);
     al_destroy_bitmap(bmp_spaceship_red);
     al_destroy_bitmap(bmp_missile_blue);
     al_destroy_bitmap(bmp_missile_red);
+
 }
 
 int get_battleship_height(BATTLESHIP_CLASS class){
@@ -264,6 +267,11 @@ void move_ship(BATTLESHIP *battleship, float target_dx) {
                 battleship->dy = (get_bottom_dy(battleship) <= game_bs_client_limit) ? battleship->dy + battleship->vy : battleship->dy;
             }
 
+            if(battleship->dy >= game_bs_client_limit - bsh/2 && battleship->owner == BATTLESHIP_OWNER_OPPONENT)
+                current_game_flow_state = GAME_FLOW_STATE_HOST_BOOM;
+            else if(battleship->dy <= game_bs_host_limit + bsh/2 && battleship->owner == BATTLESHIP_OWNER_PLAYER
+                     && (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT || current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_HOST))
+                current_game_flow_state = GAME_FLOW_STATE_CLIENT_BOOM;
             break;
         default:
             break;
@@ -555,6 +563,8 @@ void draw_ship(BATTLESHIP *battleship){
     if (!draw_ship) return;
 
     al_draw_bitmap(battleship->bmp, get_left_dx(battleship), get_top_dy(battleship),flags);
+
+    //al_draw_bitmap(battleship->bmp);
 
     //if (DEBUG) draw_debug(battleship);
 }
