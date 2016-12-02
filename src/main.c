@@ -351,6 +351,9 @@ void on_timer(){
         case GAME_STATE_MAIN_MENU:
             on_timer_menu_screen();
             break;
+        case GAME_STATE_IN_GAME_SINGLE_PLAYER:
+            on_timer_game();
+            break;
         case GAME_STATE_VISUALIZING_RANK:
             on_timer_rank();
         default:

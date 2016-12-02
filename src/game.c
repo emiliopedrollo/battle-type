@@ -56,8 +56,6 @@ int coef[3];
 int game_bs_host_limit;
 int game_bs_client_limit;
 
-int frame_count;
-
 int word_pool_start_pos;
 int word_pool_end_pos;
 
@@ -69,6 +67,7 @@ void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battlesh
 char *get_word_from_pool(BATTLESHIP_OWNER owner);
 bool exist_ship_starting_with(char letter, BATTLESHIP_OWNER targets);
 char get_index_of_ship_starting_with(char letter, BATTLESHIP_OWNER targets);
+char get_index_from_closest_ship(BATTLESHIP_OWNER targets);
 void update_word_pool(bool pump_word_index);
 void draw_pause_overlay();
 
@@ -176,7 +175,6 @@ void unload_resources_game() {
 }
 
 void init_game() {
-    frame_count = 0;
     init_motherships();
 }
 
@@ -422,6 +420,28 @@ char get_index_of_ship_starting_with(char letter, BATTLESHIP_OWNER targets) {
     return index;
 }
 
+char get_index_from_closest_ship(BATTLESHIP_OWNER targets){
+    BATTLESHIP *ship;
+    char index = -1;
+
+    for (char i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
+        ship = (targets == BATTLESHIP_OWNER_OPPONENT) ? client_ships[i] : host_ships[i];
+        if (!ship || !ship->active || !ship->word) continue;
+        if (index == -1){
+            index = i;
+        } else {
+            if (targets == BATTLESHIP_OWNER_OPPONENT){
+                // maior Y | mais abaixo
+                index = (client_ships[i]->dy > client_ships[index]->dy)? i : index;
+            } else {
+                // menor Y | mais acima
+                index = (host_ships[i]->dy < host_ships[index]->dy)? i : index;
+            }
+        }
+    }
+    return index;
+}
+
 char *get_word_from_pool(BATTLESHIP_OWNER owner) {
     int pool_size = word_pool_end_pos - word_pool_start_pos;
     char *word = malloc(strlen(dictionary[dictionary_len]) + 1);
@@ -629,6 +649,30 @@ bool is_game_paused(){
     return is_single_player() && current_game_flow_state == GAME_FLOW_STATE_PAUSE;
 }
 
+void on_timer_game(){
+    if (is_multiplayer() || PITTHAN_MODE) return;
+
+    static int frame_count = 0;
+
+    if (frame_count++ < 150) return;
+
+    frame_count = 0;
+
+    if (client_target == -1){
+        client_target = get_index_from_closest_ship(BATTLESHIP_OWNER_PLAYER);
+    }
+
+    if (client_target != -1){
+        if (remove_next_letter_from_battleship(host_ships[client_target]) == 0) {
+            host_ships[client_target]->active = false;
+            client_target = -1;
+            host_ship_count--;
+        }
+    }
+
+
+}
+
 void draw_pause_overlay(){
     al_draw_filled_rectangle(0,0,DISPLAY_W,DISPLAY_H,al_map_rgba(20,20,20,100));
 
@@ -644,8 +688,6 @@ void draw_pause_overlay(){
     al_draw_filled_rectangle(x1,y1,x2,y2,al_map_rgba(50,50,50,200));
     al_draw_filled_rectangle(x3,y1,x4,y2,al_map_rgba(50,50,50,200));
 }
-
-
 
 void draw_explosions(bool update_frame) {
     if(current_game_flow_state == GAME_FLOW_STATE_ENDING) {
@@ -694,12 +736,14 @@ void draw_explosions(bool update_frame) {
 
 void on_redraw_game() {
 
+    static int frame_count = 0;
 
     if (is_multiplayer_host() || is_single_player()) {
 
         if (!is_game_paused()){
 
-            if (frame_count++ % 30 == 0) {
+            if (frame_count++ == 30) {
+                frame_count = 0;
                 update_word_pool(true);
             }
 
