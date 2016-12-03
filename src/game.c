@@ -44,7 +44,13 @@ int next_host_ship_spawn = 0;
 int next_client_ship_spawn = 0;
 char game_winner = -1;
 short game_level = 1;
+unsigned int oponent_score = 0;
+unsigned int player_score = 0;
+unsigned int rank_score = 0;
+int remaining_words_to_next_level = -1;
+int word_pool_index = 0;
 bool need_to_show_game_level = false;
+bool wait_new_level = false;
 
 static int const GAME_WINNER_PLAYER = 0;
 static int const GAME_WINNER_OPONENT = 1;
@@ -53,7 +59,6 @@ static int const MINIMUM_SPAWN_WAIT = 1 * 60; // 5 seconds
 static int const SPAWN_WINDOW = 2 * 60; // 10 seconds
 
 GAME_SNAPSHOT game;
-int coef[3];
 
 int game_bs_host_limit;
 int game_bs_client_limit;
@@ -71,16 +76,21 @@ bool exist_ship_starting_with(char letter, BATTLESHIP_OWNER targets);
 char get_index_of_ship_starting_with(char letter, BATTLESHIP_OWNER targets);
 char get_index_from_closest_ship(BATTLESHIP_OWNER targets);
 void update_word_pool(bool pump_word_index);
+void on_explosion_end(BATTLESHIP_OWNER *owner);
 void draw_pause_overlay();
 void draw_explosions();
 void draw_game_level();
-
 void draw_game_over();
-
+void start_level_change();
+void clear_ships();
+void on_new_level(short level);
 void on_char_typed(PLAYER player, char key);
+SERIAL_BATTLESHIP convert_battleship_to_serial(BATTLESHIP *battleship);
+void update_snapshot_from_game();
+void update_game_from_snapshot();
 
 unsigned int get_last_game_score() {
-    return 0;
+    return rank_score;
 }
 
 void load_resources_game() {
@@ -181,10 +191,29 @@ void unload_resources_game() {
 }
 
 void init_game() {
+    current_game_flow_state = GAME_FLOW_STATE_RUNNING;
+    oponent_score = 0;
+    player_score = 0;
+    rank_score = 0;
+    word_pool_index = 0;
     init_motherships();
-    if (is_single_player()){
-        need_to_show_game_level = true;
+    clear_ships();
+    on_new_level(1);
+}
+
+void clear_ships(){
+    for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
+        if (host_ships[i]){
+            host_ships[i]->active = false;
+        }
+        if (client_ships[i]){
+            client_ships[i]->active = false;
+        }
     }
+    client_ship_count = 0;
+    host_ship_count = 0;
+    host_target = -1;
+    client_target = -1;
 }
 
 void init_motherships() {
@@ -218,13 +247,28 @@ void on_explosion_end(BATTLESHIP_OWNER *owner){
         host_ship_count--;
     }
 
+    if (is_single_player()){
+        if ((remaining_words_to_next_level <= 0) && (client_ship_count == 0)){
+            start_level_change();
+        }
+    } else {
+        if (remaining_words_to_next_level <= 0){
+            start_level_change();
+        }
+    }
+
 }
 
 void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class) {
 
+    if (PITTHAN_MODE && (owner == BATTLESHIP_OWNER_PLAYER) &&
+            (current_game_state == GAME_STATE_IN_GAME_SINGLE_PLAYER)) return;
+
     int ship_count = (owner == BATTLESHIP_OWNER_PLAYER) ? host_ship_count : client_ship_count;
 
     if (ship_count >= NUMBER_OF_SHIPS_PER_PLAYER) return;
+
+    if (remaining_words_to_next_level-- <= 0) return;
 
     float dx = (owner == BATTLESHIP_OWNER_OPPONENT)? client_mothership->dx : host_mothership->dx;
     float dy = (owner == BATTLESHIP_OWNER_OPPONENT)? client_mothership->dy : host_mothership->dy;
@@ -397,7 +441,6 @@ void update_snapshot_from_game() {
 }
 
 void update_word_pool(bool pump_word_index) {
-    static int word_pool_index = 0;
     int r1 = (rand() % 50) - 20;
     int r2 = (rand() % MAXIMUM_WORD_POOL_SIZE) + MINIMUM_WORD_POOL_SIZE;
 
@@ -609,6 +652,7 @@ void process_key_press(int keycode, PLAYER player){
 }
 
 void on_char_typed(PLAYER player, char key) {
+    if (is_game_ending()) return;
     BATTLESHIP *battleship = NULL;
     if (key != 0) {
         char next_letter = 0;
@@ -794,16 +838,36 @@ void draw_game_over() {
     }
 }
 
+void on_new_level(short level) {
+    game_level = level;
+
+    int state_mod = (current_game_state == GAME_STATE_IN_GAME_SINGLE_PLAYER)?1:2;
+
+    remaining_words_to_next_level = game_level * state_mod * (DEBUG)?10:50;
+
+    wait_new_level = false;
+
+    if (is_single_player()){
+        need_to_show_game_level = true;
+    }
+}
+
+void start_level_change(){
+    wait_new_level = true;
+}
+
 void on_redraw_game() {
 
     static int frame_count = 0;
     static int game_level_display_frame = 0;
     static int game_ending_frame = 0;
+    static int wait_new_level_frame = 0;
 
     if (need_to_show_game_level){
         draw_game_level();
         if (game_level_display_frame++ > 120){
             need_to_show_game_level = false;
+            game_level_display_frame = 0;
         }
         return;
     }
@@ -858,13 +922,22 @@ void on_redraw_game() {
         } else {
             draw_game_over();
             if (game_ending_frame >= 300) {
+                game_ending_frame = 0;
                 if (current_game_state == GAME_STATE_IN_GAME_SINGLE_PLAYER) {
+                    rank_score = player_score;
                     change_game_state(GAME_STATE_VISUALIZING_RANK);
                 } else {
                     change_game_state(GAME_STATE_MAIN_MENU);
                 }
             }
 
+        }
+    }
+
+    if (wait_new_level){
+        if (is_multiplayer() || wait_new_level_frame++ == 60){
+            wait_new_level_frame = 0;
+            on_new_level(++game_level);
         }
     }
 

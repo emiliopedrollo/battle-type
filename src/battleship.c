@@ -272,8 +272,8 @@ bool move_ship(BATTLESHIP *battleship, float target_dx) {
 
             if(battleship->dy >= game_bs_client_limit - bsh/2 && battleship->owner == BATTLESHIP_OWNER_OPPONENT)
                 return true;
-            else if(battleship->dy <= game_bs_host_limit + bsh/2 && battleship->owner == BATTLESHIP_OWNER_PLAYER
-                     && !PITTHAN_MODE)
+            else if(!PITTHAN_MODE &&
+                    battleship->dy <= game_bs_host_limit + bsh/2 && battleship->owner == BATTLESHIP_OWNER_PLAYER)
                 return true;
             else
                 return false;
@@ -556,14 +556,13 @@ void draw_ship(BATTLESHIP *battleship){
 
     if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
         flags = (battleship->owner == BATTLESHIP_OWNER_PLAYER)?ALLEGRO_FLIP_VERTICAL|ALLEGRO_FLIP_HORIZONTAL:0;
-        if (PITTHAN_MODE) draw_ship = (battleship->owner != BATTLESHIP_OWNER_OPPONENT);
-
     } else {
         flags = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)?ALLEGRO_FLIP_VERTICAL|ALLEGRO_FLIP_HORIZONTAL:0;
-        if (PITTHAN_MODE) draw_ship = (battleship->owner != BATTLESHIP_OWNER_PLAYER);
+        if (PITTHAN_MODE && current_game_state == GAME_STATE_IN_GAME_SINGLE_PLAYER)
+            draw_ship = (battleship->owner != BATTLESHIP_OWNER_PLAYER);
     }
 
-    if (PITTHAN_MODE && battleship->class == BATTLESHIP_CLASS_SPACESHIP) draw_ship = !draw_ship;
+    if (PITTHAN_MODE && battleship->class == BATTLESHIP_CLASS_SPACESHIP) draw_ship = true;
 
     if (!draw_ship) return;
 
