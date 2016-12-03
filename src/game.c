@@ -346,16 +346,16 @@ void move_game_ships() {
 void draw_game_ships() {
     for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
         if (is_multiplayer_client()) {
-            if (client_ships[i] && client_ships[i]->active) draw_ship(client_ships[i],host_mothership->dx);
+            if (client_ships[i] && client_ships[i]->active) draw_ship(client_ships[i]);
             if (host_ships[i] && host_ships[i]->active) {
-                draw_ship(host_ships[i],client_mothership->dx);
+                draw_ship(host_ships[i]);
                 if (!is_game_paused())
                     draw_ship_word(host_ships[i], false);
             }
         } else {
-            if (host_ships[i] && host_ships[i]->active) draw_ship(host_ships[i],client_mothership->dx);
+            if (host_ships[i] && host_ships[i]->active) draw_ship(host_ships[i]);
             if (client_ships[i] && client_ships[i]->active) {
-                draw_ship(client_ships[i],host_mothership->dx);
+                draw_ship(client_ships[i]);
                 if (!is_game_paused())
                     draw_ship_word(client_ships[i], false);
             }
@@ -384,8 +384,8 @@ void draw_game_ships() {
             break;
     }
 
-    draw_ship(host_mothership,client_mothership->dx);
-    draw_ship(client_mothership,host_mothership->dx);
+    draw_ship(host_mothership);
+    draw_ship(client_mothership);
 }
 
 void update_game_from_snapshot() {

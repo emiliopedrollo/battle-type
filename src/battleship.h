@@ -69,7 +69,7 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, floa
 void change_battleship_state(BATTLESHIP *battleship,BATTLESHIP_MOVE_STATE state);
 void draw_target_lock(BATTLESHIP *battleship);
 bool move_ship(BATTLESHIP *battleship, float target_dx);
-void draw_ship(BATTLESHIP *battleship, float target_dx);
+void draw_ship(BATTLESHIP *battleship);
 void draw_ship_word(BATTLESHIP *battleship,bool is_target);
 void load_resources_battleship();
 void unload_resources_battleship();
