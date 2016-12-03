@@ -399,6 +399,7 @@ void update_game_from_snapshot() {
     player_score = game.host_score;
     opponent_score = game.client_score;
 
+    game_winner = game.game_winner;
     if (game.is_game_ending){
         current_game_flow_state = GAME_FLOW_STATE_ENDING;
     }
@@ -462,6 +463,7 @@ void update_snapshot_from_game() {
     game.client_score = opponent_score;
     game.host_score = player_score;
 
+    game.game_winner = game_winner;
     game.is_game_ending = is_game_ending();
 
     game.host_ship_dx = (unsigned short)host_mothership->dx;

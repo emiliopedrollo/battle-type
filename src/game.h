@@ -44,6 +44,7 @@ typedef struct {
     long host_score, client_score;
     char host_target, client_target;
     unsigned short host_ship_dx, client_ship_dx;
+    char game_winner;
     bool is_game_ending;
 } GAME_SNAPSHOT;
 
