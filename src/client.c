@@ -61,11 +61,15 @@ bool connect_client(char* host_ip,
 
 void disconnect_client(){
     connection_set_to_close = true;
+    enet_host_flush(client);
+
     pthread_join(client_thread,NULL);
 
+    if (peer != NULL) enet_peer_disconnect_now(peer,0);
     enet_host_destroy(client);
     client = NULL;
     enet_deinitialize();
+    enet_free(NULL);
     client_connected = false;
 
 }
