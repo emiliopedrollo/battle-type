@@ -32,6 +32,8 @@ typedef struct {
     BATTLESHIP_CLASS class;
     BATTLESHIP_OWNER owner;
     bool active;
+    bool exploding;
+    char explosion_frame;
     float dx,dy;
     char word[30];
 } SERIAL_BATTLESHIP;
@@ -39,7 +41,7 @@ typedef struct {
 typedef struct {
     SERIAL_BATTLESHIP host_ships[NUMBER_OF_SHIPS_PER_PLAYER];
     SERIAL_BATTLESHIP client_ships[NUMBER_OF_SHIPS_PER_PLAYER];
-    unsigned short host_cash, client_cash;
+    long host_score, client_score;
     char host_target, client_target;
     unsigned short host_ship_dx, client_ship_dx;
 } GAME_SNAPSHOT;

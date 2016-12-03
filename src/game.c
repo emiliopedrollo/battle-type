@@ -390,6 +390,9 @@ void update_game_from_snapshot() {
     host_target = game.host_target;
     client_target = game.client_target;
 
+    player_score = game.host_score;
+    opponent_score = game.client_score;
+
     host_mothership->dx = game.host_ship_dx;
     client_mothership->dx = game.client_ship_dx;
 }
@@ -402,6 +405,9 @@ void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battlesh
         battleship->dx = serial_battleship.dx;
         battleship->dy = serial_battleship.dy;
         battleship->active = serial_battleship.active;
+
+        battleship->exploding = serial_battleship.exploding;
+        battleship->explosion_frame = serial_battleship.explosion_frame;
 
         free(battleship->word);
 
@@ -424,6 +430,8 @@ SERIAL_BATTLESHIP convert_battleship_to_serial(BATTLESHIP *battleship) {
     serial.class = battleship->class;
     serial.dx = battleship->dx;
     serial.dy = battleship->dy;
+    serial.exploding = battleship->exploding;
+    serial.explosion_frame = battleship->explosion_frame;
     strcpy(serial.word,battleship->word);
     return serial;
 }
@@ -440,6 +448,9 @@ void update_snapshot_from_game() {
     }
     game.host_target = host_target;
     game.client_target = client_target;
+
+    game.client_score = opponent_score;
+    game.host_score = player_score;
 
     game.host_ship_dx = (unsigned short)host_mothership->dx;
     game.client_ship_dx = (unsigned short)client_mothership->dx;
