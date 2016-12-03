@@ -129,7 +129,7 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, floa
     battleship->word = NULL;
 
     battleship->exploding = false;
-    battleship->explosion_frames = -1;
+    battleship->explosion_frame = -1;
 
     return battleship;
 }
@@ -266,6 +266,10 @@ bool move_ship(BATTLESHIP *battleship, float target_dx) {
                 battleship->dy = (get_top_dy(battleship) >= game_bs_host_limit) ? battleship->dy - battleship->vy : battleship->dy;
             }else if(battleship->owner == BATTLESHIP_OWNER_OPPONENT) {
                 battleship->dy = (get_bottom_dy(battleship) <= game_bs_client_limit) ? battleship->dy + battleship->vy : battleship->dy;
+            }
+
+            if (battleship->exploding) {
+                battleship->explosion_frame++;
             }
 
             if(battleship->dy >= game_bs_client_limit - bsh/2 && battleship->owner == BATTLESHIP_OWNER_OPPONENT)
@@ -571,14 +575,10 @@ void draw_ship(BATTLESHIP *battleship,float target_x){
     //if (DEBUG) draw_debug(battleship);
 
     if (battleship->exploding) {
-        if (battleship->explosion_frames == -1)
-            battleship->explosion_frames = 0;
-
-
-        if (battleship->explosion_frames < 9) {
+        if (battleship->explosion_frame < 9) {
             float y = (battleship->owner == BATTLESHIP_OWNER_OPPONENT) ? game_bs_client_limit : game_bs_host_limit;
 
-            int thickness = ((battleship->explosion_frames < 4)||(battleship->explosion_frames > 6))?1:2;
+            int thickness = ((battleship->explosion_frame < 4)||(battleship->explosion_frame > 6))?1:2;
 
             if(battleship->owner == BATTLESHIP_OWNER_OPPONENT)
                 al_draw_line(target_x,y,battleship->dx,battleship->dy,al_map_rgb(0, 0, 255),thickness);
@@ -587,10 +587,11 @@ void draw_ship(BATTLESHIP *battleship,float target_x){
 
         }
 
-            if(battleship->explosion_frames < 16)
-                al_draw_bitmap(rsc_explosion[battleship->explosion_frames], battleship->dx - 32, battleship->dy - 32, 0);
+            if(battleship->explosion_frame < 16)
+                al_draw_bitmap(rsc_explosion[battleship->explosion_frame],
+                               battleship->dx - 32, battleship->dy - 32, 0);
 
-        if (battleship->explosion_frames++ == 15){
+        if (battleship->explosion_frame >= 15){
             battleship->active = false;
             battleship->on_explosion_end(&battleship->owner);
         }

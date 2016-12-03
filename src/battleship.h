@@ -60,7 +60,7 @@ typedef struct {
     int push_back_k;
     void (*push_back_callback)(void);
     char *word;
-    char explosion_frames;
+    char explosion_frame;
     bool exploding;
     void (*on_explosion_end)(BATTLESHIP_OWNER *owner);
 } BATTLESHIP;
