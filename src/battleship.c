@@ -287,7 +287,7 @@ bool move_ship(BATTLESHIP *battleship, float target_dx) {
 
 float get_normalized_dx(BATTLESHIP *battleship){
     float dx = battleship->dx;
-    if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
+    if (is_multiplayer_client()) {
         dx = DISPLAY_W - dx;
     }
     return dx;
@@ -295,7 +295,7 @@ float get_normalized_dx(BATTLESHIP *battleship){
 
 float get_normalized_dy(BATTLESHIP *battleship){
     float dy = battleship->dy;
-    if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
+    if (is_multiplayer_client()) {
         dy = DISPLAY_H - dy;
     }
     return dy;
@@ -544,7 +544,7 @@ void draw_target_lock(BATTLESHIP *battleship){
 
 }
 
-void draw_ship(BATTLESHIP *battleship,float target_x){
+void draw_ship(BATTLESHIP *battleship) {
 
     int bsh = get_battleship_height(battleship->class);
     int bsw = get_battleship_width(battleship->class);
@@ -575,27 +575,33 @@ void draw_ship(BATTLESHIP *battleship,float target_x){
     //if (DEBUG) draw_debug(battleship);
 
     if (battleship->exploding) {
+
+        float target_y;
+        if (is_multiplayer_client())
+            target_y = (battleship->owner == BATTLESHIP_OWNER_PLAYER)?
+                       get_top_dy(client_mothership):get_bottom_dy(host_mothership);
+        else
+            target_y = (battleship->owner == BATTLESHIP_OWNER_PLAYER)?
+                       get_bottom_dy(client_mothership):get_top_dy(host_mothership);
+
+        float target_x = get_normalized_dx((battleship->owner == BATTLESHIP_OWNER_PLAYER)?client_mothership:host_mothership);
+
+        float x2 = get_normalized_dx(battleship), y2 = get_normalized_dy(battleship);
         if (battleship->explosion_frame < 9) {
-            float y = (battleship->owner == BATTLESHIP_OWNER_OPPONENT) ? game_bs_client_limit : game_bs_host_limit;
-            float x = target_x;
+
 
             int thickness = ((battleship->explosion_frame < 4)||(battleship->explosion_frame > 6))?1:2;
 
-            /*if(current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT && battleship->owner == BATTLESHIP_OWNER_PLAYER){
-                x = (DISPLAY_W - target_x);
-                y = (DISPLAY_H - y);
-            }*/
-
             if(battleship->owner == BATTLESHIP_OWNER_OPPONENT)
-                al_draw_line(x,y,battleship->dx,battleship->dy,al_map_rgb(0, 0, 255),thickness);
+                al_draw_line(target_x,target_y,x2,y2,al_map_rgb(0, 0, 255),thickness);
             else
-                al_draw_line(x,y,battleship->dx,battleship->dy,al_map_rgb(255, 0, 0),thickness);
+                al_draw_line(target_x,target_y,x2,y2,al_map_rgb(255, 0, 0),thickness);
 
         }
 
-            if(battleship->explosion_frame < 16)
-                al_draw_bitmap(rsc_explosion[battleship->explosion_frame],
-                               battleship->dx - 32, battleship->dy - 32, 0);
+        if(battleship->explosion_frame < 16)
+            al_draw_bitmap(rsc_explosion[battleship->explosion_frame],
+                           get_normalized_dx(battleship)-32,get_normalized_dy(battleship)-32, 0);
 
         if (battleship->explosion_frame >= 15){
             battleship->active = false;

@@ -52,6 +52,9 @@ extern int game_bs_client_limit;
 extern bool received_first_snapshot;
 extern GAME_SNAPSHOT game;
 
+extern BATTLESHIP *host_mothership;
+extern BATTLESHIP *client_mothership;
+
 static int const MINIMUM_WORD_POOL_SIZE = 75;
 static int const MAXIMUM_WORD_POOL_SIZE = 125;
 
