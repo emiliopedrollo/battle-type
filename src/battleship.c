@@ -130,6 +130,9 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, floa
 
     battleship->word = NULL;
 
+    battleship->exploding = false;
+    battleship->explosion_frames = -1;
+
     return battleship;
 }
 
@@ -569,6 +572,18 @@ void draw_ship(BATTLESHIP *battleship){
     //al_draw_bitmap(battleship->bmp);
 
     //if (DEBUG) draw_debug(battleship);
+
+    if (battleship->exploding){
+        if (battleship->explosion_frames == -1)
+            battleship->explosion_frames = 0;
+
+        // todo: animação de explosão
+
+        if (battleship->explosion_frames++ == 16){
+            battleship->active = false;
+            battleship->on_explosion_end(&battleship->owner);
+        }
+    }
 }
 
 void draw_ship_word(BATTLESHIP *battleship,bool is_target){

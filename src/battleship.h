@@ -60,6 +60,9 @@ typedef struct {
     int push_back_k;
     void (*push_back_callback)(void);
     char *word;
+    char explosion_frames;
+    bool exploding;
+    void (*on_explosion_end)(BATTLESHIP_OWNER *owner);
 } BATTLESHIP;
 
 BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, float dx, float dy, float x);

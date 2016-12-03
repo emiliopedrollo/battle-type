@@ -77,6 +77,8 @@ void draw_game_level();
 
 void draw_game_over();
 
+void on_char_typed(PLAYER player, char key);
+
 unsigned int get_last_game_score() {
     return 0;
 }
@@ -208,6 +210,16 @@ void init_motherships() {
 
 }
 
+void on_explosion_end(BATTLESHIP_OWNER *owner){
+
+    if (*owner == BATTLESHIP_OWNER_OPPONENT){
+        client_ship_count--;
+    } else {
+        host_ship_count--;
+    }
+
+}
+
 void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class) {
 
     int ship_count = (owner == BATTLESHIP_OWNER_PLAYER) ? host_ship_count : client_ship_count;
@@ -220,6 +232,8 @@ void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class) {
 
 
     BATTLESHIP *battleship = init_battleship(class,owner,dx, dy, x);
+
+    battleship->on_explosion_end = on_explosion_end;
 
     change_battleship_state(battleship, BATTLESHIP_MOVE_STATE_IN_GAME);
     battleship->word = get_word_from_pool(owner);
@@ -591,7 +605,10 @@ void process_key_press(int keycode, PLAYER player){
             break;
     }
 
+    on_char_typed(player, key);
+}
 
+void on_char_typed(PLAYER player, char key) {
     BATTLESHIP *battleship = NULL;
     if (key != 0) {
         char next_letter = 0;
@@ -619,16 +636,14 @@ void process_key_press(int keycode, PLAYER player){
             next_letter = get_next_letter_from_battleship(battleship);
             if (key == next_letter) {
                 if (remove_next_letter_from_battleship(battleship) == 0) {
-                    battleship->active = false;
+                    battleship->exploding = true;
                     switch (player) {
                         case PLAYER_SINGLE:
                         case PLAYER_HOST:
                             host_target = -1;
-                            client_ship_count--;
                             break;
                         case PLAYER_CLIENT:
                             client_target = -1;
-                            host_ship_count--;
                         default:
                             break;
                     }
@@ -680,11 +695,7 @@ void on_timer_game(){
     }
 
     if (client_target != -1){
-        if (remove_next_letter_from_battleship(host_ships[client_target]) == 0) {
-            host_ships[client_target]->active = false;
-            client_target = -1;
-            host_ship_count--;
-        }
+        on_char_typed(PLAYER_CLIENT,get_next_letter_from_battleship(host_ships[client_target]));
     }
 
 
