@@ -270,7 +270,7 @@ bool move_ship(BATTLESHIP *battleship, float target_dx) {
 
             if(battleship->dy >= game_bs_client_limit - bsh/2 && battleship->owner == BATTLESHIP_OWNER_OPPONENT)
                 return true;
-            else if(!PITTHAN_MODE &&
+            else if((is_multiplayer() || !PITTHAN_MODE) &&
                     battleship->dy <= game_bs_host_limit + bsh/2 && battleship->owner == BATTLESHIP_OWNER_PLAYER)
                 return true;
             else
