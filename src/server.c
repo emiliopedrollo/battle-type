@@ -61,14 +61,17 @@ void stop_server(){
     server_set_to_stop = true;
     pthread_join(server_thread,NULL);
 
+    enet_host_flush(host);
     enet_host_destroy(host);
     enet_deinitialize();
+    enet_free(NULL);
     server_running = false;
 }
 
 void server_send_receive(){
     ENetEvent event;
     CLIENT_KEY_PRESS *msg;
+    if (host == NULL) return;
     while (enet_host_service(host, &event, 0) > 0) {
         switch (event.type){
             case ENET_EVENT_TYPE_CONNECT:
