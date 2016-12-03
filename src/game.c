@@ -221,10 +221,10 @@ void init_motherships() {
     int ship_height = get_battleship_height(BATTLESHIP_CLASS_SPACESHIP);
 
     host_mothership = init_battleship(BATTLESHIP_CLASS_SPACESHIP,
-                                      BATTLESHIP_OWNER_PLAYER, DISPLAY_W / 2, DISPLAY_H - ship_height, 0);
+                                      BATTLESHIP_OWNER_PLAYER, DISPLAY_W / 2, DISPLAY_H - ship_height, 0, game_level);
 
     client_mothership = init_battleship(BATTLESHIP_CLASS_SPACESHIP,
-                                        BATTLESHIP_OWNER_OPPONENT, DISPLAY_W / 2, ship_height, 0);
+                                        BATTLESHIP_OWNER_OPPONENT, DISPLAY_W / 2, ship_height, 0, game_level);
 
 
     change_battleship_state(host_mothership, BATTLESHIP_MOVE_STATE_IN_GAME);
@@ -232,8 +232,8 @@ void init_motherships() {
 
     if (is_multiplayer_client()){
         for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
-            host_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_PLAYER,0,0,client_mothership->dx);
-            client_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_OPPONENT,0,0,host_mothership->dx);
+            host_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_PLAYER,0,0,client_mothership->dx, game_level);
+            client_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_OPPONENT,0,0,host_mothership->dx, game_level);
         }
     }
 
@@ -275,7 +275,7 @@ void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class) {
     float x = (owner == BATTLESHIP_OWNER_OPPONENT)? host_mothership->dx : client_mothership->dx ;
 
 
-    BATTLESHIP *battleship = init_battleship(class,owner,dx, dy, x);
+    BATTLESHIP *battleship = init_battleship(class,owner,dx, dy, x, game_level);
 
     battleship->on_explosion_end = on_explosion_end;
 
@@ -392,7 +392,7 @@ void update_game_from_snapshot() {
 void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battleship) {
     if (serial_battleship.active) {
         if (!battleship) battleship = init_battleship(serial_battleship.class,
-                                                      serial_battleship.owner,0,0,0);
+                                                      serial_battleship.owner,0,0,0,game_level);
 
         battleship->dx = serial_battleship.dx;
         battleship->dy = serial_battleship.dy;

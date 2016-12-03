@@ -65,7 +65,7 @@ typedef struct {
     void (*on_explosion_end)(BATTLESHIP_OWNER *owner);
 } BATTLESHIP;
 
-BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, float dx, float dy, float x);
+BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, float dx, float dy, float x, int game_level);
 void change_battleship_state(BATTLESHIP *battleship,BATTLESHIP_MOVE_STATE state);
 void draw_target_lock(BATTLESHIP *battleship);
 bool move_ship(BATTLESHIP *battleship, float target_dx);

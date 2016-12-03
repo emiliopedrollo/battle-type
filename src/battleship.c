@@ -70,7 +70,7 @@ int get_battleship_width(BATTLESHIP_CLASS class){
     }
 }
 
-BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, float dx, float dy, float x) {
+BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, float dx, float dy, float x, int game_level) {
 
     BATTLESHIP *battleship = malloc(sizeof(BATTLESHIP));
     float vx = 0, vy = 0;
@@ -84,8 +84,8 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, floa
     switch (class) {
         case BATTLESHIP_CLASS_MISSILE:
             battleship->bmp = (owner == BATTLESHIP_OWNER_OPPONENT) ? bmp_missile_red : bmp_missile_blue;
-            vx = 1.5;
-            vy = 0.5;
+            vy = ((float)(rand()%game_level)/5)+1;
+            vx = vy;
             break;
         case BATTLESHIP_CLASS_SPACESHIP:
             battleship->bmp = (owner == BATTLESHIP_OWNER_OPPONENT) ? bmp_spaceship_red : bmp_spaceship_blue;
@@ -574,7 +574,6 @@ void draw_ship(BATTLESHIP *battleship,float target_x){
         if (battleship->explosion_frames == -1)
             battleship->explosion_frames = 0;
 
-        // todo: animação de explosão
 
         if (battleship->explosion_frames < 9) {
             float y = (battleship->owner == BATTLESHIP_OWNER_OPPONENT) ? game_bs_client_limit : game_bs_host_limit;

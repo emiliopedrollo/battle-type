@@ -39,8 +39,8 @@ GAME_STATE current_game_state;
 GAME_FLOW_STATE current_game_flow_state;
 const int DISPLAY_H = 800, DISPLAY_W = 500;
 bool exiting = false;
-bool DEBUG = false;
-bool PITTHAN_MODE = false;
+bool DEBUG = true;
+bool PITTHAN_MODE = true;
 
 int change_game_state_step_remaining = 0;
 GAME_STATE changing_game_state;

@@ -153,7 +153,7 @@ void init_menu_buttons(){
 
 void init_demo_ship(){
     demo_ship = init_battleship(BATTLESHIP_CLASS_SPACESHIP, BATTLESHIP_OWNER_NONE,
-        DISPLAY_W/2,DISPLAY_H/2,0);
+        DISPLAY_W/2,DISPLAY_H/2,0,0);
 
     demo_ship->vx = 3;
     demo_ship->vxi = 3;
