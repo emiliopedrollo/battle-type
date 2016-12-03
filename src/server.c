@@ -59,12 +59,12 @@ void start_server(void (*on_client_connect_callback)(void)){
 
 void stop_server(){
     server_set_to_stop = true;
-    enet_host_flush(host);
+    if (host != NULL) enet_host_flush(host);
 
     pthread_join(server_thread,NULL);
 
     if (client != NULL) enet_peer_disconnect_now(client,0);
-    enet_host_destroy(host);
+    if (host != NULL) enet_host_destroy(host);
     host = NULL;
     enet_deinitialize();
     enet_free(NULL);

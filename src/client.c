@@ -61,12 +61,12 @@ bool connect_client(char* host_ip,
 
 void disconnect_client(){
     connection_set_to_close = true;
-    enet_host_flush(client);
+    if (client != NULL) enet_host_flush(client);
 
     pthread_join(client_thread,NULL);
 
     if (peer != NULL) enet_peer_disconnect_now(peer,0);
-    enet_host_destroy(client);
+    if (client != NULL) enet_host_destroy(client);
     client = NULL;
     enet_deinitialize();
     enet_free(NULL);
@@ -138,6 +138,7 @@ void client_send_receive(ENetHost *client){
 
     // Check if we have any queued incoming messages, but do not wait otherwise.
     // This also sends outgoing messages queued with enet_peer_send.
+    if (client == NULL) return;
     while (enet_host_service(client, &event, 0) > 0) {
         // clients only care about incoming packets, they will not receive
         // connect/disconnect events.

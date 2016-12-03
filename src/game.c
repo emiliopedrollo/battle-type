@@ -1057,7 +1057,7 @@ void draw_explosions() {
             dx = (game_winner == GAME_WINNER_OPPONENT) ? DISPLAY_W - host_mothership->dx : DISPLAY_W - client_mothership->dx;
             dy = (game_winner == GAME_WINNER_OPPONENT) ? DISPLAY_H - host_mothership->dy : DISPLAY_H - client_mothership->dy;
         }
-            static int i = 0, j = 2, k = 4, l = 6, cont = 0;
+        static int i = 0, j = 2, k = 4, l = 6, cont = 0;
         static int modi = 0, modj = 0, modk = 0, modl = 0;
 
         al_draw_bitmap(rsc_explosion[i], (dx - 30) - modi, (dy - 30) - modi, 0);
