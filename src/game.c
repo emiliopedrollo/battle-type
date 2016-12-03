@@ -60,6 +60,7 @@ static int const GAME_WINNER_OPPONENT = 1;
 static int const MINIMUM_SPAWN_WAIT = 1 * 60; // 5 seconds
 static int const SPAWN_WINDOW = 2 * 60; // 10 seconds
 
+bool received_first_snapshot;
 GAME_SNAPSHOT game;
 
 int game_bs_host_limit;
@@ -197,6 +198,7 @@ void unload_resources_game() {
 
 void init_game() {
     current_game_flow_state = GAME_FLOW_STATE_RUNNING;
+    received_first_snapshot = false;
     opponent_score = 0;
     player_score = 0;
     rank_score = 0;
@@ -237,8 +239,10 @@ void init_motherships() {
 
     if (is_multiplayer_client()){
         for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
-            host_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_PLAYER,0,0,client_mothership->dx, game_level);
-            client_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_OPPONENT,0,0,host_mothership->dx, game_level);
+            host_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_PLAYER,
+                                            0,0,client_mothership->dx, game_level);
+            client_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE,BATTLESHIP_OWNER_OPPONENT,
+                                              0,0,host_mothership->dx, game_level);
         }
     }
 
@@ -393,6 +397,10 @@ void update_game_from_snapshot() {
     player_score = game.host_score;
     opponent_score = game.client_score;
 
+    if (game.is_game_ending){
+        current_game_flow_state = GAME_FLOW_STATE_ENDING;
+    }
+
     host_mothership->dx = game.host_ship_dx;
     client_mothership->dx = game.client_ship_dx;
 }
@@ -451,6 +459,8 @@ void update_snapshot_from_game() {
 
     game.client_score = opponent_score;
     game.host_score = player_score;
+
+    game.is_game_ending = is_game_ending();
 
     game.host_ship_dx = (unsigned short)host_mothership->dx;
     game.client_ship_dx = (unsigned short)client_mothership->dx;
@@ -917,6 +927,8 @@ void on_redraw_game() {
     static int game_ending_frame = 0;
     static int wait_new_level_frame = 0;
 
+    if (is_multiplayer_client() && !received_first_snapshot) return;
+
     if (need_to_show_game_level){
         draw_game_level();
         if (game_level_display_frame++ > 120){
@@ -925,6 +937,7 @@ void on_redraw_game() {
         }
         return;
     }
+
 
     if (is_multiplayer_host() || is_single_player()) {
 

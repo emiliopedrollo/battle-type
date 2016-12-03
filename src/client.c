@@ -139,6 +139,7 @@ void client_send_receive(ENetHost *client){
             switch (msg->type){
                 case MESSAGE_TYPE_GAME_SNAPSHOP:
                     game = msg->game;
+                    received_first_snapshot = true;
                     break;
             }
 

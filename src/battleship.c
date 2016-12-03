@@ -593,7 +593,8 @@ void draw_ship(BATTLESHIP *battleship,float target_x){
 
         if (battleship->explosion_frame >= 15){
             battleship->active = false;
-            battleship->on_explosion_end(&battleship->owner);
+            if (battleship->on_explosion_end != NULL && !is_multiplayer_client())
+                battleship->on_explosion_end(&battleship->owner);
         }
     }
 }

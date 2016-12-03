@@ -44,10 +44,12 @@ typedef struct {
     long host_score, client_score;
     char host_target, client_target;
     unsigned short host_ship_dx, client_ship_dx;
+    bool is_game_ending;
 } GAME_SNAPSHOT;
 
 extern int game_bs_host_limit;
 extern int game_bs_client_limit;
+extern bool received_first_snapshot;
 extern GAME_SNAPSHOT game;
 
 static int const MINIMUM_WORD_POOL_SIZE = 75;
