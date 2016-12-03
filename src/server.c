@@ -34,6 +34,8 @@ void start_server(void (*on_client_connect_callback)(void)){
     unsigned short port = DEFAULT_PORT;
     char *binder = "0.0.0.0";
 
+    ready_to_send = false;
+
     ENetAddress listener;
 
     if (server_running) return;
