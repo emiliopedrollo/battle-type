@@ -577,13 +577,19 @@ void draw_ship(BATTLESHIP *battleship,float target_x){
     if (battleship->exploding) {
         if (battleship->explosion_frame < 9) {
             float y = (battleship->owner == BATTLESHIP_OWNER_OPPONENT) ? game_bs_client_limit : game_bs_host_limit;
+            float x = target_x;
 
             int thickness = ((battleship->explosion_frame < 4)||(battleship->explosion_frame > 6))?1:2;
 
+            /*if(current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT && battleship->owner == BATTLESHIP_OWNER_PLAYER){
+                x = (DISPLAY_W - target_x);
+                y = (DISPLAY_H - y);
+            }*/
+
             if(battleship->owner == BATTLESHIP_OWNER_OPPONENT)
-                al_draw_line(target_x,y,battleship->dx,battleship->dy,al_map_rgb(0, 0, 255),thickness);
+                al_draw_line(x,y,battleship->dx,battleship->dy,al_map_rgb(0, 0, 255),thickness);
             else
-                al_draw_line(target_x,y,battleship->dx,battleship->dy,al_map_rgb(255, 0, 0),thickness);
+                al_draw_line(x,y,battleship->dx,battleship->dy,al_map_rgb(255, 0, 0),thickness);
 
         }
 
