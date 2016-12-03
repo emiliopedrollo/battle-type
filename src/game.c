@@ -44,16 +44,18 @@ int next_host_ship_spawn = 0;
 int next_client_ship_spawn = 0;
 char game_winner = -1;
 short game_level = 1;
-unsigned int oponent_score = 0;
-unsigned int player_score = 0;
-unsigned int rank_score = 0;
+long opponent_score = 0;
+long player_score = 0;
+long rank_score = 0;
+int consecutive_right_key_player = 0;
+int consecutive_right_key_opponent = 0;
 int remaining_words_to_next_level = -1;
 int word_pool_index = 0;
 bool need_to_show_game_level = false;
 bool wait_new_level = false;
 
 static int const GAME_WINNER_PLAYER = 0;
-static int const GAME_WINNER_OPONENT = 1;
+static int const GAME_WINNER_OPPONENT = 1;
 
 static int const MINIMUM_SPAWN_WAIT = 1 * 60; // 5 seconds
 static int const SPAWN_WINDOW = 2 * 60; // 10 seconds
@@ -88,9 +90,12 @@ void on_char_typed(PLAYER player, char key);
 SERIAL_BATTLESHIP convert_battleship_to_serial(BATTLESHIP *battleship);
 void update_snapshot_from_game();
 void update_game_from_snapshot();
+void update_score(PLAYER player, bool up);
 
-unsigned int get_last_game_score() {
-    return rank_score;
+long get_last_game_score() {
+    long score = rank_score;
+    rank_score = 0;
+    return score;
 }
 
 void load_resources_game() {
@@ -192,7 +197,7 @@ void unload_resources_game() {
 
 void init_game() {
     current_game_flow_state = GAME_FLOW_STATE_RUNNING;
-    oponent_score = 0;
+    opponent_score = 0;
     player_score = 0;
     rank_score = 0;
     word_pool_index = 0;
@@ -324,7 +329,7 @@ void move_game_ships() {
     }
 
     if (game_ending && game_winner == -1){
-        game_winner = GAME_WINNER_OPONENT;
+        game_winner = GAME_WINNER_OPPONENT;
     }
 
     if (game_ending){
@@ -445,9 +450,9 @@ void update_word_pool(bool pump_word_index) {
     int r2 = (rand() % MAXIMUM_WORD_POOL_SIZE) + MINIMUM_WORD_POOL_SIZE;
 
     word_pool_start_pos = ((word_pool_index + r1) < 0) ? 0 : abs(word_pool_index + r1);
-    if (word_pool_start_pos + r2 >= dictionary_len) {
-        word_pool_start_pos = dictionary_len - MINIMUM_WORD_POOL_SIZE;
-        word_pool_end_pos = dictionary_len;
+    if (word_pool_start_pos + r2 >= dictionary_len - 1) {
+        word_pool_start_pos = dictionary_len - 1 - MINIMUM_WORD_POOL_SIZE;
+        word_pool_end_pos = dictionary_len - 1;
     } else {
         word_pool_end_pos = word_pool_start_pos + r2;
     }
@@ -515,7 +520,7 @@ char *get_word_from_pool(BATTLESHIP_OWNER owner) {
     int tries = 0;
 
     do {
-        strcpy(word, dictionary[rand() % (pool_size + 1)]);
+        strcpy(word, dictionary[word_pool_start_pos + (rand() % (pool_size + 1))]);
         if (tries++ % 5 == 0) update_word_pool(false);
     } while (exist_ship_starting_with(get_next_ascii_char(word), owner) && (tries < 50));
 
@@ -679,6 +684,9 @@ void on_char_typed(PLAYER player, char key) {
         if (battleship != NULL) {
             next_letter = get_next_letter_from_battleship(battleship);
             if (key == next_letter) {
+
+                update_score(player, true);
+
                 if (remove_next_letter_from_battleship(battleship) == 0) {
                     battleship->exploding = true;
                     switch (player) {
@@ -692,7 +700,31 @@ void on_char_typed(PLAYER player, char key) {
                             break;
                     }
                 }
+            } else {
+                update_score(player, false);
             }
+        } else {
+            update_score(player, false);
+        }
+    }
+}
+
+void update_score(PLAYER player, bool up) {
+    if (up){
+        if (player == PLAYER_CLIENT){
+            opponent_score += (game_level * 10) + consecutive_right_key_opponent++;
+        } else {
+            player_score += (game_level * 10) + consecutive_right_key_player++;
+        }
+    } else {
+        if (player == PLAYER_CLIENT){
+            consecutive_right_key_opponent = 0;
+            opponent_score -= (game_level * 10);
+            if (opponent_score < 0) opponent_score = 0;
+        } else {
+            consecutive_right_key_player = 0;
+            player_score -= (game_level * 10);
+            if (player_score < 0) player_score = 0;
         }
     }
 }
@@ -764,8 +796,8 @@ void draw_pause_overlay(){
 void draw_explosions() {
     if(is_game_ending()) {
 
-        float dx = (game_winner == GAME_WINNER_OPONENT)? host_mothership->dx : client_mothership->dx ;
-        float dy = (game_winner == GAME_WINNER_OPONENT)? host_mothership->dy : client_mothership->dy ;
+        float dx = (game_winner == GAME_WINNER_OPPONENT)? host_mothership->dx : client_mothership->dx ;
+        float dy = (game_winner == GAME_WINNER_OPPONENT)? host_mothership->dy : client_mothership->dy ;
 
         static int i = 0, j = 2, k = 4, l = 6, cont = 0;
         static int modi = 0, modj = 0, modk = 0, modl = 0;
@@ -825,7 +857,7 @@ void draw_game_over() {
             }
             break;
         case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
-            if (game_winner == GAME_WINNER_OPONENT){
+            if (game_winner == GAME_WINNER_OPPONENT){
                 al_draw_text(main_font_size_45,al_map_rgb(0,255,0),DISPLAY_W/2,DISPLAY_H/2,
                              ALLEGRO_ALIGN_CENTER,"VOCÊ GANHOU");
             } else {
@@ -847,6 +879,9 @@ void on_new_level(short level) {
 
     wait_new_level = false;
 
+    consecutive_right_key_player = 0;
+    consecutive_right_key_opponent = 0;
+
     if (is_single_player()){
         need_to_show_game_level = true;
     }
@@ -854,6 +889,14 @@ void on_new_level(short level) {
 
 void start_level_change(){
     wait_new_level = true;
+}
+
+void draw_score() {
+    long score = (is_multiplayer_client())?opponent_score:player_score;
+
+    al_draw_textf(main_font_size_25, al_map_rgb(255, 255, 255), 10,
+                  DISPLAY_H-al_get_font_line_height(main_font_size_25)-10,
+                  ALLEGRO_ALIGN_LEFT, "PONTOS %06li", score);
 }
 
 void on_redraw_game() {
@@ -910,6 +953,7 @@ void on_redraw_game() {
 
     draw_game_ships();
 
+    draw_score();
 
     if (is_game_paused()){
         draw_pause_overlay();

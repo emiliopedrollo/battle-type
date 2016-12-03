@@ -9,7 +9,7 @@
 
 typedef struct {
     char name[3];
-    unsigned int score;
+    long score;
 } RANK_ENTRY;
 
 void init_rank();

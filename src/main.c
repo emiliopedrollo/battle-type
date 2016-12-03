@@ -234,6 +234,7 @@ void destroy_display(){
 void change_game_state(GAME_STATE state){
 
     changing_game_state = state;
+    change_game_state_step_remaining = 0;
 
     switch (current_game_state){
         case GAME_STATE_MAIN_MENU:
@@ -242,8 +243,7 @@ void change_game_state(GAME_STATE state){
             start_game_state_change_menu_screen(state);
             break;
         default:
-            current_game_state = state;
-            on_changed_game_state();
+            //current_game_state = state;
             break;
     }
 
