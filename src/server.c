@@ -74,6 +74,7 @@ void stop_server(){
 void server_send_receive(){
     ENetEvent event;
     CLIENT_KEY_PRESS *msg;
+    if (host == NULL) return;
     while (enet_host_service(host, &event, 0) > 0) {
         switch (event.type){
             case ENET_EVENT_TYPE_CONNECT:

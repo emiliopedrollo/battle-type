@@ -1048,10 +1048,16 @@ void draw_pause_overlay(){
 void draw_explosions() {
     if(is_game_ending()) {
 
-        float dx = (game_winner == GAME_WINNER_OPPONENT)? host_mothership->dx : client_mothership->dx ;
-        float dy = (game_winner == GAME_WINNER_OPPONENT)? host_mothership->dy : client_mothership->dy ;
+        float dx,dy;
 
-        static int i = 0, j = 2, k = 4, l = 6, cont = 0;
+        if(current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_HOST || current_game_state == GAME_STATE_IN_GAME_SINGLE_PLAYER) {
+            dx = (game_winner == GAME_WINNER_OPPONENT) ? host_mothership->dx : client_mothership->dx;
+            dy = (game_winner == GAME_WINNER_OPPONENT) ? host_mothership->dy : client_mothership->dy;
+        }else if(current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
+            dx = (game_winner == GAME_WINNER_OPPONENT) ? DISPLAY_W - host_mothership->dx : DISPLAY_W - client_mothership->dx;
+            dy = (game_winner == GAME_WINNER_OPPONENT) ? DISPLAY_H - host_mothership->dy : DISPLAY_H - client_mothership->dy;
+        }
+            static int i = 0, j = 2, k = 4, l = 6, cont = 0;
         static int modi = 0, modj = 0, modk = 0, modl = 0;
 
         al_draw_bitmap(rsc_explosion[i], (dx - 30) - modi, (dy - 30) - modi, 0);
