@@ -49,7 +49,6 @@ typedef struct {
 
 extern int game_bs_host_limit;
 extern int game_bs_client_limit;
-extern bool received_first_snapshot;
 extern GAME_SNAPSHOT game;
 
 static int const MINIMUM_WORD_POOL_SIZE = 75;

@@ -29,6 +29,7 @@
 #include "resources/img/14.png.h"
 #include "resources/img/15.png.h"
 #include "resources/img/16.png.h"
+#include "server.h"
 
 BATTLESHIP *host_ships[NUMBER_OF_SHIPS_PER_PLAYER];
 BATTLESHIP *client_ships[NUMBER_OF_SHIPS_PER_PLAYER];
@@ -60,7 +61,6 @@ static int const GAME_WINNER_OPPONENT = 1;
 static int const MINIMUM_SPAWN_WAIT = 1 * 60; // 5 seconds
 static int const SPAWN_WINDOW = 2 * 60; // 10 seconds
 
-bool received_first_snapshot;
 GAME_SNAPSHOT game;
 
 int game_bs_host_limit;
@@ -199,6 +199,8 @@ void unload_resources_game() {
 void init_game() {
     current_game_flow_state = GAME_FLOW_STATE_RUNNING;
     received_first_snapshot = false;
+    ready_to_send = false;
+    game_winner = -1;
     opponent_score = 0;
     player_score = 0;
     rank_score = 0;
@@ -971,6 +973,7 @@ void on_redraw_game() {
         }
 
         update_snapshot_from_game();
+        ready_to_send = true;
     } else if (is_multiplayer_client()) {
         update_game_from_snapshot();
     }
@@ -996,6 +999,11 @@ void on_redraw_game() {
                     change_game_state(GAME_STATE_VISUALIZING_RANK);
                 } else {
                     change_game_state(GAME_STATE_MAIN_MENU);
+                    if (is_multiplayer_client()){
+                        disconnect_client();
+                    } else if (is_multiplayer_host()){
+                        stop_server();
+                    }
                 }
             }
 

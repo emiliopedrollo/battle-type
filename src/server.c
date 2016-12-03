@@ -19,6 +19,8 @@ void *server_loop(void *arguments);
 pthread_t init_server_thread(ENetAddress host);
 void server_send_receive();
 
+bool ready_to_send = false;
+
 bool server_running = false;
 bool server_set_to_stop = false;
 pthread_t server_thread;
@@ -100,6 +102,8 @@ void update_game(){
     SERVER_MESSAGE msg;
     msg.type = MESSAGE_TYPE_GAME_SNAPSHOP;
     msg.game = game;
+
+    if (!ready_to_send) return;
 
     ENetPacket *packet = enet_packet_create(&msg,
                                             sizeof(SERVER_MESSAGE),

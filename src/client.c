@@ -18,6 +18,7 @@ struct Client_Thread_Args{
 bool connected;
 bool client_connected;
 bool connection_set_to_close;
+bool received_first_snapshot = false;
 pthread_t client_thread;
 ENetHost *client;
 ENetPeer *peer;
@@ -34,6 +35,8 @@ void (*on_failure_client_connect)(void);
 
 bool connect_client(char* host_ip,
                     void (*on_success_connect_callback)(void), void (*on_failure_connect_callback)(void)){
+
+    received_first_snapshot = false;
 
     unsigned short port = DEFAULT_PORT;
     ENetAddress host_address;

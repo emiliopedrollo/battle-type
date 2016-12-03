@@ -5,6 +5,8 @@
 #ifndef BATTLE_TYPE_CLIENT_H
 #define BATTLE_TYPE_CLIENT_H
 
+extern bool received_first_snapshot;
+
 extern void (*on_success_client_connect)(void);
 extern void (*on_failure_client_connect)(void);
 
