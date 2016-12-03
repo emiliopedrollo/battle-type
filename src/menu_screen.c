@@ -164,7 +164,7 @@ void init_demo_ship(){
 
 void draw_demo_ship(){
     move_ship(demo_ship,0);
-    draw_ship(demo_ship);
+    draw_ship(demo_ship,0);
 }
 
 char remote_ip[16] = "";
