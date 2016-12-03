@@ -58,15 +58,16 @@ void load_rank_entries(){
     for (int i = 0; i < 10; i++){
         entry = NULL;
         getline(&entry,&len,rank_file);
-        if ((pos=strchr(entry, '\n')) != NULL) *pos = '\0';
+        //if ((pos=strchr(entry, '\n')) != NULL) *pos = '\0';
 
-        char *str = malloc(strlen(entry) + 1);
-        memcpy(str, entry, sizeof entry);
-        tok = strtok(str, "|");
-        strcpy(rank[i].name,tok);
-        tok = strtok(NULL, "|");
-        rank[i].score = (unsigned int)strtoimax(tok,&endptr,10);
+        char *str = malloc(strlen(entry));
+        memcpy(str, entry, strlen(entry));
+        tok = strtok(str, "|\n");
+        strncpy(rank[i].name,tok,3);
+        tok = strtok(NULL, "|\n");
+        rank[i].score = strtol(tok,&endptr,10);
         free(str);
+        free(entry);
     }
 
     fclose(rank_file);
@@ -169,7 +170,7 @@ void persist_rank_entries(){
     score[0] = 0;
 
     for (int i=0;i<10;i++){
-        sprintf(score,"|%03u\n",rank[i].score);
+        sprintf(score,"|%03li\n",rank[i].score);
         entry = concat(rank[i].name,score);
         text = (unsigned char*)concat((char*)text,entry);
         fwrite(entry,1,sizeof(char)*strlen(entry),rank_file);
@@ -184,7 +185,7 @@ void persist_rank_entries(){
 }
 
 void process_new_rank_entry(){
-    unsigned int score = get_last_game_score();
+    long score = get_last_game_score();
     short pos = -1;
     for (short i=0;i<10;i++) {
         if (score > rank[i].score) {
@@ -450,7 +451,7 @@ void on_redraw_rank(){
 
 
     for (int i = 0; i < 10; i++){
-        sprintf(score,"%03u",rank[i].score);
+        sprintf(score,"%03li",rank[i].score);
 
         top = 160+(45*i);
 
