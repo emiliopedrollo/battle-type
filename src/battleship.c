@@ -19,12 +19,10 @@
 #include "game.h"
 #include "utils.h"
 
-
 ALLEGRO_BITMAP *bmp_spaceship_blue;
 ALLEGRO_BITMAP *bmp_spaceship_red;
 ALLEGRO_BITMAP *bmp_missile_blue;
 ALLEGRO_BITMAP *bmp_missile_red;
-
 
 void load_resources_battleship(){
     ALLEGRO_FILE* spaceship_blue_png = al_open_memfile(img_spaceship_b_png,img_spaceship_b_png_len,"r");
@@ -542,7 +540,7 @@ void draw_target_lock(BATTLESHIP *battleship){
 
 }
 
-void draw_ship(BATTLESHIP *battleship){
+void draw_ship(BATTLESHIP *battleship,float target_x){
 
     int bsh = get_battleship_height(battleship->class);
     int bsw = get_battleship_width(battleship->class);
@@ -572,13 +570,28 @@ void draw_ship(BATTLESHIP *battleship){
 
     //if (DEBUG) draw_debug(battleship);
 
-    if (battleship->exploding){
+    if (battleship->exploding) {
         if (battleship->explosion_frames == -1)
             battleship->explosion_frames = 0;
 
         // todo: animação de explosão
 
-        if (battleship->explosion_frames++ == 16){
+        if (battleship->explosion_frames < 9) {
+            float y = (battleship->owner == BATTLESHIP_OWNER_OPPONENT) ? game_bs_client_limit : game_bs_host_limit;
+
+            int thickness = ((battleship->explosion_frames < 4)||(battleship->explosion_frames > 6))?1:2;
+
+            if(battleship->owner == BATTLESHIP_OWNER_OPPONENT)
+                al_draw_line(target_x,y,battleship->dx,battleship->dy,al_map_rgb(0, 0, 255),thickness);
+            else
+                al_draw_line(target_x,y,battleship->dx,battleship->dy,al_map_rgb(255, 0, 0),thickness);
+
+        }
+
+            if(battleship->explosion_frames < 16)
+                al_draw_bitmap(rsc_explosion[battleship->explosion_frames], battleship->dx - 32, battleship->dy - 32, 0);
+
+        if (battleship->explosion_frames++ == 15){
             battleship->active = false;
             battleship->on_explosion_end(&battleship->owner);
         }
