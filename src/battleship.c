@@ -85,7 +85,7 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, floa
         case BATTLESHIP_CLASS_MISSILE:
             battleship->bmp = (owner == BATTLESHIP_OWNER_OPPONENT) ? bmp_missile_red : bmp_missile_blue;
             vy = ((float)(rand()%game_level)/5)+1;
-            vx = vy;
+            vx = vy+1;
             break;
         case BATTLESHIP_CLASS_SPACESHIP:
             battleship->bmp = (owner == BATTLESHIP_OWNER_OPPONENT) ? bmp_spaceship_red : bmp_spaceship_blue;
