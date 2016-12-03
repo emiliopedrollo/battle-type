@@ -31,6 +31,7 @@ ALLEGRO_BITMAP *bmp_background;
 ALLEGRO_FONT *main_font_size_60;
 ALLEGRO_FONT *main_font_size_45;
 ALLEGRO_FONT *main_font_size_25;
+ALLEGRO_TIMER *timer;
 int main_font_size_60_height;
 int main_font_size_45_height;
 int main_font_size_25_height;
@@ -38,7 +39,7 @@ GAME_STATE current_game_state;
 GAME_FLOW_STATE current_game_flow_state;
 const int DISPLAY_H = 800, DISPLAY_W = 500;
 bool exiting = false;
-bool DEBUG = true;
+bool DEBUG = false;
 bool PITTHAN_MODE = false;
 
 int change_game_state_step_remaining = 0;
@@ -114,7 +115,6 @@ int show_screen(){
 }
 
 ALLEGRO_EVENT_QUEUE* create_queue(){
-    ALLEGRO_TIMER *timer;
     ALLEGRO_EVENT_QUEUE *queue;
 
     timer = al_create_timer(1.0 / 60);
@@ -304,6 +304,16 @@ void on_key_press(ALLEGRO_KEYBOARD_EVENT keyboard_event){
             break;
         default:
             break;
+    }
+
+
+    double timer_speed;
+    if (keyboard_event.keycode == ALLEGRO_KEY_PAD_PLUS){
+        timer_speed = al_get_timer_speed(timer);
+        al_set_timer_speed(timer,timer_speed*0.5f);
+    } else if (keyboard_event.keycode == ALLEGRO_KEY_PAD_MINUS){
+        timer_speed = al_get_timer_speed(timer);
+        al_set_timer_speed(timer,timer_speed*2.0f);
     }
 }
 

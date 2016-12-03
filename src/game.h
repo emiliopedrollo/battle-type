@@ -20,6 +20,7 @@ bool is_multiplayer_client();
 bool is_multiplayer();
 bool is_game_paused();
 void on_timer_game();
+bool is_game_ending();
 
 void on_key_press_game(ALLEGRO_KEYBOARD_EVENT event);
 void process_key_press(int keycode, PLAYER player);

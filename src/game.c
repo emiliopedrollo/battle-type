@@ -43,6 +43,8 @@ int client_ship_count = 0;
 int next_host_ship_spawn = 0;
 int next_client_ship_spawn = 0;
 char game_winner = -1;
+short game_level = 1;
+bool need_to_show_game_level = false;
 
 static int const GAME_WINNER_PLAYER = 0;
 static int const GAME_WINNER_OPONENT = 1;
@@ -70,8 +72,10 @@ char get_index_of_ship_starting_with(char letter, BATTLESHIP_OWNER targets);
 char get_index_from_closest_ship(BATTLESHIP_OWNER targets);
 void update_word_pool(bool pump_word_index);
 void draw_pause_overlay();
+void draw_explosions();
+void draw_game_level();
 
-void draw_explosions(bool update_frame);
+void draw_game_over();
 
 unsigned int get_last_game_score() {
     return 0;
@@ -176,6 +180,9 @@ void unload_resources_game() {
 
 void init_game() {
     init_motherships();
+    if (is_single_player()){
+        need_to_show_game_level = true;
+    }
 }
 
 void init_motherships() {
@@ -388,7 +395,10 @@ void update_word_pool(bool pump_word_index) {
         word_pool_end_pos = word_pool_start_pos + r2;
     }
 
-    if (pump_word_index && (word_pool_index <= dictionary_len))
+    int game_level_pool_cap = game_level * 50;
+
+    if (pump_word_index && (word_pool_index <= dictionary_len) &&
+            word_pool_index < game_level_pool_cap)
         word_pool_index++;
 }
 
@@ -646,11 +656,18 @@ bool is_multiplayer(){
 }
 
 bool is_game_paused(){
-    return is_single_player() && current_game_flow_state == GAME_FLOW_STATE_PAUSE;
+    if (is_game_ending()){
+        return false;
+    } else
+        return is_single_player() && current_game_flow_state == GAME_FLOW_STATE_PAUSE;
+}
+
+bool is_game_ending(){
+    return current_game_flow_state == GAME_FLOW_STATE_ENDING;
 }
 
 void on_timer_game(){
-    if (is_multiplayer() || PITTHAN_MODE) return;
+    if (is_multiplayer() || is_game_ending() || PITTHAN_MODE) return;
 
     static int frame_count = 0;
 
@@ -689,8 +706,8 @@ void draw_pause_overlay(){
     al_draw_filled_rectangle(x3,y1,x4,y2,al_map_rgba(50,50,50,200));
 }
 
-void draw_explosions(bool update_frame) {
-    if(current_game_flow_state == GAME_FLOW_STATE_ENDING) {
+void draw_explosions() {
+    if(is_game_ending()) {
 
         float dx = (game_winner == GAME_WINNER_OPONENT)? host_mothership->dx : client_mothership->dx ;
         float dy = (game_winner == GAME_WINNER_OPONENT)? host_mothership->dy : client_mothership->dy ;
@@ -703,44 +720,86 @@ void draw_explosions(bool update_frame) {
         al_draw_bitmap(rsc_explosion[k], (dx - 30) + modk, (dy - 30) - modk, 0);
         al_draw_bitmap(rsc_explosion[l], (dx - 30) + modl, (dy - 30) + modl, 0);
 
-        if (update_frame){
-            if (cont > 5) {
-                i++;
-                j++;
-                k++;
-                l++;
-                cont = 0;
-            }
-            cont++;
+        if (cont > 5) {
+            i++;
+            j++;
+            k++;
+            l++;
+            cont = 0;
+        }
+        cont++;
 
-            if (i > 15) {
-                i = 0;
-                modi = rand() % 45;
-            }
-            if (j > 15) {
-                j = 0;
-                modj = rand() % 45;
-            }
-            if (k > 15) {
-                k = 0;
-                modk = rand() % 45;
-            }
-            if (l > 15) {
-                l = 0;
-                modl = rand() % 45;
-            }
+        if (i > 15) {
+            i = 0;
+            modi = rand() % 45;
+        }
+        if (j > 15) {
+            j = 0;
+            modj = rand() % 45;
+        }
+        if (k > 15) {
+            k = 0;
+            modk = rand() % 45;
+        }
+        if (l > 15) {
+            l = 0;
+            modl = rand() % 45;
         }
 
+    }
+}
+
+void draw_game_level(){
+    al_draw_filled_rectangle(0,0,DISPLAY_W,DISPLAY_H,al_map_rgb(0,0,0));
+    al_draw_textf(main_font_size_45,al_map_rgb(255,255,255),DISPLAY_W/2,DISPLAY_H/2,
+                  ALLEGRO_ALIGN_CENTER,"LEVEL %d",game_level);
+}
+
+void draw_game_over() {
+    al_draw_filled_rectangle(0, 0, DISPLAY_W, DISPLAY_H, al_map_rgb(0, 0, 0));
+
+    switch (current_game_state){
+        case GAME_STATE_IN_GAME_MULTIPLAYER_HOST:
+        case GAME_STATE_IN_GAME_SINGLE_PLAYER:
+            if (game_winner == GAME_WINNER_PLAYER){
+                al_draw_text(main_font_size_45,al_map_rgb(0,255,0),DISPLAY_W/2,DISPLAY_H/2,
+                ALLEGRO_ALIGN_CENTER,"VOCÊ GANHOU");
+            } else {
+                al_draw_text(main_font_size_45,al_map_rgb(255,0,0),DISPLAY_W/2,DISPLAY_H/2,
+                             ALLEGRO_ALIGN_CENTER,"VOCÊ PERDEU");
+            }
+            break;
+        case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
+            if (game_winner == GAME_WINNER_OPONENT){
+                al_draw_text(main_font_size_45,al_map_rgb(0,255,0),DISPLAY_W/2,DISPLAY_H/2,
+                             ALLEGRO_ALIGN_CENTER,"VOCÊ GANHOU");
+            } else {
+                al_draw_text(main_font_size_45,al_map_rgb(255,0,0),DISPLAY_W/2,DISPLAY_H/2,
+                             ALLEGRO_ALIGN_CENTER,"VOCÊ PERDEU");
+            }
+            break;
+        default:
+            break;
     }
 }
 
 void on_redraw_game() {
 
     static int frame_count = 0;
+    static int game_level_display_frame = 0;
+    static int game_ending_frame = 0;
+
+    if (need_to_show_game_level){
+        draw_game_level();
+        if (game_level_display_frame++ > 120){
+            need_to_show_game_level = false;
+        }
+        return;
+    }
 
     if (is_multiplayer_host() || is_single_player()) {
 
-        if (!is_game_paused()){
+        if (!is_game_paused() && !is_game_ending()){
 
             if (frame_count++ == 30) {
                 frame_count = 0;
@@ -773,11 +832,30 @@ void on_redraw_game() {
     } else if (is_multiplayer_client()) {
         update_game_from_snapshot();
     }
+
     draw_game_ships();
 
-    draw_explosions(!is_game_paused());
 
     if (is_game_paused()){
         draw_pause_overlay();
     }
+
+    if (is_game_ending()){
+        game_ending_frame++;
+        if (game_ending_frame < 120){
+            draw_explosions();
+        } else {
+            draw_game_over();
+            if (game_ending_frame >= 300) {
+                if (current_game_state == GAME_STATE_IN_GAME_SINGLE_PLAYER) {
+                    change_game_state(GAME_STATE_VISUALIZING_RANK);
+                } else {
+                    change_game_state(GAME_STATE_MAIN_MENU);
+                }
+            }
+
+        }
+    }
+
+
 }

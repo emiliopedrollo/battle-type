@@ -145,6 +145,8 @@ void init_menu_buttons(){
     // Multiplayer Host Menu
     buttons[BTN_MULTIPLAYER_HOST_CANCEL] = init_button(main_font_size_45,"&Cancelar",DISPLAY_W/2,bottom_position,380);
 
+    draw_menu_buttons = true;
+
     on_menu_change();
 
 }
