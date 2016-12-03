@@ -32,7 +32,8 @@ typedef enum {
 typedef enum {
     GAME_FLOW_STATE_RUNNING,
     GAME_FLOW_STATE_PAUSE,
-    GAME_FLOW_STATE_ENDING
+    GAME_FLOW_STATE_ENDING,
+    GAME_FLOW_STATE_PURCHASING_LIFE
 } GAME_FLOW_STATE;
 
 extern GAME_STATE current_game_state;

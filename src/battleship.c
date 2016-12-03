@@ -84,7 +84,7 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, floa
     switch (class) {
         case BATTLESHIP_CLASS_MISSILE:
             battleship->bmp = (owner == BATTLESHIP_OWNER_OPPONENT) ? bmp_missile_red : bmp_missile_blue;
-            vy = ((float)(rand()%game_level)/5)+1;
+            vy = ((float)(rand()%game_level)/10)+1;
             vx = vy+1;
             break;
         case BATTLESHIP_CLASS_SPACESHIP:
@@ -129,6 +129,7 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, floa
     battleship->word = NULL;
 
     battleship->exploding = false;
+    battleship->exploding_with_lasers = false;
     battleship->explosion_frame = -1;
 
     return battleship;
@@ -167,6 +168,10 @@ void calculate_ship_turn_frame(BATTLESHIP *battleship){
             battleship->turning_frame = 0;
         }
     }
+}
+
+void update_ship_frame_count(BATTLESHIP *battleship){
+    if (battleship->exploding) battleship->explosion_frame++;
 }
 
 bool move_ship(BATTLESHIP *battleship, float target_dx) {
@@ -268,17 +273,16 @@ bool move_ship(BATTLESHIP *battleship, float target_dx) {
                 battleship->dy = (get_bottom_dy(battleship) <= game_bs_client_limit) ? battleship->dy + battleship->vy : battleship->dy;
             }
 
-            if (battleship->exploding) {
-                battleship->explosion_frame++;
+            if (!battleship->exploding) {
+                if(get_bottom_dy(battleship) >= game_bs_client_limit && battleship->owner == BATTLESHIP_OWNER_OPPONENT){
+                    battleship->exploding = true;
+                    return true;
+                } else if((is_multiplayer() || !PITTHAN_MODE) &&
+                          get_top_dy(battleship) <= game_bs_host_limit && battleship->owner == BATTLESHIP_OWNER_PLAYER){
+                    battleship->exploding = true;
+                    return true;
+                }
             }
-
-            if(battleship->dy >= game_bs_client_limit - bsh/2 && battleship->owner == BATTLESHIP_OWNER_OPPONENT)
-                return true;
-            else if((is_multiplayer() || !PITTHAN_MODE) &&
-                    battleship->dy <= game_bs_host_limit + bsh/2 && battleship->owner == BATTLESHIP_OWNER_PLAYER)
-                return true;
-            else
-                return false;
         default:
             break;
     }
@@ -574,7 +578,7 @@ void draw_ship(BATTLESHIP *battleship) {
 
     //if (DEBUG) draw_debug(battleship);
 
-    if (battleship->exploding) {
+    if (battleship->exploding && battleship->explosion_frame >= 0) {
 
         float target_y;
         if (is_multiplayer_client())
@@ -587,7 +591,7 @@ void draw_ship(BATTLESHIP *battleship) {
         float target_x = get_normalized_dx((battleship->owner == BATTLESHIP_OWNER_PLAYER)?client_mothership:host_mothership);
 
         float x2 = get_normalized_dx(battleship), y2 = get_normalized_dy(battleship);
-        if (battleship->explosion_frame < 9) {
+        if (battleship->exploding_with_lasers && battleship->explosion_frame < 9) {
 
 
             int thickness = ((battleship->explosion_frame < 4)||(battleship->explosion_frame > 6))?1:2;

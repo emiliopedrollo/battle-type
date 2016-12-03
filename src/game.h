@@ -24,6 +24,9 @@ bool is_game_paused();
 void on_timer_game();
 bool is_game_ending();
 long get_last_game_score();
+void on_mouse_move_game(int x, int y);
+void on_mouse_up_game(int x, int y);
+void on_mouse_down_game(int x, int y);
 
 void on_key_press_game(ALLEGRO_KEYBOARD_EVENT event);
 void process_key_press(int keycode, PLAYER player);
@@ -33,6 +36,7 @@ typedef struct {
     BATTLESHIP_OWNER owner;
     bool active;
     bool exploding;
+    bool exploding_with_lasers;
     char explosion_frame;
     float dx,dy;
     char word[30];
@@ -44,6 +48,7 @@ typedef struct {
     long host_score, client_score;
     char host_target, client_target;
     unsigned short host_ship_dx, client_ship_dx;
+    short player_lives, client_lives;
     char game_winner;
     bool is_game_ending;
 } GAME_SNAPSHOT;

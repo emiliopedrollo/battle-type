@@ -62,6 +62,7 @@ typedef struct {
     char *word;
     char explosion_frame;
     bool exploding;
+    bool exploding_with_lasers;
     void (*on_explosion_end)(BATTLESHIP_OWNER *owner);
 } BATTLESHIP;
 
@@ -69,6 +70,7 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, floa
 void change_battleship_state(BATTLESHIP *battleship,BATTLESHIP_MOVE_STATE state);
 void draw_target_lock(BATTLESHIP *battleship);
 bool move_ship(BATTLESHIP *battleship, float target_dx);
+void update_ship_frame_count(BATTLESHIP *battleship);
 void draw_ship(BATTLESHIP *battleship);
 void draw_ship_word(BATTLESHIP *battleship,bool is_target);
 void load_resources_battleship();

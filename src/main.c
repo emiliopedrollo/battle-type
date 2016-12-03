@@ -322,6 +322,11 @@ void on_mouse_move(int x, int y){
         case GAME_STATE_MAIN_MENU:
             on_mouse_move_menu_screen(x,y);
             break;
+        case GAME_STATE_IN_GAME_SINGLE_PLAYER:
+        case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
+        case GAME_STATE_IN_GAME_MULTIPLAYER_HOST:
+            on_mouse_move_game(x,y);
+            break;
         case GAME_STATE_VISUALIZING_RANK:
             on_mouse_move_rank(x,y);
             break;
@@ -335,6 +340,11 @@ void on_mouse_down(int x, int y){
         case GAME_STATE_MAIN_MENU:
             on_mouse_down_menu_screen(x,y);
             break;
+        case GAME_STATE_IN_GAME_SINGLE_PLAYER:
+        case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
+        case GAME_STATE_IN_GAME_MULTIPLAYER_HOST:
+            on_mouse_down_game(x,y);
+            break;
         case GAME_STATE_VISUALIZING_RANK:
             on_mouse_down_rank(x,y);
             break;
@@ -347,6 +357,11 @@ void on_mouse_up(int x, int y){
     switch (current_game_state) {
         case GAME_STATE_MAIN_MENU:
             on_mouse_up_menu_screen(x,y);
+            break;
+        case GAME_STATE_IN_GAME_SINGLE_PLAYER:
+        case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
+        case GAME_STATE_IN_GAME_MULTIPLAYER_HOST:
+            on_mouse_up_game(x,y);
             break;
         case GAME_STATE_VISUALIZING_RANK:
             on_mouse_up_rank(x,y);
@@ -362,6 +377,8 @@ void on_timer(){
             on_timer_menu_screen();
             break;
         case GAME_STATE_IN_GAME_SINGLE_PLAYER:
+        case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
+        case GAME_STATE_IN_GAME_MULTIPLAYER_HOST:
             on_timer_game();
             break;
         case GAME_STATE_VISUALIZING_RANK:
