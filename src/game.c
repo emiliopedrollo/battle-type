@@ -1137,14 +1137,12 @@ void on_new_level(short level) {
 
     wait_new_level = false;
 
-    consecutive_right_key_player = 0;
-    consecutive_right_key_opponent = 0;
-
     word_pool_index = ((level-1) * 50);
 
-    clear_ships();
-
     if (is_single_player()){
+        consecutive_right_key_player = 0;
+        consecutive_right_key_opponent = 0;
+        clear_ships();
         need_to_show_game_level = true;
     }
 }
