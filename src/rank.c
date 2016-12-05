@@ -42,7 +42,9 @@ void load_rank_entries(){
     FILE *rank_file = fopen("rank","r");
 
     if (!is_valid_rank_file(rank_file)){
+        fclose(rank_file);
         create_rank_file();
+        rank_file = fopen("rank","r");
     };
 
     size_t len = 0;

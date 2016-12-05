@@ -56,7 +56,7 @@ ADD_EXECUTABLE(battle_type ${SOURCE_FILES} ${COMPILED_RESOURCES})
 SET(EXECUTABLE_OUTPUT_PATH output)
 
 # Verifica se dependencias existem
-PKG_SEARCH_MODULE(ALLEGRO REQUIRED allegro5.0 allegro5)
+PKG_SEARCH_MODULE(ALLEGRO REQUIRED allegro-5>=5.0)
 PKG_SEARCH_MODULE(ENET REQUIRED libenet)
 
 # Procura pelo pacote Threads no sistema e define variaval CMAKE_THREAD_LIBS_INIT
