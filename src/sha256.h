@@ -11,13 +11,18 @@
 
 /*************************** HEADER FILES ***************************/
 #include <stddef.h>
+#ifdef WIN32
+#include <windef.h>
+#endif
 
 /****************************** MACROS ******************************/
 #define SHA256_BLOCK_SIZE 32            // SHA256 outputs a 32 byte digest
 
 /**************************** DATA TYPES ****************************/
 typedef unsigned char BYTE;             // 8-bit byte
+#ifndef WIN32
 typedef unsigned int  WORD;             // 32-bit word, change to "long" for 16-bit machines
+#endif
 
 typedef struct {
     BYTE data[64];

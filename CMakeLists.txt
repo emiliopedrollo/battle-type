@@ -67,6 +67,9 @@ FIND_PACKAGE(Threads REQUIRED)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     SET(CMAKE_LIBRARY_PATH ${CMAKE_SOURCE_DIR}/allegro/lib)
+    SET(CMAKE_INCLUDE_PATH ${CMAKE_SOURCE_DIR}/allegro/include)
+
+    INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/allegro/include)
 
     TARGET_LINK_LIBRARIES(battle_type ${CMAKE_THREAD_LIBS_INIT}) # -pthread ou equivalente
     TARGET_LINK_LIBRARIES(battle_type ${CMAKE_LIBRARY_PATH}/liballegro-5.0.10-static-mt.a)
@@ -95,7 +98,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     TARGET_LINK_LIBRARIES(battle_type stdc++)
 
     TARGET_LINK_LIBRARIES(battle_type libenet.a)
-    TARGET_LINK_LIBRARIES(battle_type freetype.dll.a)
+    TARGET_LINK_LIBRARIES(battle_type freetype.a)
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
