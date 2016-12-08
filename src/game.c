@@ -7,7 +7,7 @@
 #include <allegro5/allegro_native_dialog.h>
 #include <ctype.h>
 #include <stdio.h>
-#include <bits/stdio.h>
+//#include <bits/stdio.h>
 #include <allegro5/allegro_memfile.h>
 #include "game.h"
 #include "battleship.h"

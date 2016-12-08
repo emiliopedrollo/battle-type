@@ -19,6 +19,10 @@
 #include "game.h"
 #include "utils.h"
 
+#ifdef Win32
+#include <windows.h>
+#endif
+
 ALLEGRO_BITMAP *bmp_spaceship_blue;
 ALLEGRO_BITMAP *bmp_spaceship_red;
 ALLEGRO_BITMAP *bmp_missile_blue;

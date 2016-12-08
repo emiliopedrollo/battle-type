@@ -51,7 +51,9 @@ void on_menu_change(){
             buttons[BTN_MULTIPLAYER_JOIN_CANCEL].visible = true;
             break;
         case MENU_SCREEN_MULTIPLAYER_HOST:
+            #ifndef WIN32
             printf("ip address found: %s\n",(char*) get_ip_address());
+            #endif
             buttons[BTN_MULTIPLAYER_HOST_CANCEL].visible = true;
             break;
         default:

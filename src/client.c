@@ -69,7 +69,7 @@ void disconnect_client(){
     if (client != NULL) enet_host_destroy(client);
     client = NULL;
     enet_deinitialize();
-    enet_free(NULL);
+//    enet_free(NULL);
     client_connected = false;
 
 }

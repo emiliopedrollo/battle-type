@@ -67,7 +67,7 @@ void stop_server(){
     if (host != NULL) enet_host_destroy(host);
     host = NULL;
     enet_deinitialize();
-    enet_free(NULL);
+//    enet_free(NULL);
     server_running = false;
 }
 

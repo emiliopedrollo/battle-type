@@ -1,7 +1,4 @@
 #define _GNU_SOURCE     /* To get defns of NI_MAXSERV and NI_MAXHOST */
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <ifaddrs.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
@@ -13,6 +10,9 @@
 #include <time.h>   // for nanosleep
 #else
 #include <unistd.h> // for usleep
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <ifaddrs.h>
 #endif
 
 bool is_next_char(char *haystack, char *needle){
@@ -84,6 +84,67 @@ char *concat(char* part1, char* part2){
     return result;
 }
 
+#ifdef WIN32
+char *strdup(const char *s) {
+    char *p = malloc(strlen(s) + 1);
+    if(p) { strcpy(p, s); }
+    return p;
+}
+
+size_t getline(char **lineptr, size_t *n, FILE *stream) {
+    char *bufptr = NULL;
+    char *p = bufptr;
+    size_t size;
+    int c;
+
+    if (lineptr == NULL) {
+        return -1;
+    }
+    if (stream == NULL) {
+        return -1;
+    }
+    if (n == NULL) {
+        return -1;
+    }
+    bufptr = *lineptr;
+    size = *n;
+
+    c = fgetc(stream);
+    if (c == EOF) {
+        return -1;
+    }
+    if (bufptr == NULL) {
+        bufptr = malloc(128);
+        if (bufptr == NULL) {
+            return -1;
+        }
+        size = 128;
+    }
+    p = bufptr;
+    while(c != EOF) {
+        if ((p - bufptr) > (size - 1)) {
+            size = size + 128;
+            bufptr = realloc(bufptr, size);
+            if (bufptr == NULL) {
+                return -1;
+            }
+        }
+        *p++ = c;
+        if (c == '\n') {
+            break;
+        }
+        c = fgetc(stream);
+    }
+
+    *p++ = '\0';
+    *lineptr = bufptr;
+    *n = size;
+
+    return p - bufptr - 1;
+}
+#endif
+
+#ifndef WIN32
 void get_list_of_interfaces(){
     struct ifaddrs *addrs,*tmp;
 
@@ -136,6 +197,7 @@ char *get_ip_address(){
     return host;
 
 }
+#endif
 
 void substr(char *buffer, size_t buflen, char const *source, int len)
 {
