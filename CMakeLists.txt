@@ -7,27 +7,27 @@ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
 
 # Define todos os fontes e cabeçalhos a serem compilados
 SET(SOURCE_FILES
-    src/buttons.c
-    src/buttons.h
-    src/main.c
-    src/menu_screen.c
-    src/menu_screen.h
-    src/utils.c
-    src/utils.h
-    src/battleship.c
-    src/battleship.h
-    src/main.h
-    src/game.c
-    src/game.h
-    src/server.c
-    src/server.h
-    src/enet_common.h
-    src/client.c
-    src/client.h
-    src/rank.c
-    src/rank.h
-    src/sha256.c
-    src/sha256.h)
+        src/buttons.c
+        src/buttons.h
+        src/main.c
+        src/menu_screen.c
+        src/menu_screen.h
+        src/utils.c
+        src/utils.h
+        src/battleship.c
+        src/battleship.h
+        src/main.h
+        src/game.c
+        src/game.h
+        src/server.c
+        src/server.h
+        src/enet_common.h
+        src/client.c
+        src/client.h
+        src/rank.c
+        src/rank.h
+        src/sha256.c
+        src/sha256.h)
 
 # Cria arquivo cabeçalho para cada recurso utilizado
 SET(RESOURCE_COMPILER "xxd")
@@ -36,15 +36,17 @@ FILE(GLOB_RECURSE COMPILED_RESOURCES
         "src/resources/img/*.png"
         "src/resources/img/*.jpg"
         "src/resources/font/*.ttf")
-FOREACH(INPUT_FILE ${COMPILED_RESOURCES})
+FOREACH (INPUT_FILE ${COMPILED_RESOURCES})
     SET(OUTPUT_FILE ${INPUT_FILE}.h)
     ADD_CUSTOM_COMMAND(
             OUTPUT ${OUTPUT_FILE}
             COMMAND ${RESOURCE_COMPILER} -i ${INPUT_FILE} ${OUTPUT_FILE}
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src/resources
             COMMENT "Compiling ${INPUT_FILE} to ${OUTPUT_FILE} binary")
-    LIST (APPEND COMPILED_RESOURCES ${OUTPUT_FILE})
-ENDFOREACH()
+    LIST(APPEND COMPILED_RESOURCES ${OUTPUT_FILE})
+ENDFOREACH ()
+
+ADD_DEFINITIONS(-D_GNU_SOURCE)
 
 # Adiciona target
 ADD_EXECUTABLE(battle_type ${SOURCE_FILES} ${COMPILED_RESOURCES})

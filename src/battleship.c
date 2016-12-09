@@ -169,7 +169,7 @@ bool move_ship(BATTLESHIP *battleship, float target_dx) {
 
     //static TURNING_DIRECTION turning_direction = TURNING_DIRECTION_NONE;
     //const float dvx = 0.8;
-    float dvx;
+    //float dvx;
     double dist_r, dist_l;
     //float dx = ,dy,vx=4,vy=1;
 
@@ -323,11 +323,6 @@ float get_bottom_dy(BATTLESHIP *battleship){
 void draw_debug(BATTLESHIP *battleship) {
     int bsh = get_battleship_height(battleship->class);
     int bsw = get_battleship_width(battleship->class);
-
-    float dx, dy;
-
-    dx = get_normalized_dx(battleship);
-    dy = get_normalized_dy(battleship);
 
     static bool started = false;
 
