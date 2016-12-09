@@ -2,15 +2,10 @@
 
 #include <allegro5/allegro_memfile.h>
 
-#include <math.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_native_dialog.h>
-#include <ctype.h>
 #include <stdio.h>
-#include <bits/stdio.h>
-#include <allegro5/allegro_memfile.h>
 #include "game.h"
-#include "battleship.h"
 #include "utils.h"
 #include "client.h"
 #include "resources/img/1.png.h"
@@ -30,7 +25,6 @@
 #include "resources/img/15.png.h"
 #include "resources/img/16.png.h"
 #include "server.h"
-#include "menu_screen.h"
 #include "buttons.h"
 
 BATTLESHIP *host_ships[NUMBER_OF_SHIPS_PER_PLAYER];
@@ -50,7 +44,7 @@ char game_winner = -1;
 short game_level = 1;
 long opponent_score = 0;
 long player_score = 0;
-long rank_score = 0;
+long rank_score = -1;
 short player_lives;
 short opponent_lives;
 int life_price_for_player;
@@ -65,6 +59,7 @@ bool wait_new_level = false;
 int shortcut_key_pressed_game = -1;
 bool is_mouse_down_game;
 bool is_mouse_down_on_button_game;
+bool draw_explosions_on_game_end = true;
 
 static int const GAME_WINNER_PLAYER = 0;
 static int const GAME_WINNER_OPPONENT = 1;
@@ -85,7 +80,8 @@ int word_pool_end_pos;
 
 void init_motherships();
 void init_purchase_buttons();
-void move_game_ships(bool only_update_frame_count);
+void update_game_ships_frame_count();
+void move_game_ships();
 void draw_game_ships();
 void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class);
 void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battleship);
@@ -117,7 +113,7 @@ void end_game();
 
 long get_last_game_score() {
     long score = rank_score;
-    rank_score = 0;
+    rank_score = -1;
     return score;
 }
 
@@ -221,6 +217,7 @@ void unload_resources_game() {
 void init_game() {
     current_game_flow_state = GAME_FLOW_STATE_RUNNING;
     need_to_show_purchase_life = false;
+    draw_explosions_on_game_end = true;
     received_first_snapshot = false;
     ready_to_send = false;
     is_mouse_down_game = false;
@@ -230,7 +227,7 @@ void init_game() {
     player_score = 0;
     life_price_for_player = 100;
     life_price_for_opponent = 100;
-    rank_score = 0;
+    rank_score = -1;
     player_lives = 1;
     opponent_lives = 1;
     word_pool_index = 0;
@@ -346,7 +343,20 @@ void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class) {
     }
 }
 
-void move_game_ships(bool only_update_frame_count) {
+void update_game_ships_frame_count(){
+    for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
+        if (host_ships[i] && host_ships[i]->active){
+            update_ship_frame_count(host_ships[i]);
+        }
+    }
+    for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
+        if (client_ships[i] && client_ships[i]->active){
+            update_ship_frame_count(client_ships[i]);
+        }
+    }
+}
+
+void move_game_ships() {
 
     game_bs_host_limit = (int)get_bottom_dy(client_mothership);
     game_bs_client_limit = (int)get_top_dy(host_mothership);
@@ -358,12 +368,11 @@ void move_game_ships(bool only_update_frame_count) {
     for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
         if (host_ships[i] && host_ships[i]->active){
             update_ship_frame_count(host_ships[i]);
-            if (only_update_frame_count) continue;
             kill_opponent = move_ship(host_ships[i],client_mothership->dx) || kill_opponent;
         }
     }
 
-    if (kill_opponent && !only_update_frame_count){
+    if (kill_opponent){
         take_a_life(PLAYER_CLIENT);
     }
 
@@ -372,12 +381,11 @@ void move_game_ships(bool only_update_frame_count) {
     for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
         if (client_ships[i] && client_ships[i]->active){
             update_ship_frame_count(client_ships[i]);
-            if (only_update_frame_count) continue;
             kill_player = move_ship(client_ships[i],host_mothership->dx) || kill_player;
         }
     }
 
-    if (kill_player && !only_update_frame_count){
+    if (kill_player){
         take_a_life(PLAYER_HOST);
     }
 }
@@ -936,9 +944,15 @@ void on_button_click_game(int i){
             on_new_level(game_level);
             need_to_show_purchase_life = false;
             current_game_flow_state = GAME_FLOW_STATE_RUNNING;
-        } else end_game();
+        } else {
+            need_to_show_purchase_life = false;
+            draw_explosions_on_game_end = false;
+            current_game_flow_state = GAME_FLOW_STATE_ENDING;
+        }
     } else if (i == BTN_PURCHASE_NO){
-        end_game();
+        need_to_show_purchase_life = false;
+        draw_explosions_on_game_end = false;
+        current_game_flow_state = GAME_FLOW_STATE_ENDING;
     }
 }
 
@@ -1046,52 +1060,50 @@ void draw_pause_overlay(){
 }
 
 void draw_explosions() {
-    if(is_game_ending()) {
 
-        float dx,dy;
+    float dx,dy;
 
-        if(current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_HOST || current_game_state == GAME_STATE_IN_GAME_SINGLE_PLAYER) {
-            dx = (game_winner == GAME_WINNER_OPPONENT) ? host_mothership->dx : client_mothership->dx;
-            dy = (game_winner == GAME_WINNER_OPPONENT) ? host_mothership->dy : client_mothership->dy;
-        }else if(current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
-            dx = (game_winner == GAME_WINNER_OPPONENT) ? DISPLAY_W - host_mothership->dx : DISPLAY_W - client_mothership->dx;
-            dy = (game_winner == GAME_WINNER_OPPONENT) ? DISPLAY_H - host_mothership->dy : DISPLAY_H - client_mothership->dy;
-        }
-        static int i = 0, j = 2, k = 4, l = 6, cont = 0;
-        static int modi = 0, modj = 0, modk = 0, modl = 0;
-
-        al_draw_bitmap(rsc_explosion[i], (dx - 30) - modi, (dy - 30) - modi, 0);
-        al_draw_bitmap(rsc_explosion[j], (dx - 30) - modj, (dy - 30) + modj, 0);
-        al_draw_bitmap(rsc_explosion[k], (dx - 30) + modk, (dy - 30) - modk, 0);
-        al_draw_bitmap(rsc_explosion[l], (dx - 30) + modl, (dy - 30) + modl, 0);
-
-        if (cont > 5) {
-            i++;
-            j++;
-            k++;
-            l++;
-            cont = 0;
-        }
-        cont++;
-
-        if (i > 15) {
-            i = 0;
-            modi = rand() % 45;
-        }
-        if (j > 15) {
-            j = 0;
-            modj = rand() % 45;
-        }
-        if (k > 15) {
-            k = 0;
-            modk = rand() % 45;
-        }
-        if (l > 15) {
-            l = 0;
-            modl = rand() % 45;
-        }
-
+    if(current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_HOST || current_game_state == GAME_STATE_IN_GAME_SINGLE_PLAYER) {
+        dx = (game_winner == GAME_WINNER_OPPONENT) ? host_mothership->dx : client_mothership->dx;
+        dy = (game_winner == GAME_WINNER_OPPONENT) ? host_mothership->dy : client_mothership->dy;
+    }else if(current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
+        dx = (game_winner == GAME_WINNER_OPPONENT) ? DISPLAY_W - host_mothership->dx : DISPLAY_W - client_mothership->dx;
+        dy = (game_winner == GAME_WINNER_OPPONENT) ? DISPLAY_H - host_mothership->dy : DISPLAY_H - client_mothership->dy;
     }
+    static int i = 0, j = 2, k = 4, l = 6, cont = 0;
+    static int modi = 0, modj = 0, modk = 0, modl = 0;
+
+    al_draw_bitmap(rsc_explosion[i], (dx - 30) - modi, (dy - 30) - modi, 0);
+    al_draw_bitmap(rsc_explosion[j], (dx - 30) - modj, (dy - 30) + modj, 0);
+    al_draw_bitmap(rsc_explosion[k], (dx - 30) + modk, (dy - 30) - modk, 0);
+    al_draw_bitmap(rsc_explosion[l], (dx - 30) + modl, (dy - 30) + modl, 0);
+
+    if (cont > 5) {
+        i++;
+        j++;
+        k++;
+        l++;
+        cont = 0;
+    }
+    cont++;
+
+    if (i > 15) {
+        i = 0;
+        modi = rand() % 45;
+    }
+    if (j > 15) {
+        j = 0;
+        modj = rand() % 45;
+    }
+    if (k > 15) {
+        k = 0;
+        modk = rand() % 45;
+    }
+    if (l > 15) {
+        l = 0;
+        modl = rand() % 45;
+    }
+
 }
 
 void draw_game_level(){
@@ -1110,8 +1122,17 @@ void draw_game_over() {
                 al_draw_text(main_font_size_45,al_map_rgb(0,255,0),DISPLAY_W/2,DISPLAY_H/2,
                 ALLEGRO_ALIGN_CENTER,"VOCÊ GANHOU");
             } else {
-                al_draw_text(main_font_size_45,al_map_rgb(255,0,0),DISPLAY_W/2,DISPLAY_H/2,
-                             ALLEGRO_ALIGN_CENTER,"VOCÊ PERDEU");
+                if (is_single_player()){
+                    al_draw_text(main_font_size_45,al_map_rgb(255,255,255),DISPLAY_W/2,
+                                 DISPLAY_H/2-+main_font_size_45_height-10,
+                                 ALLEGRO_ALIGN_CENTER,"FIM DE JOGO");
+                    al_draw_textf(main_font_size_45,al_map_rgb(255,255,255),DISPLAY_W/2,
+                                  DISPLAY_H/2,
+                                 ALLEGRO_ALIGN_CENTER,"SEUS PONTOS: %li",player_score);
+                } else {
+                    al_draw_text(main_font_size_45,al_map_rgb(255,0,0),DISPLAY_W/2,DISPLAY_H/2,
+                                 ALLEGRO_ALIGN_CENTER,"VOCÊ PERDEU");
+                }
             }
             break;
         case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
@@ -1192,8 +1213,8 @@ void on_redraw_game() {
     }
 
     if (need_to_show_purchase_life){
-        if (pre_purchase_life_frame >= 64){
-            if (pre_purchase_life_frame == 64){
+        if (pre_purchase_life_frame >= 192){
+            if (pre_purchase_life_frame == 192){
                 current_game_flow_state = GAME_FLOW_STATE_PURCHASING_LIFE;
                 pre_purchase_life_frame++;
             }
@@ -1233,8 +1254,13 @@ void on_redraw_game() {
                 al_draw_line(5, 5 + word_pool_start_pos / 2, 5, 5 + word_pool_end_pos / 2, al_map_rgb(0, 0, 255), 2);
             }
 
-            if (current_game_flow_state != GAME_FLOW_STATE_ENDING){
-                move_game_ships(need_to_show_purchase_life);
+            if (!is_game_ending()){
+
+                update_game_ships_frame_count();
+                if (!need_to_show_purchase_life){
+                    move_game_ships();
+                }
+
             }
 
         }
@@ -1256,8 +1282,18 @@ void on_redraw_game() {
         draw_pause_overlay();
     }
 
+    if (need_to_show_purchase_life && pre_purchase_life_frame < 192){
+        char tmp_gw = game_winner;
+        game_winner = GAME_WINNER_OPPONENT;
+        draw_explosions();
+        game_winner = tmp_gw;
+    }
+
     if (is_game_ending()){
         game_ending_frame++;
+        if (!draw_explosions_on_game_end){
+            game_ending_frame = (game_ending_frame < 120)?120:game_ending_frame;
+        }
         if (game_ending_frame < 120){
             draw_explosions();
         } else {
