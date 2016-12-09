@@ -495,10 +495,7 @@ void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battlesh
         free(battleship->word);
 
         char *word = serial_battleship.word;
-//        battleship->word = malloc(sizeof word);
         battleship->word = strdup(word);
-
-//        strcpy(battleship->word,word);
 
     } else {
         if (battleship) battleship->active = false;
