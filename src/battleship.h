@@ -1,7 +1,3 @@
-//
-// Created by ubuntu on 10/19/16.
-//
-
 #ifndef BATTLE_TYPE_BATTLESHIP_H
 #define BATTLE_TYPE_BATTLESHIP_H
 

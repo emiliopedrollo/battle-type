@@ -7,11 +7,6 @@ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
 
 # Define todos os fontes e cabeçalhos a serem compilados
 SET(SOURCE_FILES
-    alphas/allegro_samples/enet_common.h
-    alphas/allegro_samples/ex_enet_client.c
-    alphas/allegro_samples/ex_enet_client.h
-    alphas/allegro_samples/ex_enet_server.c
-    alphas/allegro_samples/ex_enet_server.h
     src/buttons.c
     src/buttons.h
     src/main.c
@@ -30,7 +25,9 @@ SET(SOURCE_FILES
     src/client.c
     src/client.h
     src/rank.c
-    src/rank.h src/sha256.c src/sha256.h)
+    src/rank.h
+    src/sha256.c
+    src/sha256.h)
 
 # Cria arquivo cabeçalho para cada recurso utilizado
 SET(RESOURCE_COMPILER "xxd")

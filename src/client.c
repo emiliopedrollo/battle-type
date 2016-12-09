@@ -1,7 +1,3 @@
-//
-// Created by ubuntu on 10/20/16.
-//
-
 #include <stdbool.h>
 #include <stdio.h>
 #include <enet/enet.h>
@@ -127,15 +123,6 @@ void client_send_receive(ENetHost *client){
     ENetEvent event;
     SERVER_MESSAGE *msg;
 
-    for (int i=0;i<20;i++){
-        if (key_press_list[i].KEY_PRESSED != 0){
-//            ENetPacket *packet = enet_packet_create(&key_press_list[i],sizeof(CLIENT_KEY_PRESS),ENET_PACKET_FLAG_RELIABLE);
-//            enet_peer_send(peer, 0, packet);
-//            key_press_list[i].KEY_PRESSED = 0;
-        }
-
-    }
-
     // Check if we have any queued incoming messages, but do not wait otherwise.
     // This also sends outgoing messages queued with enet_peer_send.
     if (client == NULL) return;
@@ -150,27 +137,6 @@ void client_send_receive(ENetHost *client){
                     received_first_snapshot = true;
                     break;
             }
-
-//            msg = (ServerMessage*)event.packet->data;
-
-//            switch (msg->type) {
-//                case POSITION_UPDATE:
-//                    players[msg->player_id].x = msg->x;
-//                    players[msg->player_id].y = msg->y;
-//                    break;
-//                case PLAYER_JOIN:
-//                    printf("Client: player #%d joined\n", msg->player_id);
-//                    players[msg->player_id].active = true;
-//                    players[msg->player_id].x = msg->x;
-//                    players[msg->player_id].y = msg->y;
-//                    players[msg->player_id].color = msg->color;
-//                    break;
-//                case PLAYER_LEAVE:
-//                    printf("Client: player #%d left\n", msg->player_id);
-//                    players[msg->player_id].active = false;
-//                    break;
-//            }
-
             /* Clean up the packet now that we're done using it. */
             enet_packet_destroy(event.packet);
         } else if (event.type == ENET_EVENT_TYPE_DISCONNECT) {

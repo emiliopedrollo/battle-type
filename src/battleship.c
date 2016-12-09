@@ -1,10 +1,4 @@
-//
-// Created by ubuntu on 10/19/16.
-//
-
 #include "battleship.h"
-
-#include <stdio.h>
 #include <math.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_primitives.h>
@@ -39,13 +33,10 @@ void load_resources_battleship(){
 }
 
 void unload_resources_battleship(){
-    int i=0;
-
     al_destroy_bitmap(bmp_spaceship_blue);
     al_destroy_bitmap(bmp_spaceship_red);
     al_destroy_bitmap(bmp_missile_blue);
     al_destroy_bitmap(bmp_missile_red);
-
 }
 
 int get_battleship_height(BATTLESHIP_CLASS class){
@@ -550,13 +541,7 @@ void draw_target_lock(BATTLESHIP *battleship){
 
 void draw_ship(BATTLESHIP *battleship) {
 
-    int bsh = get_battleship_height(battleship->class);
-    int bsw = get_battleship_width(battleship->class);
-
     int flags;
-
-    float dx = get_normalized_dx(battleship);
-    float dy = get_normalized_dy(battleship);
 
     bool draw_ship = true;
 
@@ -574,9 +559,7 @@ void draw_ship(BATTLESHIP *battleship) {
 
     al_draw_bitmap(battleship->bmp, get_left_dx(battleship), get_top_dy(battleship),flags);
 
-    //al_draw_bitmap(battleship->bmp);
-
-    //if (DEBUG) draw_debug(battleship);
+    if (DEBUG) draw_debug(battleship);
 
     if (battleship->exploding && battleship->explosion_frame >= 0) {
 

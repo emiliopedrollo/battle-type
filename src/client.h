@@ -1,7 +1,3 @@
-//
-// Created by ubuntu on 10/20/16.
-//
-
 #ifndef BATTLE_TYPE_CLIENT_H
 #define BATTLE_TYPE_CLIENT_H
 

@@ -2,8 +2,6 @@
 
 #include <allegro5/allegro_font.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <allegro5/allegro_primitives.h>
 #include "rank.h"
 #include "main.h"
 #include "buttons.h"
@@ -48,7 +46,6 @@ void load_rank_entries(){
     size_t len = 0;
     unsigned char *text = malloc(1);
     char *entry;
-    char *pos;
     char *tok;
     char *endptr;
 
@@ -186,6 +183,7 @@ void persist_rank_entries(){
 
 void process_new_rank_entry(){
     long score = get_last_game_score();
+    if (score == -1) return;
     short pos = -1;
     for (short i=0;i<10;i++) {
         if (score > rank[i].score) {

@@ -10,7 +10,6 @@ void load_resources_menu_screen();
 void unload_resources_menu_screen();
 int on_game_state_changing_count_steps_menu_screen(GAME_STATE new_state);
 void start_game_state_change_menu_screen(GAME_STATE new_state);
-//bool on_game_state_change_menu_screen(GAME_STATE old_state, GAME_STATE new_state);
 
 void on_key_press_menu_screen(ALLEGRO_KEYBOARD_EVENT event);
 void on_mouse_move_menu_screen(int x, int y);

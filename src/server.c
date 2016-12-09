@@ -1,7 +1,3 @@
-//
-// Created by fabio on 19/10/16.
-//
-
 #include <enet/enet.h>
 #include <stdio.h>
 #include <pthread.h>
@@ -50,7 +46,6 @@ void start_server(void (*on_client_connect_callback)(void)){
     enet_address_set_host(&listener, binder);
     listener.port = port;
 
-//    host = create_server(listener);
     server_thread = init_server_thread(listener);
 
 
@@ -116,8 +111,6 @@ void update_game(){
     ENetPacket *packet = enet_packet_create(&msg,
                                             sizeof(SERVER_MESSAGE),
                                             ENET_PACKET_FLAG_RELIABLE);
-
-//    enet_peer_send(client, 0, packet);
     enet_host_broadcast(host, 0, packet);
 
 }

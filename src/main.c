@@ -1,31 +1,17 @@
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <getopt.h>
-//#include <stdbool.h>
 #include <stdio.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_memfile.h>
 #include <getopt.h>
-#include <allegro5/bitmap.h>
-#include <allegro5/file.h>
 #include "main.h"
 #include "menu_screen.h"
 #include "resources/img/background.png.h"
 #include "resources/font/VT323.ttf.h"
 #include "battleship.h"
-//#include "server.h"
-#include "../alphas/allegro_samples/ex_enet_server.h"
-#include "../alphas/allegro_samples/ex_enet_client.h"
 #include "game.h"
 #include "rank.h"
-//#include "alphas/allegro_samples/ex_enet_server.h"
-//#include "alphas/allegro_samples/ex_enet_client.h"
 
-/*
- * 
- */
 ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_BITMAP *bmp_background;
 ALLEGRO_FONT *main_font_size_60;
@@ -51,7 +37,6 @@ void load_resources();
 void unload_resources();
 void draw_background();
 void on_changed_game_state();
-//bool on_game_state_change(GAME_STATE old_state, GAME_STATE new_state);
 void do_the_loop(ALLEGRO_EVENT_QUEUE *queue);
 void on_key_press(ALLEGRO_KEYBOARD_EVENT keyboard_event);
 void on_mouse_move(int x, int y);
@@ -280,13 +265,6 @@ void check_game_state_complete(){
         }
     }
 }
-
-//bool on_game_state_change(GAME_STATE old_state, GAME_STATE new_state){
-//
-//
-//    return false;
-//    //return on_game_state_change_menu_screen(old_state,new_state);
-//}
 
 // OnEvents
 void on_key_press(ALLEGRO_KEYBOARD_EVENT keyboard_event){

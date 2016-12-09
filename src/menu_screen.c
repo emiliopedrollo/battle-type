@@ -240,9 +240,6 @@ void on_button_click_menu_screen(int index){
     switch (index){
         case BTN_SINGLE_PLAYER:
             change_game_state(GAME_STATE_IN_GAME_SINGLE_PLAYER);
-            //menu_buttons[1].visible = false;
-            //menu_buttons[2].visible = false;
-            //start_sp = true;
             break;
         case BTN_MULTI_PLAYER:
             change_menu_state(MENU_SCREEN_MULTIPLAYER_SELECT);

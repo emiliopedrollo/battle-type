@@ -1,7 +1,3 @@
-//
-// Created by ubuntu on 10/19/16.
-//
-
 #include <stdbool.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_font.h>

@@ -1,7 +1,3 @@
-//
-// Created by emilio on 26/11/16.
-//
-
 #ifndef BATTLE_TYPE_RANK_H
 #define BATTLE_TYPE_RANK_H
 
