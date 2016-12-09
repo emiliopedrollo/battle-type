@@ -50,7 +50,7 @@ typedef struct {
     float dxi,dyi;
     float vx,vy;
     float vxi,vyi;
-    float mr,ml;
+    float mr,ml,m;
     float lr,ll;
     float limit;
     bool push_back_ended;

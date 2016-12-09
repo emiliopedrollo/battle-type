@@ -281,13 +281,6 @@ void check_game_state_complete(){
     }
 }
 
-//bool on_game_state_change(GAME_STATE old_state, GAME_STATE new_state){
-//
-//
-//    return false;
-//    //return on_game_state_change_menu_screen(old_state,new_state);
-//}
-
 // OnEvents
 void on_key_press(ALLEGRO_KEYBOARD_EVENT keyboard_event){
     switch (current_game_state){

@@ -259,12 +259,19 @@ bool move_ship(BATTLESHIP *battleship, float target_dx) {
 
             calculate_ship_turn_frame(battleship);
 
-            battleship->dx += battleship->vx;
+            battleship->m = (battleship->dy - y) / (battleship->dx - target_dx);
 
             if (battleship->owner == BATTLESHIP_OWNER_PLAYER) {
                 battleship->dy = (get_top_dy(battleship) >= game_bs_host_limit) ? battleship->dy - battleship->vy : battleship->dy;
             }else if(battleship->owner == BATTLESHIP_OWNER_OPPONENT) {
                 battleship->dy = (get_bottom_dy(battleship) <= game_bs_client_limit) ? battleship->dy + battleship->vy : battleship->dy;
+            }
+
+            if(battleship->class == BATTLESHIP_CLASS_MISSILE && (y - get_bottom_dy(battleship)) < 300 ) {
+                battleship->dx = (((battleship->dy - y) / battleship->m) + target_dx) * battleship->vx;
+
+            }else{
+                battleship->dx += battleship->vx;
             }
 
             if (!battleship->exploding) {
