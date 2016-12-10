@@ -4,8 +4,6 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 
-int show_screen();
-
 void init_menu_screen();
 
 void load_resources_menu_screen();

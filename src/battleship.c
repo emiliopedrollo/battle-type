@@ -605,13 +605,13 @@ void draw_ship(BATTLESHIP *battleship) {
         // do Servidor `target_y` será o topo da spaceship do Cliente. Porém se for
         // uma nave do Cliente `target_y` será o fundo da spaceship do Servidor.
         if (is_multiplayer_client())
-            target_y = (battleship->owner == BATTLESHIP_OWNER_PLAYER)?
-                       get_top_dy(client_mothership):get_bottom_dy(host_mothership);
+            target_y = (battleship->owner == BATTLESHIP_OWNER_PLAYER) ?
+                       get_top_dy(client_ship) : get_bottom_dy(host_ship);
         else
-            target_y = (battleship->owner == BATTLESHIP_OWNER_PLAYER)?
-                       get_bottom_dy(client_mothership):get_top_dy(host_mothership);
+            target_y = (battleship->owner == BATTLESHIP_OWNER_PLAYER) ?
+                       get_bottom_dy(client_ship) : get_top_dy(host_ship);
 
-        float target_x = get_normalized_dx((battleship->owner == BATTLESHIP_OWNER_PLAYER)?client_mothership:host_mothership);
+        float target_x = get_normalized_dx((battleship->owner == BATTLESHIP_OWNER_PLAYER) ? client_ship : host_ship);
 
         float x2 = get_normalized_dx(battleship), y2 = get_normalized_dy(battleship);
         if (battleship->exploding_with_lasers && battleship->explosion_frame < 9) {
