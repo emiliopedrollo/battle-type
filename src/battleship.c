@@ -18,7 +18,9 @@ ALLEGRO_BITMAP *bmp_spaceship_red;
 ALLEGRO_BITMAP *bmp_missile_blue;
 ALLEGRO_BITMAP *bmp_missile_red;
 
+
 void load_resources_battleship(){
+    // Carrega o imagem das spaceships e mísseis para ambos os jogadores, ou máquina.
     ALLEGRO_FILE* spaceship_blue_png = al_open_memfile(img_spaceship_b_png,img_spaceship_b_png_len,"r");
     load_bitmap(&bmp_spaceship_blue,&spaceship_blue_png,".png");
 
@@ -33,6 +35,7 @@ void load_resources_battleship(){
 }
 
 void unload_resources_battleship(){
+    // Limpa e desassocia da memória todos recursos e espaços utilizados pelas imagens.
     al_destroy_bitmap(bmp_spaceship_blue);
     al_destroy_bitmap(bmp_spaceship_red);
     al_destroy_bitmap(bmp_missile_blue);
@@ -40,6 +43,7 @@ void unload_resources_battleship(){
 }
 
 int get_battleship_height(BATTLESHIP_CLASS class){
+    // Define a altura de cada nave dependendo de sua classe.
     switch (class){
         case BATTLESHIP_CLASS_MISSILE:
             return 15;
@@ -51,6 +55,7 @@ int get_battleship_height(BATTLESHIP_CLASS class){
 }
 
 int get_battleship_width(BATTLESHIP_CLASS class){
+    // De forma análoga a altura, define a largura de cada nave.
     switch (class){
         case BATTLESHIP_CLASS_MISSILE:
             return 8;
@@ -62,14 +67,17 @@ int get_battleship_width(BATTLESHIP_CLASS class){
 }
 
 BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, float dx, float dy, float x, int game_level) {
-
+    // Inicializa naves com parametros iniciais:
     BATTLESHIP *battleship = malloc(sizeof(BATTLESHIP));
     float vx = 0, vy = 0;
 
+    // validação para print;
     battleship->active = true;
 
+    // jogador a que pertence;
     battleship->owner = owner;
 
+    // classe, mísseis e spaceships;
     battleship->class = class;
 
     switch (class) {
@@ -87,9 +95,10 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, floa
             break;
     }
 
-
+    // posição atual;
     battleship->dx = dx;
     battleship->dy = dy;
+    // posição inicial;
     battleship->dxi = dx;
     battleship->dyi = dy;
 
@@ -98,27 +107,36 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, floa
 
         y = (battleship->owner == BATTLESHIP_OWNER_OPPONENT) ? DISPLAY_H - 90 : 90;
 
+        // limites esquerdos e direitos iniciais;
         battleship->ll = battleship->dx - 100;
         battleship->lr = battleship->dx + 100;
 
+        // coeficiente angular de cada limite;
         battleship->ml = (battleship->dy - y) / (battleship->ll - x);
         battleship->mr = (battleship->dy - y) / (battleship->lr - x);
     }
 
+    // velocidade atual;
     battleship->vx = vx;
     battleship->vy = vy;
+    // velocidade inicial;
     battleship->vxi = vx;
     battleship->vyi = vy;
 
-
+    // mudança de direção;
     battleship->turning_direction = TURNING_DIRECTION_NONE;
     battleship->turning_frame = 0;
+    // estado inicial da nave em questão;
     change_battleship_state(battleship, BATTLESHIP_MOVE_STATE_INITAL_STATE);
 
+    // define como NULL o valor inicial `word`, este que recebera uma palavra posteriormente;
     battleship->word = NULL;
 
+    // seta para falso `exploding`, variável responsável por decidir o início da animação de explosão das spaceships ;
     battleship->exploding = false;
+    // seta para falso `exploding_with_lasers`, mesma função de `exploding`, porém para mísseis;
     battleship->exploding_with_lasers = false;
+    // define o frame de explosão com um valor inícial inválido (necessita ser maior que zero).
     battleship->explosion_frame = -1;
 
     return battleship;
@@ -126,6 +144,8 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, floa
 
 void change_battleship_state(BATTLESHIP *battleship,BATTLESHIP_MOVE_STATE state){
 
+    // Em caso do estado de movimento inícial da nave ser BATTLESHIP_MOVE_STATE_DEMO_PUSHBACK,
+    // define alguns parámetros para o push back.
     switch (state){
         case BATTLESHIP_MOVE_STATE_DEMO_PUSHBACK:
             battleship->push_back_done = false;
@@ -139,11 +159,13 @@ void change_battleship_state(BATTLESHIP *battleship,BATTLESHIP_MOVE_STATE state)
             break;
     }
 
+    // Atribuí um estado de movimento a nave.
     battleship->state = state;
 
 }
 
 void calculate_ship_turn_frame(BATTLESHIP *battleship){
+    // Faz com que nos 10 frames de virada da nave, a velocidade seja reduzida gradualmente.
     float dvx;
     if (battleship->turning_direction != TURNING_DIRECTION_NONE) {
         battleship->turning_frame++;
@@ -160,50 +182,57 @@ void calculate_ship_turn_frame(BATTLESHIP *battleship){
 }
 
 void update_ship_frame_count(BATTLESHIP *battleship){
+    // Em caso de `exploding` ser verdadeiro incremeta `explosion_frame`,
+    // responsável por passa um a um os frames da explosão.
     if (battleship->exploding) battleship->explosion_frame++;
 }
 
 bool move_ship(BATTLESHIP *battleship, float target_dx) {
 
-    //static TURNING_DIRECTION turning_direction = TURNING_DIRECTION_NONE;
-    //const float dvx = 0.8;
-    //float dvx;
     double dist_r, dist_l;
 
+    // Define a altura e largura das naves.
     int bsw = al_get_bitmap_width(battleship->bmp);
     int bsh = al_get_bitmap_height(battleship->bmp);
     int n_frames_pushback_placement = 120;
 
     double prob, mod;
 
+    // Define um modificador randôminco de 0.01 a 1.00
     mod = (rand() % 100) / 100.0;
 
 
 
     float y;
 
+    // Seta `y` com a posição da spaceship inimiga.
     y = (battleship->owner == BATTLESHIP_OWNER_OPPONENT) ? DISPLAY_H - bsh : bsh;
 
-
+    // Seleciona o movimento apropriado de acordo com o `state` da nave.
     switch (battleship->state) {
         case BATTLESHIP_MOVE_STATE_DEMO:
+            // Define as distâncias laterais, usadas posteriormente, para
+            // calcular a chance de inversão de direção no movimento da nave.
             dist_r = (DISPLAY_W-(battleship->dx+bsw/2)<=0)?1:DISPLAY_W-(battleship->dx+bsw/2);
             dist_l = (battleship->dx-bsw/2<=0)?1:battleship->dx-bsw/2;
 
-            // Calcula chance de inverter velocidade horizontal
+            // Calcula chance de inverter velocidade horizontal.
             prob=(battleship->vx>0)?(1.0/pow(dist_r,7.0/8.0))+mod:(1.0/pow(dist_l,7.0/8.0))+mod;
 
-            // Inverte a velocidade vertical ao se aproximar das bordas de cima ou de baixo
+            // Inverte a velocidade vertical ao se aproximar das bordas de cima ou de baixo.
             battleship->vy = ((battleship->vy > 0 && (bsh + battleship->dy + (bsh / 2)) == DISPLAY_H - 270) ||
                               (battleship->vy < 0 && battleship->dy - (bsh / 2) == 20)) ? battleship->vy * (-1)
                                                                                         : battleship->vy;
 
-
+            // Altera o estado de `turning_direction` para a direção contrária ao movimento atual da nave,
+            // se `prob` for maior que 1.00 e a nave já não estiver mudando de direção.
             if (prob >= 1 && battleship->turning_direction == TURNING_DIRECTION_NONE)
                 battleship->turning_direction = (battleship->vx > 0) ? TURNING_DIRECTION_LEFT : TURNING_DIRECTION_RIGHT;
 
             calculate_ship_turn_frame(battleship);
 
+            // Altera a posição da nave, incrementando o valor responsável por esta,
+            // através das velocidades de `vx` e `vy`.
             battleship->dx += battleship->vx;
             battleship->dy += battleship->vy;
             break;
@@ -230,43 +259,52 @@ bool move_ship(BATTLESHIP *battleship, float target_dx) {
             }
             break;
         case BATTLESHIP_MOVE_STATE_IN_GAME:
-
             if (battleship->class == BATTLESHIP_CLASS_MISSILE){
+                // Define os pontos limites, cordenadas horizontais, a esquerda e direita do míssil,
+                // levendo em consideração sua distância atual da spaceship inimiga.
                 battleship->ll = (((battleship->dy - y) / battleship->ml) + target_dx < 0 + bsw/2)?
                                  0 + bsw/2 : ((battleship->dy - y) / battleship->ml) + target_dx ;
                 battleship->lr = (((battleship->dy - y) / battleship->mr) + target_dx > DISPLAY_W - bsw/2)?
                                  DISPLAY_W - bsw/2 :((battleship->dy - y) / battleship->mr) + target_dx;
-
+                // Através dos limites determina a distância até cada um deles, e se for zero retorna 1;
                 dist_r = (battleship->lr-(battleship->dx+bsw/2)<=0)?1:battleship->lr-(battleship->dx+bsw/2);
                 dist_l = ((battleship->dx-bsw/2)-battleship->ll<=0)?1:(battleship->dx-bsw/2)-battleship->ll;
             } else {
+                // Determina as distâncias entre as bordas da tela e a spaceship.
                 dist_r = (DISPLAY_W-(battleship->dx+bsw/2)<=0)?1:DISPLAY_W-(battleship->dx+bsw/2);
                 dist_l = (battleship->dx-bsw/2<=0)?1:battleship->dx-bsw/2;
             }
 
+            //Calcula o valor que será utilizado em seguida para condição de volta dos mísseis e das spaceships.
             prob=(battleship->vx>0)?(1.0/pow(dist_r,7.0/8.0))+mod:(1.0/pow(dist_l,7.0/8.0))+mod;
 
+            // Altera o estado de `turning_direction` para a direção contrária ao movimento atual da nave,
+            // se `prob` for maior que 1.00 e a nave já não estiver mudando de direção.
             if (prob >= 1 && battleship->turning_direction == TURNING_DIRECTION_NONE) {
                 battleship->turning_direction = (battleship->vx > 0) ? TURNING_DIRECTION_LEFT:TURNING_DIRECTION_RIGHT;
             }
 
             calculate_ship_turn_frame(battleship);
 
-            battleship->m = (battleship->dy - y) / (battleship->dx - target_dx);
+            // Faz o cálculo do coeficiente angular da reta entre míssil e a spaceship inimiga.
+            //battleship->m = (battleship->dy - y) / (battleship->dx - target_dx);
 
+            // Move as battleships verticalmente de acordo com seus `vy` e previne que passem de seus objetivos.
             if (battleship->owner == BATTLESHIP_OWNER_PLAYER) {
                 battleship->dy = (get_top_dy(battleship) >= game_bs_host_limit) ? battleship->dy - battleship->vy : battleship->dy;
             }else if(battleship->owner == BATTLESHIP_OWNER_OPPONENT) {
                 battleship->dy = (get_bottom_dy(battleship) <= game_bs_client_limit) ? battleship->dy + battleship->vy : battleship->dy;
             }
 
-            if(battleship->class == BATTLESHIP_CLASS_MISSILE && (y - get_bottom_dy(battleship)) < 300 ) {
-                battleship->dx = (((battleship->dy - y) / battleship->m) + target_dx) * battleship->vx;
+            /*if(battleship->class == BATTLESHIP_CLASS_MISSILE && (y - get_bottom_dy(battleship)) < 200 ) {
+                battleship->dx = ((battleship->dy + (battleship->vy*5) - y) / battleship->m) + target_dx;
 
-            }else{
+            }else{*/
                 battleship->dx += battleship->vx;
-            }
+            //}
 
+            // Checa se um míssel acerta uma spaceship do oponente e seta `exploding`
+            // para verdadeiro, após retorna falso ou verdadeiro que auxiliarão na retirada
             if (!battleship->exploding) {
                 if(get_bottom_dy(battleship) >= game_bs_client_limit && battleship->owner == BATTLESHIP_OWNER_OPPONENT){
                     battleship->exploding = true;
@@ -284,6 +322,7 @@ bool move_ship(BATTLESHIP *battleship, float target_dx) {
 }
 
 float get_normalized_dx(BATTLESHIP *battleship){
+    // Inverte o ´dx´ das neves client.
     float dx = battleship->dx;
     if (is_multiplayer_client()) {
         dx = DISPLAY_W - dx;
@@ -292,6 +331,7 @@ float get_normalized_dx(BATTLESHIP *battleship){
 }
 
 float get_normalized_dy(BATTLESHIP *battleship){
+    // Inverte o ´dy´ das neves client.
     float dy = battleship->dy;
     if (is_multiplayer_client()) {
         dy = DISPLAY_H - dy;
@@ -299,31 +339,42 @@ float get_normalized_dy(BATTLESHIP *battleship){
     return dy;
 }
 
+
 float get_left_dx(BATTLESHIP *battleship){
+    // Encontra o ponto da lateral esquerda da nave.
     float dx = get_normalized_dx(battleship);
     int bsw = get_battleship_width(battleship->class);
     return dx - (bsw/2.0f);
 }
 
+
 float get_top_dy(BATTLESHIP *battleship){
+    // Encontra o ponto da lateral superior da nave
     float dy = get_normalized_dy(battleship);
     int bsh = get_battleship_height(battleship->class);
     return dy - (bsh/2.0f);
 }
 
+
 float get_righ_dx(BATTLESHIP *battleship){
+    // Encontra o ponto da lateral direita da nave.
     float dx = get_normalized_dx(battleship);
     int bsw = get_battleship_width(battleship->class);
     return dx + (bsw/2.0f);
 }
 
+
 float get_bottom_dy(BATTLESHIP *battleship){
+    // Encontra o ponto da lateral inferior da nave.
     float dy = get_normalized_dy(battleship);
     int bsh = get_battleship_height(battleship->class);
     return dy + (bsh/2.0f);
 }
 
+
+
 void draw_debug(BATTLESHIP *battleship) {
+    // Desenha de debugs váriados.
     int bsh = get_battleship_height(battleship->class);
     int bsw = get_battleship_width(battleship->class);
 
@@ -428,17 +479,24 @@ void draw_debug(BATTLESHIP *battleship) {
 }
 
 void draw_target_lock(BATTLESHIP *battleship){
+    // Desenha a mira na nave.
 
+    // Cria uma margem de 4 pixels.
     int outer_margin = 4;
 
+    // Seta variáveis com tamanhao de altura e largura da nava.
     int bsw = get_battleship_width(battleship->class);
     int bsh = get_battleship_height(battleship->class);
 
+    // Define uma variável `stop` que pega a maior dimensão da nave,
+    // pra desenhar uma mira, quadrada, que englobe a nave por inteiro.
     int stop = (bsw > bsh) ? bsw : bsh;
 
     float dx = get_normalized_dx(battleship);
     float dy = get_normalized_dy(battleship);
 
+    // Popula quatro variaveis encarregadas dos pontos
+    // direiro, esquerdo, inferior e superior da mira.
     float ldx = dx - stop/2 - outer_margin;
     float tdy = dy - stop/2 - outer_margin;
     float rdx = dx + stop/2 + outer_margin;
@@ -448,9 +506,10 @@ void draw_target_lock(BATTLESHIP *battleship){
     float stop_x = (stop+2*outer_margin) / 6.0f;
     float stop_y = (stop+2*outer_margin) / 6.0f;
 
+    // Define a cor a ser desenhada.
     ALLEGRO_COLOR color = al_map_rgb(165,0,0);
 
-    // outer lines
+    // Linhas exteriores.
     al_draw_line(ldx + stop_x * 1, tdy + stop_y * 0,
                  rdx - stop_x * 1, tdy + stop_y * 0,
                  color,2);
@@ -467,7 +526,7 @@ void draw_target_lock(BATTLESHIP *battleship){
                  rdx - stop_x * 0, bdy - stop_y * 1,
                  color,2);
 
-    // middle lines
+    // Linhas intermediarias.
     al_draw_line(ldx + stop_x * 2, tdy + stop_y * 1,
                  rdx - stop_x * 2, tdy + stop_y * 1,
                  color,2);
@@ -484,7 +543,7 @@ void draw_target_lock(BATTLESHIP *battleship){
                  rdx - stop_x * 1, bdy - stop_y * 2,
                  color,2);
 
-    //cross lines
+    // Linhas cruzadas.
     al_draw_line(ldx + stop_x * 1, dy,
                  ldx + stop_x * 2, dy,
                  color,2);
@@ -501,7 +560,7 @@ void draw_target_lock(BATTLESHIP *battleship){
                  dx, bdy - stop_y * 1,
                  color,2);
 
-    // center dot
+    // Ponto central.
     al_draw_filled_rectangle(dx-2,dy-2,
                              dx+2,dy+2,
                              color);
@@ -515,24 +574,36 @@ void draw_ship(BATTLESHIP *battleship) {
     bool draw_ship = true;
 
     if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
+        // Define que no estado um Dois Jogadores, no lado do Cliente, as imagens das naves do Servidor serão ivertidas.
         flags = (battleship->owner == BATTLESHIP_OWNER_PLAYER)?ALLEGRO_FLIP_VERTICAL|ALLEGRO_FLIP_HORIZONTAL:0;
     } else {
+        // Define que no estado um Dois Jogadores ou Um Jogador, no lado do Servidor,
+        // as imagens das naves do Cliente serão ivertidas.
         flags = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)?ALLEGRO_FLIP_VERTICAL|ALLEGRO_FLIP_HORIZONTAL:0;
         if (PITTHAN_MODE && current_game_state == GAME_STATE_IN_GAME_SINGLE_PLAYER)
+            // Seta como falso todas as naves do Servidor.
             draw_ship = (battleship->owner != BATTLESHIP_OWNER_PLAYER);
     }
 
+    // Define como verdadeiro as spaceships, porém os mísseis do Servidor continuam em falso.
     if (PITTHAN_MODE && battleship->class == BATTLESHIP_CLASS_SPACESHIP) draw_ship = true;
 
+    // Enterrompe o print de naves se `draw_ship` for falso.
     if (!draw_ship) return;
 
+    // Desenha imagem das naves.
     al_draw_bitmap(battleship->bmp, get_left_dx(battleship), get_top_dy(battleship),flags);
 
-    if (DEBUG) draw_debug(battleship);
+    //if (DEBUG) draw_debug(battleship);
 
     if (battleship->exploding && battleship->explosion_frame >= 0) {
+        // Testa as condições apropriadas para ver se o desenho de explosão é necessário.
 
         float target_y;
+
+        // Se estiver no modo Dois Jogadores, no lado do Cliente, e for uma nave
+        // do Servidor `target_y` será o topo da spaceship do Cliente. Porém se for
+        // uma nave do Cliente `target_y` será o fundo da spaceship do Servidor.
         if (is_multiplayer_client())
             target_y = (battleship->owner == BATTLESHIP_OWNER_PLAYER)?
                        get_top_dy(client_mothership):get_bottom_dy(host_mothership);

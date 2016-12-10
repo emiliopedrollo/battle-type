@@ -305,7 +305,8 @@ void init_motherships() {
                                               0, 0, host_mothership->dx, game_level);
         }
     }
-
+    game_bs_host_limit = (int) get_bottom_dy(client_mothership);
+    game_bs_client_limit = (int) get_top_dy(host_mothership);
 }
 
 void on_explosion_end(BATTLESHIP_OWNER *owner) {
@@ -385,8 +386,6 @@ void update_game_ships_frame_count() {
 
 void move_game_ships() {
 
-    game_bs_host_limit = (int) get_bottom_dy(client_mothership);
-    game_bs_client_limit = (int) get_top_dy(host_mothership);
     bool kill_opponent = false;
     bool kill_player = false;
 
