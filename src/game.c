@@ -25,17 +25,17 @@
 #include "server.h"
 #include "buttons.h"
 
-BATTLESHIP *host_ships[NUMBER_OF_SHIPS_PER_PLAYER];
-BATTLESHIP *client_ships[NUMBER_OF_SHIPS_PER_PLAYER];
-BATTLESHIP *host_mothership;
-BATTLESHIP *client_mothership;
+BATTLESHIP *host_missiles[NUMBER_OF_SHIPS_PER_PLAYER];
+BATTLESHIP *client_missiles[NUMBER_OF_SHIPS_PER_PLAYER];
+BATTLESHIP *host_ship;
+BATTLESHIP *client_ship;
 Button purchase_buttons[2];
 
 char **dictionary;
 int dictionary_len;
 char host_target = -1, client_target = -1;
-int host_ship_count = 0;
-int client_ship_count = 0;
+int host_missile_count = 0;
+int client_missile_count = 0;
 int next_host_ship_spawn = 0;
 int next_client_ship_spawn = 0;
 char game_winner = -1;
@@ -76,27 +76,27 @@ int game_bs_client_limit;
 int word_pool_start_pos;
 int word_pool_end_pos;
 
-void init_motherships();
+void init_ships();
 
 void init_purchase_buttons();
 
-void update_game_ships_frame_count();
+void update_game_missiles_frame_count();
 
-void move_game_ships();
+void move_game_missiles_and_ships();
 
-void draw_game_ships();
+void draw_game_missiles_and_ships();
 
-void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class);
+void spawn_missile(BATTLESHIP_OWNER owner);
 
-void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battleship);
+void update_ship_or_missile(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battleship);
 
 char *get_word_from_pool(BATTLESHIP_OWNER owner);
 
-bool exist_ship_starting_with(char letter, BATTLESHIP_OWNER targets);
+bool exist_missile_starting_with(char letter, BATTLESHIP_OWNER targets);
 
-char get_index_of_ship_starting_with(char letter, BATTLESHIP_OWNER targets);
+char get_index_of_missile_starting_with(char letter, BATTLESHIP_OWNER targets);
 
-char get_index_from_closest_ship(BATTLESHIP_OWNER targets);
+char get_index_from_closest_missile(BATTLESHIP_OWNER targets);
 
 void update_word_pool(bool pump_word_index);
 
@@ -112,13 +112,13 @@ void draw_game_over();
 
 void start_level_change();
 
-void clear_ships();
+void clear_missiles();
 
 void on_new_level(short level);
 
 void on_char_typed(PLAYER player, char key);
 
-SERIAL_BATTLESHIP convert_battleship_to_serial(BATTLESHIP *battleship);
+SERIAL_BATTLESHIP convert_ship_or_missile_to_serial(BATTLESHIP *battleship);
 
 void update_snapshot_from_game();
 
@@ -137,9 +137,13 @@ void take_a_life(PLAYER player);
 void end_game();
 
 long get_last_game_score() {
-    long score = rank_score;
+    // Retorna a pontuação do ultimo
+    return rank_score;
+}
+
+void reset_last_game_score() {
+    // Redefine para -1 a pontuação do último jogo
     rank_score = -1;
-    return score;
 }
 
 void load_resources_game() {
@@ -148,37 +152,49 @@ void load_resources_game() {
     FILE *dictionary_file = fopen("dictionary", "r");
 
     if (dictionary_file == NULL) {
+        // Exibe mensagem de erro em `stderr` e encerra a execução do
+        // jogo caso não consiga
         fprintf(stderr, "Could not found dictionary file!");
         al_show_native_message_box(display, "Error", "File missing",
                                    "Could not found dictionary file!", NULL, ALLEGRO_MESSAGEBOX_ERROR);
         exit(EXIT_FAILURE);
     }
 
+    // Tamanho inicial para a array de palavras utilizadas no jogo (aka `dictionary`)
     int dic_size = 1000;
+
+    // Variavel auxiliar utilizada na remoção do char \n ao final de cada leitura de linha
     char *pos;
 
-    // aloca espaço para 1000 ponteiros de char em memória
+    // Aloca espaço para 1000 ponteiros de char em memória
     dictionary = malloc(sizeof(char *) * dic_size);
 
+    // Variavel `len` com valor 0 indica a função getline a ir até o final de linha/arquivo
     size_t len = 0;
 
+    // Quantidade inicial de palavras em `dictionary`
     dictionary_len = 0;
-    while (((dictionary[dictionary_len] = NULL), // A cada iteração inicializa como NULL o endereço para a próxima palavra
-            (getline(&dictionary[dictionary_len], &len, dictionary_file))) !=
-           -1) { // Lê uma linha inteira do arquivo e armazena em dictionary
+
+    // A cada iteração inicializa com NULL o endereço para a próxima palavra, lê
+    // uma linha inteira do arquivo e armazena em seu novo indicie em `dictionary`
+    while (((dictionary[dictionary_len] = NULL),
+            (getline(&dictionary[dictionary_len], &len, dictionary_file))) != -1) {
 
         // Se posição (pos) de \n na palavra recem-lida for diferente de NULL, sobrescreve com \0
         if ((pos = strchr(dictionary[dictionary_len], '\n')) != NULL) *pos = '\0';
 
-        // Se o numero de palavras lidas alcançou o numero de espaços no vetor dictionary, duplica-se o seu valor
+        // Se o numero de palavras lidas alcançou o limite de posições no vetor `dictionary`,
+        // duplica-se o seu valor
         if (dictionary_len++ >= dic_size) {
             dic_size *= 2;
             dictionary = realloc(dictionary, sizeof(char *) * dic_size);
         }
     }
 
-    // Fecha o arquivo "dictionary"
+    // Fecha o arquivo `dictionary`
     fclose(dictionary_file);
+
+    // Carrega cada um dos 16 bitmaps dos frames utilizados nas explosões
 
     ALLEGRO_FILE *explosion_1 = al_open_memfile(img_1_png, img_1_png_len, "r");
     load_bitmap(&rsc_explosion[0], &explosion_1, ".png");
@@ -230,18 +246,23 @@ void load_resources_game() {
 }
 
 void unload_resources_game() {
+    // Libera memória utilizada para o `dictionary`
     for (int i = 0; i < dictionary_len; i++) {
         free(dictionary[i]);
     }
     free(dictionary);
 
+    // Libera da memória os bitmaps dos frames de explosões
     for (int i = 0; i < 16; i++) {
         al_destroy_bitmap(rsc_explosion[i]);
     }
 }
 
 void init_game() {
+    // (Re)define o estado de fluxo de jogo como rodando
     current_game_flow_state = GAME_FLOW_STATE_RUNNING;
+
+    // (Re)define veriaveis de controle de jogo
     need_to_show_purchase_life = false;
     draw_explosions_on_game_end = true;
     received_first_snapshot = false;
@@ -257,71 +278,98 @@ void init_game() {
     player_lives = 1;
     opponent_lives = 1;
     word_pool_index = 0;
+
+    // Inicializa botões de escolha de compra de vida
     init_purchase_buttons();
-    init_motherships();
-    clear_ships();
+
+    // Inicializa naves
+    init_ships();
+
+    // Redefine todos os espaços de missies, removendo-os do jogo
+    clear_missiles();
+
+    // Define variáveis de controle de nivel de jogo para o nivel 1
     on_new_level(1);
 }
 
 void init_purchase_buttons() {
+    // Inicializa botões de escolha de compra (ou não) de vida
     purchase_buttons[0] = init_button(main_font_size_45, "&Sim", (DISPLAY_W / 4) + 25, DISPLAY_H / 2 + 100, 180);
     purchase_buttons[1] = init_button(main_font_size_45, "&Nao", (DISPLAY_W / 4) * 3 - 25, DISPLAY_H / 2 + 100, 180);
 }
 
-void clear_ships() {
+void clear_missiles() {
+    // Cada missil inicializado é marcado como inativo
     for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
-        if (host_ships[i]) {
-            host_ships[i]->active = false;
+        if (host_missiles[i]) {
+            host_missiles[i]->active = false;
         }
-        if (client_ships[i]) {
-            client_ships[i]->active = false;
+        if (client_missiles[i]) {
+            client_missiles[i]->active = false;
         }
     }
-    client_ship_count = 0;
-    host_ship_count = 0;
+
+    // (Re)define a contagem de misseis para cada lado do jogo
+    client_missile_count = 0;
+    host_missile_count = 0;
+
+    // (Re)define o alvo selecionado em cada lado do jogo para nada
     host_target = -1;
     client_target = -1;
 }
 
-void init_motherships() {
+void init_ships() {
 
+    // Tamanho em pixels da imagem da nave utilizada no jogo
     int ship_height = get_battleship_height(BATTLESHIP_CLASS_SPACESHIP);
 
-    host_mothership = init_battleship(BATTLESHIP_CLASS_SPACESHIP,
-                                      BATTLESHIP_OWNER_PLAYER, DISPLAY_W / 2, DISPLAY_H - ship_height, 0, game_level);
+    // (Re)define as propriedades da nave do jogador
+    host_ship = init_battleship(BATTLESHIP_CLASS_SPACESHIP,
+                                BATTLESHIP_OWNER_PLAYER, DISPLAY_W / 2, DISPLAY_H - ship_height, 0, 1);
 
-    client_mothership = init_battleship(BATTLESHIP_CLASS_SPACESHIP,
-                                        BATTLESHIP_OWNER_OPPONENT, DISPLAY_W / 2, ship_height, 0, game_level);
+    // (Re)define as propriedades da nave do adversário (ou da CPU)
+    client_ship = init_battleship(BATTLESHIP_CLASS_SPACESHIP,
+                                  BATTLESHIP_OWNER_OPPONENT, DISPLAY_W / 2, ship_height, 0, 1);
 
+    // (Re)define o tipo de movimento das naves para "in_game"
+    change_battleship_state(host_ship, BATTLESHIP_MOVE_STATE_IN_GAME);
+    change_battleship_state(client_ship, BATTLESHIP_MOVE_STATE_IN_GAME);
 
-    change_battleship_state(host_mothership, BATTLESHIP_MOVE_STATE_IN_GAME);
-    change_battleship_state(client_mothership, BATTLESHIP_MOVE_STATE_IN_GAME);
-
+    // Se for jogador cliente de rede inicializa por padão todas os espaços
+    // para misseis para evitar problemas no futuro
     if (is_multiplayer_client()) {
         for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
-            host_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE, BATTLESHIP_OWNER_PLAYER,
-                                            0, 0, client_mothership->dx, game_level);
-            client_ships[i] = init_battleship(BATTLESHIP_CLASS_MISSILE, BATTLESHIP_OWNER_OPPONENT,
-                                              0, 0, host_mothership->dx, game_level);
+            host_missiles[i] = init_battleship(BATTLESHIP_CLASS_MISSILE, BATTLESHIP_OWNER_PLAYER,
+                                               0, 0, client_ship->dx, 1);
+            client_missiles[i] = init_battleship(BATTLESHIP_CLASS_MISSILE, BATTLESHIP_OWNER_OPPONENT,
+                                                 0, 0, host_ship->dx, 1);
         }
     }
+
+    // Define limites de deslocamento dos misseis, aonde eles explodem
+    game_bs_host_limit = (int) get_bottom_dy(client_ship);
+    game_bs_client_limit = (int) get_top_dy(host_ship);
 
 }
 
 void on_explosion_end(BATTLESHIP_OWNER *owner) {
 
+    // Decrementa o contador de misseis em jogo
     if (*owner == BATTLESHIP_OWNER_OPPONENT) {
-        client_ship_count--;
+        client_missile_count--;
     } else {
-        host_ship_count--;
+        host_missile_count--;
     }
 
     if (is_single_player()) {
+        // Se estiver rodando em single player, não faltarem naves para serem
+        // carregadas neste nivel e não houverem mais naves em jogo então muda de nivel
         if ((remaining_words_to_next_level <= 0) &&
-            (client_ship_count == 0) && (host_ship_count == 0)) {
+            (client_missile_count == 0) && (host_missile_count == 0)) {
             start_level_change();
         }
     } else {
+        // Em modo multiplayer a transação de nivel não exige que não haja mais naves na tela
         if (remaining_words_to_next_level <= 0) {
             start_level_change();
         }
@@ -329,73 +377,87 @@ void on_explosion_end(BATTLESHIP_OWNER *owner) {
 
 }
 
-void spawn_ship(BATTLESHIP_OWNER owner, BATTLESHIP_CLASS class) {
+void spawn_missile(BATTLESHIP_OWNER owner) {
+    // Este método inicializa um missil logo abaixo da nava que o está disparando
 
-    if (PITTHAN_MODE && (owner == BATTLESHIP_OWNER_PLAYER) &&
-        (current_game_state == GAME_STATE_IN_GAME_SINGLE_PLAYER))
-        return;
+    // Quando `PITTHAN_MODE` estiver ativo e o jogo estiver em modo single player
+    // então o jogador não disparaŕa missies
+    if (PITTHAN_MODE && (owner == BATTLESHIP_OWNER_PLAYER) && is_single_player()) return;
 
-    int ship_count = (owner == BATTLESHIP_OWNER_PLAYER) ? host_ship_count : client_ship_count;
+    // Variavel com contagem de misseis em jogo do jogador que está disparando missel
+    int missile_count = (owner == BATTLESHIP_OWNER_PLAYER) ? host_missile_count : client_missile_count;
 
-    if (ship_count >= NUMBER_OF_SHIPS_PER_PLAYER) return;
+    // Caso o numero de missies do jogador/adversário tenha em tela estiver alcançado
+    // a quantidade máxima este método não faz nada
+    if (missile_count >= NUMBER_OF_SHIPS_PER_PLAYER) return;
 
+    // Decramenta o numero de palavras restantes para terminar o nivel e caso não
+    // faltem palavras a serem carregadas no atual nivel de jogo então este método é finalizado
     if (remaining_words_to_next_level-- <= 0) return;
 
-    float dx = (owner == BATTLESHIP_OWNER_OPPONENT) ? client_mothership->dx : host_mothership->dx;
-    float dy = (owner == BATTLESHIP_OWNER_OPPONENT) ? client_mothership->dy : host_mothership->dy;
-    float x = (owner == BATTLESHIP_OWNER_OPPONENT) ? host_mothership->dx : client_mothership->dx;
+    // Variaveis de posicionamento inicial para o missil
+    float dx = (owner == BATTLESHIP_OWNER_OPPONENT) ? client_ship->dx : host_ship->dx;
+    float dy = (owner == BATTLESHIP_OWNER_OPPONENT) ? client_ship->dy : host_ship->dy;
 
+    // Variavel da posição lateral do alvo do missil
+    float x = (owner == BATTLESHIP_OWNER_OPPONENT) ? host_ship->dx : client_ship->dx;
 
-    BATTLESHIP *battleship = init_battleship(class, owner, dx, dy, x, game_level);
+    // Inicializa o missil
+    BATTLESHIP *missile = init_battleship(BATTLESHIP_CLASS_MISSILE, owner, dx, dy, x, game_level);
 
-    battleship->on_explosion_end = on_explosion_end;
+    // Define callback para ser executado depois que acabar a animação de explosão do missil
+    missile->on_explosion_end = on_explosion_end;
 
-    change_battleship_state(battleship, BATTLESHIP_MOVE_STATE_IN_GAME);
-    battleship->word = get_word_from_pool(owner);
+    // Define o estado de movimento do missil para "in_game"
+    change_battleship_state(missile, BATTLESHIP_MOVE_STATE_IN_GAME);
 
+    // Carrega uma palavra do pool de palavras para o missil
+    missile->word = get_word_from_pool(owner);
+
+    // Encontra uma entrada vaga na array de misseis do jogador correto e aloca o
+    // novo missil nesta posição
     for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
         if (owner == BATTLESHIP_OWNER_PLAYER) {
-            if (!host_ships[i] || !host_ships[i]->active) {
-                host_ships[i] = battleship;
-                host_ship_count++;
+            if (!host_missiles[i] || !host_missiles[i]->active) {
+                host_missiles[i] = missile;
+                host_missile_count++;
                 break;
             }
         } else {
-            if (!client_ships[i] || !client_ships[i]->active) {
-                client_ships[i] = battleship;
-                client_ship_count++;
+            if (!client_missiles[i] || !client_missiles[i]->active) {
+                client_missiles[i] = missile;
+                client_missile_count++;
                 break;
             }
         }
     }
 }
 
-void update_game_ships_frame_count() {
+void update_game_missiles_frame_count() {
+    // Atualiza o contador de frames da explosão de cada
+    // um dos misseis em jogo
     for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
-        if (host_ships[i] && host_ships[i]->active) {
-            update_ship_frame_count(host_ships[i]);
+        if (host_missiles[i] && host_missiles[i]->active) {
+            update_ship_frame_count(host_missiles[i]);
         }
-    }
-    for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
-        if (client_ships[i] && client_ships[i]->active) {
-            update_ship_frame_count(client_ships[i]);
+        if (client_missiles[i] && client_missiles[i]->active) {
+            update_ship_frame_count(client_missiles[i]);
         }
     }
 }
 
-void move_game_ships() {
+void move_game_missiles_and_ships() {
 
-    game_bs_host_limit = (int) get_bottom_dy(client_mothership);
-    game_bs_client_limit = (int) get_top_dy(host_mothership);
     bool kill_opponent = false;
     bool kill_player = false;
 
-    //Move os battleships do host
-    move_ship(host_mothership, 0);
+    //Move os misseis do jogador
+    move_ship(host_ship, 0);
     for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
-        if (host_ships[i] && host_ships[i]->active) {
-            update_ship_frame_count(host_ships[i]);
-            kill_opponent = move_ship(host_ships[i], client_mothership->dx) || kill_opponent;
+        if (host_missiles[i] && host_missiles[i]->active) {
+            // Se o missil atinge o limite de deslocamento vertical (retorno
+            // true) então mata o oponente
+            kill_opponent = move_ship(host_missiles[i], client_ship->dx) || kill_opponent;
         }
     }
 
@@ -403,12 +465,13 @@ void move_game_ships() {
         take_a_life(PLAYER_CLIENT);
     }
 
-    //Move os battleships do client
-    move_ship(client_mothership, 0);
+    //Move os misseis do oponente
+    move_ship(client_ship, 0);
     for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
-        if (client_ships[i] && client_ships[i]->active) {
-            update_ship_frame_count(client_ships[i]);
-            kill_player = move_ship(client_ships[i], host_mothership->dx) || kill_player;
+        if (client_missiles[i] && client_missiles[i]->active) {
+            // Se o missil atinge o limite de deslocamento vertical (retorno
+            // true) então mata o jogador
+            kill_player = move_ship(client_missiles[i], host_ship->dx) || kill_player;
         }
     }
 
@@ -419,82 +482,98 @@ void move_game_ships() {
 
 void take_a_life(PLAYER player) {
     if (player == PLAYER_CLIENT) {
+        // Se o jogador que perdeu uma vida for o cliente de uma jogo
+        // multiplayer e ele ficar sem vidas então o host é definido como vencedor
         if (--opponent_lives <= 0) game_winner = GAME_WINNER_PLAYER;
     } else {
         if (--player_lives <= 0) {
             if (is_multiplayer()) {
+                // Se estiver em modo multiplayer quem ganha é o adversário
+                // se o host ficar sem vidas
                 game_winner = GAME_WINNER_OPPONENT;
             } else if (player_score < life_price_for_player) {
+                // Se for single player e o jogador não tiver pontos para comprar
+                // nova vida então ele perde o jogo (o oponente CPU ganha)
                 game_winner = GAME_WINNER_OPPONENT;
             } else {
+                // Define flag para mostrar tela de compra de vida
                 need_to_show_purchase_life = true;
             }
         }
     }
 
+    // Se alguem ganhou (ou perdeu) o jogo muda de estado de fluxo
     if (game_winner != -1) {
         current_game_flow_state = GAME_FLOW_STATE_ENDING;
     }
 }
 
-void draw_game_ships() {
+void draw_game_missiles_and_ships() {
+    // Desenha cada uma dos misseis do jogo, alternando a ordem de desenho
+    // dependendo do jogador (cliente em jogo multiplayer ou não)
     for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
         if (is_multiplayer_client()) {
-            if (client_ships[i] && client_ships[i]->active) draw_ship(client_ships[i]);
-            if (host_ships[i] && host_ships[i]->active) {
-                draw_ship(host_ships[i]);
+            if (client_missiles[i] && client_missiles[i]->active) draw_ship(client_missiles[i]);
+            if (host_missiles[i] && host_missiles[i]->active) {
+                draw_ship(host_missiles[i]);
                 if (!is_game_paused())
-                    draw_ship_word(host_ships[i], false);
+                    draw_ship_word(host_missiles[i], false);
             }
         } else {
-            if (host_ships[i] && host_ships[i]->active) draw_ship(host_ships[i]);
-            if (client_ships[i] && client_ships[i]->active) {
-                draw_ship(client_ships[i]);
+            if (host_missiles[i] && host_missiles[i]->active) draw_ship(host_missiles[i]);
+            if (client_missiles[i] && client_missiles[i]->active) {
+                draw_ship(client_missiles[i]);
                 if (!is_game_paused())
-                    draw_ship_word(client_ships[i], false);
+                    draw_ship_word(client_missiles[i], false);
             }
         }
     }
 
+    // Desenha o alvo no missil adequado e redesenha a palavra
+    // correspondente em cor diferente
     switch (current_game_state) {
         case GAME_STATE_IN_GAME_SINGLE_PLAYER:
         case GAME_STATE_IN_GAME_MULTIPLAYER_HOST:
-            if (host_target != -1 && client_ships[host_target] &&
-                client_ships[host_target]->active) {
-                draw_target_lock(client_ships[host_target]);
+            if (host_target != -1 && client_missiles[host_target] &&
+                client_missiles[host_target]->active) {
+                draw_target_lock(client_missiles[host_target]);
                 if (!is_game_paused())
-                    draw_ship_word(client_ships[host_target], true);
+                    draw_ship_word(client_missiles[host_target], true);
             }
             break;
         case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
-            if (client_target != -1 && host_ships[client_target] &&
-                host_ships[client_target]->active) {
-                draw_target_lock(host_ships[client_target]);
+            if (client_target != -1 && host_missiles[client_target] &&
+                host_missiles[client_target]->active) {
+                draw_target_lock(host_missiles[client_target]);
                 if (!is_game_paused())
-                    draw_ship_word(host_ships[client_target], true);
+                    draw_ship_word(host_missiles[client_target], true);
             }
             break;
         default:
             break;
     }
 
-    draw_ship(host_mothership);
-    draw_ship(client_mothership);
+    // Desenha as naves
+    draw_ship(host_ship);
+    draw_ship(client_ship);
+
 
     for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
-        if (client_ships[i] && client_ships[i]->active && client_ships[i]->exploding &&
-            !client_ships[i]->exploding_with_lasers)
-            draw_ship(client_ships[i]);
-        if (host_ships[i] && host_ships[i]->active && host_ships[i]->exploding &&
-            !host_ships[i]->exploding_with_lasers)
-            draw_ship(host_ships[i]);
+        if (client_missiles[i] && client_missiles[i]->active && client_missiles[i]->exploding &&
+            !client_missiles[i]->exploding_with_lasers)
+            draw_ship(client_missiles[i]);
+        if (host_missiles[i] && host_missiles[i]->active && host_missiles[i]->exploding &&
+            !host_missiles[i]->exploding_with_lasers)
+            draw_ship(host_missiles[i]);
     }
 }
 
 void update_game_from_snapshot() {
+    // Carrega estado de jogo recebido via rede
+
     for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
-        update_battleship(host_ships[i], game.host_ships[i]);
-        update_battleship(client_ships[i], game.client_ships[i]);
+        update_ship_or_missile(host_missiles[i], game.host_ships[i]);
+        update_ship_or_missile(client_missiles[i], game.client_ships[i]);
     }
     host_target = game.host_target;
     client_target = game.client_target;
@@ -510,11 +589,13 @@ void update_game_from_snapshot() {
         current_game_flow_state = GAME_FLOW_STATE_ENDING;
     }
 
-    host_mothership->dx = game.host_ship_dx;
-    client_mothership->dx = game.client_ship_dx;
+    host_ship->dx = game.host_ship_dx;
+    client_ship->dx = game.client_ship_dx;
 }
 
-void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battleship) {
+void update_ship_or_missile(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battleship) {
+    // Atualiza propriedades de um missil/nave com as propriedades recebidas via rede
+
     if (serial_battleship.active) {
         if (!battleship)
             battleship = init_battleship(serial_battleship.class,
@@ -542,7 +623,9 @@ void update_battleship(BATTLESHIP *battleship, SERIAL_BATTLESHIP serial_battlesh
 
 }
 
-SERIAL_BATTLESHIP convert_battleship_to_serial(BATTLESHIP *battleship) {
+SERIAL_BATTLESHIP convert_ship_or_missile_to_serial(BATTLESHIP *battleship) {
+    // Prepara propriedades de um missil/nave para serem enviados via rede
+
     SERIAL_BATTLESHIP serial;
     serial.owner = battleship->owner;
     serial.active = battleship->active;
@@ -557,13 +640,15 @@ SERIAL_BATTLESHIP convert_battleship_to_serial(BATTLESHIP *battleship) {
 }
 
 void update_snapshot_from_game() {
+    // Prepara estado do jogo para ser enviado pela rede
+
     for (int i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
-        if (host_ships[i] && host_ships[i]->active) {
-            game.host_ships[i] = convert_battleship_to_serial(host_ships[i]);
+        if (host_missiles[i] && host_missiles[i]->active) {
+            game.host_ships[i] = convert_ship_or_missile_to_serial(host_missiles[i]);
         } else game.host_ships[i].active = false;
 
-        if (client_ships[i] && client_ships[i]->active) {
-            game.client_ships[i] = convert_battleship_to_serial(client_ships[i]);
+        if (client_missiles[i] && client_missiles[i]->active) {
+            game.client_ships[i] = convert_ship_or_missile_to_serial(client_missiles[i]);
         } else game.client_ships[i].active = false;
     }
     game.host_target = host_target;
@@ -578,11 +663,14 @@ void update_snapshot_from_game() {
     game.game_winner = game_winner;
     game.is_game_ending = is_game_ending();
 
-    game.host_ship_dx = (unsigned short) host_mothership->dx;
-    game.client_ship_dx = (unsigned short) client_mothership->dx;
+    game.host_ship_dx = (unsigned short) host_ship->dx;
+    game.client_ship_dx = (unsigned short) client_ship->dx;
 }
 
 void update_word_pool(bool pump_word_index) {
+    // Atualiza intervalo de posições de palavras que podem ser
+    // escolhidas do `dictionary`
+
     int r1 = (rand() % 50) - 20;
     int r2 = (rand() % MAXIMUM_WORD_POOL_SIZE) + MINIMUM_WORD_POOL_SIZE;
 
@@ -601,16 +689,20 @@ void update_word_pool(bool pump_word_index) {
         word_pool_index++;
 }
 
-bool exist_ship_starting_with(char letter, BATTLESHIP_OWNER targets) {
-    return (get_index_of_ship_starting_with(letter, targets) != -1);
+bool exist_missile_starting_with(char letter, BATTLESHIP_OWNER targets) {
+    // Retorna true se existe um missil começando com um determinado caractere
+    // entre os misseis de um determinado jogador
+    return (get_index_of_missile_starting_with(letter, targets) != -1);
 }
 
-char get_index_of_ship_starting_with(char letter, BATTLESHIP_OWNER targets) {
+char get_index_of_missile_starting_with(char letter, BATTLESHIP_OWNER targets) {
+    // Retorna o indicie do mais pŕoximo missil começando com um determinado
+    // caractere entre os misseis de um determinado jogador
     BATTLESHIP *ship;
     char index = -1;
 
     for (char i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
-        ship = (targets == BATTLESHIP_OWNER_OPPONENT) ? client_ships[i] : host_ships[i];
+        ship = (targets == BATTLESHIP_OWNER_OPPONENT) ? client_missiles[i] : host_missiles[i];
         if (!ship || !ship->active || !ship->word) continue;
         if (get_next_letter_from_battleship(ship) == letter) {
             if (index == -1) {
@@ -618,10 +710,10 @@ char get_index_of_ship_starting_with(char letter, BATTLESHIP_OWNER targets) {
             } else {
                 if (targets == BATTLESHIP_OWNER_OPPONENT) {
                     // maior Y | mais abaixo
-                    index = (client_ships[i]->dy > client_ships[index]->dy) ? i : index;
+                    index = (client_missiles[i]->dy > client_missiles[index]->dy) ? i : index;
                 } else {
                     // menor Y | mais acima
-                    index = (host_ships[i]->dy < host_ships[index]->dy) ? i : index;
+                    index = (host_missiles[i]->dy < host_missiles[index]->dy) ? i : index;
                 }
             }
         };
@@ -629,22 +721,24 @@ char get_index_of_ship_starting_with(char letter, BATTLESHIP_OWNER targets) {
     return index;
 }
 
-char get_index_from_closest_ship(BATTLESHIP_OWNER targets) {
+char get_index_from_closest_missile(BATTLESHIP_OWNER targets) {
+    // Retorna o indicie do missil mais pŕoximo de um determinado jogador
+
     BATTLESHIP *ship;
     char index = -1;
 
     for (char i = 0; i < NUMBER_OF_SHIPS_PER_PLAYER; i++) {
-        ship = (targets == BATTLESHIP_OWNER_OPPONENT) ? client_ships[i] : host_ships[i];
+        ship = (targets == BATTLESHIP_OWNER_OPPONENT) ? client_missiles[i] : host_missiles[i];
         if (!ship || !ship->active || !ship->word) continue;
         if (index == -1) {
             index = i;
         } else {
             if (targets == BATTLESHIP_OWNER_OPPONENT) {
                 // maior Y | mais abaixo
-                index = (client_ships[i]->dy > client_ships[index]->dy) ? i : index;
+                index = (client_missiles[i]->dy > client_missiles[index]->dy) ? i : index;
             } else {
                 // menor Y | mais acima
-                index = (host_ships[i]->dy < host_ships[index]->dy) ? i : index;
+                index = (host_missiles[i]->dy < host_missiles[index]->dy) ? i : index;
             }
         }
     }
@@ -652,6 +746,7 @@ char get_index_from_closest_ship(BATTLESHIP_OWNER targets) {
 }
 
 char *get_word_from_pool(BATTLESHIP_OWNER owner) {
+    // Pega uma palavra aleatoria entre os limites do pool do `dictionary`
     int pool_size = word_pool_end_pos - word_pool_start_pos;
     char *word = malloc(strlen(dictionary[dictionary_len]) + 1);
     int tries = 0;
@@ -659,13 +754,13 @@ char *get_word_from_pool(BATTLESHIP_OWNER owner) {
     do {
         strcpy(word, dictionary[word_pool_start_pos + (rand() % (pool_size + 1))]);
         if (tries++ % 5 == 0) update_word_pool(false);
-    } while (exist_ship_starting_with(get_next_ascii_char(word), owner) && (tries < 50));
+    } while (exist_missile_starting_with(get_next_ascii_char(word), owner) && (tries < 50));
 
     return word;
 }
 
 void on_key_press_game(ALLEGRO_KEYBOARD_EVENT event) {
-
+    // Processa evento do teclado
 
     switch (event.keycode) {
         case ALLEGRO_KEY_ESCAPE:
@@ -709,7 +804,7 @@ void on_key_press_game(ALLEGRO_KEYBOARD_EVENT event) {
 }
 
 void process_key_press(int keycode, PLAYER player) {
-
+    // Normaliza o char pressionado pelo jogador e o envia para processamento
     char key;
 
     switch (keycode) {
@@ -804,6 +899,8 @@ void process_key_press(int keycode, PLAYER player) {
 }
 
 void on_char_typed(PLAYER player, char key) {
+    // Processa o pressionar de uma letra por um determinado jogador
+
     if (is_game_ending()) return;
     BATTLESHIP *battleship = NULL;
     if (key != 0) {
@@ -812,18 +909,18 @@ void on_char_typed(PLAYER player, char key) {
             case PLAYER_SINGLE:
             case PLAYER_HOST:
                 if (host_target == -1) {
-                    host_target = get_index_of_ship_starting_with(key, BATTLESHIP_OWNER_OPPONENT);
+                    host_target = get_index_of_missile_starting_with(key, BATTLESHIP_OWNER_OPPONENT);
                 }
                 if (host_target != -1) {
-                    battleship = client_ships[host_target];
+                    battleship = client_missiles[host_target];
                 }
                 break;
             case PLAYER_CLIENT:
                 if (client_target == -1) {
-                    client_target = get_index_of_ship_starting_with(key, BATTLESHIP_OWNER_PLAYER);
+                    client_target = get_index_of_missile_starting_with(key, BATTLESHIP_OWNER_PLAYER);
                 }
                 if (client_target != -1) {
-                    battleship = host_ships[client_target];
+                    battleship = host_missiles[client_target];
                 }
             default:
                 break;
@@ -858,6 +955,7 @@ void on_char_typed(PLAYER player, char key) {
 }
 
 bool purchase_life(PLAYER player) {
+    // Compra uma vida para um determinado jogador
 
     if (player == PLAYER_CLIENT) {
         if (opponent_score >= life_price_for_opponent) {
@@ -877,6 +975,7 @@ bool purchase_life(PLAYER player) {
 }
 
 void try_auto_purchase_life(PLAYER player) {
+    // Dependendo das condições de jogo compra-se uma vida automaticamente
 
     if (player == PLAYER_CLIENT) {
         if (is_multiplayer() || (is_single_player() && opponent_score > player_score))
@@ -888,6 +987,8 @@ void try_auto_purchase_life(PLAYER player) {
 }
 
 void update_score(PLAYER player, bool up) {
+    // Atualiza a pontuação do(s) jogador(es)
+
     if (up) {
         if (player == PLAYER_CLIENT) {
             opponent_score += (game_level * 10) + consecutive_right_key_opponent++;
@@ -910,23 +1011,30 @@ void update_score(PLAYER player, bool up) {
 }
 
 bool is_single_player() {
+    // Retorna true se o jogo estiver executando em modo single player
     return current_game_state == GAME_STATE_IN_GAME_SINGLE_PLAYER;
 }
 
 bool is_multiplayer_host() {
+    // Retorna true se o jogo estiver executando em modo
+    // multiplayer e o jogador for o host
     return current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_HOST;
 }
 
 bool is_multiplayer_client() {
+    // Retorna true se o jogo estiver executando em modo
+    // multiplayer e o jogador for o client
     return current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT;
 }
 
 bool is_multiplayer() {
+    // Retorna true se o jogo estiver executando em modo multiplayer
     return (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_HOST) ||
            (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT);
 }
 
 bool is_game_paused() {
+    // Retorna true se o estado de fluxo do jogo for pause
     if (is_game_ending()) {
         return false;
     } else
@@ -934,10 +1042,13 @@ bool is_game_paused() {
 }
 
 bool is_game_ending() {
+    // Retorna true se o estado de fluxo do jogo indicar que o jogo está terminado
     return current_game_flow_state == GAME_FLOW_STATE_ENDING;
 }
 
 void on_mouse_move_game(int x, int y) {
+    // Processa movimento do mouse (para o pressionar dos botões
+    // da escolha de compra de vida)
 
     if (current_game_flow_state == GAME_FLOW_STATE_PURCHASING_LIFE) {
         bool is_over_button = false;
@@ -967,6 +1078,8 @@ void on_mouse_move_game(int x, int y) {
 }
 
 void on_button_click_game(int i) {
+    // Processa clique de um botão, para determinar se
+    // compra-se ou não uma vida par ao jogador
     if (i == BTN_PURCHASE_YES) {
         if (purchase_life(PLAYER_SINGLE)) {
             on_new_level(game_level);
@@ -985,6 +1098,8 @@ void on_button_click_game(int i) {
 }
 
 void on_mouse_down_game(int x, int y) {
+    // Processa clique do mouse (para o pressionar dos botões
+    // da escolha de compra de vida)
     int total_buttons = sizeof(purchase_buttons) / sizeof(purchase_buttons[0]);
     for (int i = 0; i < total_buttons; i++) {
         if (purchase_buttons[i].visible && is_coordinate_inside_button(purchase_buttons[i], x, y)) {
@@ -997,6 +1112,8 @@ void on_mouse_down_game(int x, int y) {
 }
 
 void on_mouse_up_game(int x, int y) {
+    // Processa clique do mouse (para o pressionar dos botões
+    // da escolha de compra de vida)
     int total_buttons = sizeof(purchase_buttons) / sizeof(purchase_buttons[0]);
     for (int i = 0; i < total_buttons; i++) {
         if (purchase_buttons[i].visible && purchase_buttons[i].state == BUTTON_STATE_ACTIVE) {
@@ -1018,6 +1135,10 @@ void on_mouse_up_game(int x, int y) {
 void on_timer_game() {
 
     if (current_game_flow_state == GAME_FLOW_STATE_PURCHASING_LIFE) {
+        // Se o jogo está esperando uma resposta para a
+        // compra de vida (ou não) pelo jogador, mas ele ja escolheu pressionando
+        // uma tecla de atalho, executa o clique naquele botão automaticamente
+
         int static frame_count = 0;
 
         if (shortcut_key_pressed_game == -1) return;
@@ -1040,6 +1161,7 @@ void on_timer_game() {
         }
 
     } else if (current_game_flow_state == GAME_FLOW_STATE_RUNNING) {
+        // Dependendo das condições de jogo executa a IA do oponente
 
         if (is_multiplayer() || is_game_ending() || PITTHAN_MODE) return;
 
@@ -1057,12 +1179,12 @@ void on_timer_game() {
         frame_count = 0;
 
         if (client_target == -1 && retarget_action_cont-- <= 0) {
-            client_target = get_index_from_closest_ship(BATTLESHIP_OWNER_PLAYER);
+            client_target = get_index_from_closest_missile(BATTLESHIP_OWNER_PLAYER);
             retarget_action_cont = game_level / 3 - 1;
         }
 
         if (client_target != -1) {
-            on_char_typed(PLAYER_CLIENT, get_next_letter_from_battleship(host_ships[client_target]));
+            on_char_typed(PLAYER_CLIENT, get_next_letter_from_battleship(host_missiles[client_target]));
         }
 
     }
@@ -1071,6 +1193,8 @@ void on_timer_game() {
 }
 
 void draw_pause_overlay() {
+    // Desenha o overlay da tela de pause
+
     al_draw_filled_rectangle(0, 0, DISPLAY_W, DISPLAY_H, al_map_rgba(20, 20, 20, 100));
 
 
@@ -1087,18 +1211,19 @@ void draw_pause_overlay() {
 }
 
 void draw_explosions() {
+    // Desenha as explosões sobre uma das naves
 
     float dx, dy;
 
     if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_HOST ||
         current_game_state == GAME_STATE_IN_GAME_SINGLE_PLAYER) {
-        dx = (game_winner == GAME_WINNER_OPPONENT) ? host_mothership->dx : client_mothership->dx;
-        dy = (game_winner == GAME_WINNER_OPPONENT) ? host_mothership->dy : client_mothership->dy;
+        dx = (game_winner == GAME_WINNER_OPPONENT) ? host_ship->dx : client_ship->dx;
+        dy = (game_winner == GAME_WINNER_OPPONENT) ? host_ship->dy : client_ship->dy;
     } else if (current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
-        dx = (game_winner == GAME_WINNER_OPPONENT) ? DISPLAY_W - host_mothership->dx : DISPLAY_W -
-                                                                                       client_mothership->dx;
-        dy = (game_winner == GAME_WINNER_OPPONENT) ? DISPLAY_H - host_mothership->dy : DISPLAY_H -
-                                                                                       client_mothership->dy;
+        dx = (game_winner == GAME_WINNER_OPPONENT) ? DISPLAY_W - host_ship->dx : DISPLAY_W -
+                                                                                 client_ship->dx;
+        dy = (game_winner == GAME_WINNER_OPPONENT) ? DISPLAY_H - host_ship->dy : DISPLAY_H -
+                                                                                 client_ship->dy;
     } else return;
 
     static int i = 0, j = 2, k = 4, l = 6, cont = 0;
@@ -1138,32 +1263,34 @@ void draw_explosions() {
 }
 
 void draw_game_level() {
+    // Desenha tela de mudança de nivel
+
     al_draw_filled_rectangle(0, 0, DISPLAY_W, DISPLAY_H, al_map_rgb(0, 0, 0));
     al_draw_textf(main_font_size_45, al_map_rgb(255, 255, 255), DISPLAY_W / 2, DISPLAY_H / 2,
                   ALLEGRO_ALIGN_CENTER, "LEVEL %d", game_level);
 }
 
 void draw_game_over() {
+    // Desenha tela de fim de jogo
+
     al_draw_filled_rectangle(0, 0, DISPLAY_W, DISPLAY_H, al_map_rgb(0, 0, 0));
 
     switch (current_game_state) {
         case GAME_STATE_IN_GAME_MULTIPLAYER_HOST:
         case GAME_STATE_IN_GAME_SINGLE_PLAYER:
-            if (game_winner == GAME_WINNER_PLAYER) {
-                al_draw_text(main_font_size_45, al_map_rgb(0, 255, 0), DISPLAY_W / 2, DISPLAY_H / 2,
+            if (is_single_player()) {
+                al_draw_text(main_font_size_45, al_map_rgb(255, 255, 255), DISPLAY_W / 2,
+                             DISPLAY_H / 2 - +main_font_size_45_height - 10,
+                             ALLEGRO_ALIGN_CENTER, "FIM DE JOGO");
+                al_draw_textf(main_font_size_45, al_map_rgb(255, 255, 255), DISPLAY_W / 2,
+                              DISPLAY_H / 2,
+                              ALLEGRO_ALIGN_CENTER, "SEUS PONTOS: %li", player_score);
+            } else if (game_winner == GAME_WINNER_PLAYER) {
+                al_draw_text(main_font_size_45, al_map_rgb(255, 0, 0), DISPLAY_W / 2, DISPLAY_H / 2,
                              ALLEGRO_ALIGN_CENTER, "VOCÊ GANHOU");
             } else {
-                if (is_single_player()) {
-                    al_draw_text(main_font_size_45, al_map_rgb(255, 255, 255), DISPLAY_W / 2,
-                                 DISPLAY_H / 2 - +main_font_size_45_height - 10,
-                                 ALLEGRO_ALIGN_CENTER, "FIM DE JOGO");
-                    al_draw_textf(main_font_size_45, al_map_rgb(255, 255, 255), DISPLAY_W / 2,
-                                  DISPLAY_H / 2,
-                                  ALLEGRO_ALIGN_CENTER, "SEUS PONTOS: %li", player_score);
-                } else {
-                    al_draw_text(main_font_size_45, al_map_rgb(255, 0, 0), DISPLAY_W / 2, DISPLAY_H / 2,
-                                 ALLEGRO_ALIGN_CENTER, "VOCÊ PERDEU");
-                }
+                al_draw_text(main_font_size_45, al_map_rgb(255, 0, 0), DISPLAY_W / 2, DISPLAY_H / 2,
+                             ALLEGRO_ALIGN_CENTER, "VOCÊ PERDEU");
             }
             break;
         case GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT:
@@ -1181,6 +1308,8 @@ void draw_game_over() {
 }
 
 void on_new_level(short level) {
+    // Prepara diversas viriaveis para o próximo nivel
+
     game_level = level;
 
     int state_mod = (is_single_player()) ? 1 : 2;
@@ -1194,16 +1323,19 @@ void on_new_level(short level) {
     if (is_single_player()) {
         consecutive_right_key_player = 0;
         consecutive_right_key_opponent = 0;
-        clear_ships();
+        clear_missiles();
         need_to_show_game_level = true;
     }
 }
 
 void start_level_change() {
+    // Define variavel que fará com que o jogo espere
+    // antes de passar de nivel
     wait_new_level = true;
 }
 
 void draw_score() {
+    // Desenha pontuação no canto da tela
     long score = (is_multiplayer_client()) ? opponent_score : player_score;
 
     al_draw_textf(main_font_size_25, al_map_rgb(255, 255, 255), 10,
@@ -1212,6 +1344,7 @@ void draw_score() {
 }
 
 void draw_purchase_life() {
+    // Desenha tela de compra de vida
     al_draw_filled_rectangle(0, 0, DISPLAY_W, DISPLAY_H, al_map_rgb(0, 0, 0));
 
     al_draw_text(main_font_size_45, al_map_rgb(255, 255, 255), DISPLAY_W / 2, 300,
@@ -1225,6 +1358,7 @@ void draw_purchase_life() {
 }
 
 void on_redraw_game() {
+    // Redesenha a tela do jogo
 
     static int frame_count = 0;
     static int game_level_display_frame = 0;
@@ -1232,9 +1366,11 @@ void on_redraw_game() {
     static int wait_new_level_frame = 0;
     static int pre_purchase_life_frame = 0;
 
+    // Se é cliente em jogo multiplayer e ainda não recebeu primeiro pacote não faz nada
     if (is_multiplayer_client() && !received_first_snapshot) return;
 
     if (need_to_show_game_level) {
+        // Desenha tela de novo nivel por 120 frames
         draw_game_level();
         if (game_level_display_frame++ > 120) {
             need_to_show_game_level = false;
@@ -1244,6 +1380,8 @@ void on_redraw_game() {
     }
 
     if (need_to_show_purchase_life) {
+        // Espera 192 para mostrar explosões e então
+        // desenha tela de compra de vida
         if (pre_purchase_life_frame >= 192) {
             if (pre_purchase_life_frame == 192) {
                 current_game_flow_state = GAME_FLOW_STATE_PURCHASING_LIFE;
@@ -1261,8 +1399,11 @@ void on_redraw_game() {
 
 
     if (is_multiplayer_host() || is_single_player()) {
+        // Se for single player ou host em multiplayer processa
+        // criação de misseis e movimento dos objetos na tela
 
         if (!is_game_paused() && !is_game_ending()) {
+            // Apenas se o jogo não estiver pausado ou acabando
 
             if (frame_count++ == 30) {
                 frame_count = 0;
@@ -1270,12 +1411,12 @@ void on_redraw_game() {
             }
 
             if (next_host_ship_spawn-- == 0) {
-                spawn_ship(BATTLESHIP_OWNER_PLAYER, BATTLESHIP_CLASS_MISSILE);
+                spawn_missile(BATTLESHIP_OWNER_PLAYER);
                 next_host_ship_spawn = (rand() % (SPAWN_WINDOW + 1)) + MINIMUM_SPAWN_WAIT;
             }
 
             if (next_client_ship_spawn-- == 0) {
-                spawn_ship(BATTLESHIP_OWNER_OPPONENT, BATTLESHIP_CLASS_MISSILE);
+                spawn_missile(BATTLESHIP_OWNER_OPPONENT);
                 next_client_ship_spawn = (rand() % (SPAWN_WINDOW + 1)) + MINIMUM_SPAWN_WAIT;
             }
 
@@ -1287,9 +1428,9 @@ void on_redraw_game() {
 
             if (!is_game_ending()) {
 
-                update_game_ships_frame_count();
+                update_game_missiles_frame_count();
                 if (!need_to_show_purchase_life) {
-                    move_game_ships();
+                    move_game_missiles_and_ships();
                 }
 
             }
@@ -1297,23 +1438,30 @@ void on_redraw_game() {
         }
 
         if (is_multiplayer_host()) {
+            // Se o jogo for em multiplayer prepara para enviar estado de jogo pela rede
             update_snapshot_from_game();
             ready_to_send = true;
         }
 
     } else if (is_multiplayer_client()) {
+        // Se o jogo for em multiplayer e o jogador for client atualiza estado de
+        // jogo com informações recebidas via rede
         update_game_from_snapshot();
     }
 
-    draw_game_ships();
+    // Desenha misseis e naves
+    draw_game_missiles_and_ships();
 
+    // Desenha pontuação
     draw_score();
 
     if (is_game_paused()) {
+        // Se o jogo estiver pausado desenha overlay do pause
         draw_pause_overlay();
     }
 
     if (need_to_show_purchase_life && pre_purchase_life_frame < 192) {
+        // Desenha explosões
         char tmp_gw = game_winner;
         game_winner = GAME_WINNER_OPPONENT;
         draw_explosions();
@@ -1321,6 +1469,7 @@ void on_redraw_game() {
     }
 
     if (is_game_ending()) {
+        // Desenha fim de jogo
         game_ending_frame++;
         if (!draw_explosions_on_game_end) {
             game_ending_frame = (game_ending_frame < 120) ? 120 : game_ending_frame;
@@ -1338,6 +1487,7 @@ void on_redraw_game() {
     }
 
     if (wait_new_level) {
+        // Espera e exibe próximo nivel
         if (is_multiplayer() || wait_new_level_frame++ == 60) {
             wait_new_level_frame = 0;
             on_new_level(++game_level);
@@ -1348,6 +1498,8 @@ void on_redraw_game() {
 }
 
 void end_game() {
+    // Processa final de jogo
+
     if (is_single_player()) {
         rank_score = player_score;
         change_game_state(GAME_STATE_VISUALIZING_RANK);

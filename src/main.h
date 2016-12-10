@@ -16,6 +16,7 @@ extern bool exiting;
 extern bool DEBUG;
 extern bool PITTHAN_MODE;
 
+// Enumerado com os diversos estados de jogo
 typedef enum {
     GAME_STATE_NONE,
     GAME_STATE_MAIN_MENU,
@@ -25,6 +26,7 @@ typedef enum {
     GAME_STATE_VISUALIZING_RANK
 } GAME_STATE;
 
+// Enumerado com os diversos estados de fluxo do jogo
 typedef enum {
     GAME_FLOW_STATE_RUNNING,
     GAME_FLOW_STATE_PAUSE,

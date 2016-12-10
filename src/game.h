@@ -32,6 +32,8 @@ bool is_game_ending();
 
 long get_last_game_score();
 
+void reset_last_game_score();
+
 void on_mouse_move_game(int x, int y);
 
 void on_mouse_up_game(int x, int y);
@@ -68,8 +70,8 @@ extern int game_bs_host_limit;
 extern int game_bs_client_limit;
 extern GAME_SNAPSHOT game;
 
-extern BATTLESHIP *host_mothership;
-extern BATTLESHIP *client_mothership;
+extern BATTLESHIP *host_ship;
+extern BATTLESHIP *client_ship;
 
 static int const MINIMUM_WORD_POOL_SIZE = 75;
 static int const MAXIMUM_WORD_POOL_SIZE = 125;

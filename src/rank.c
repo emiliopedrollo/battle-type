@@ -191,6 +191,7 @@ void persist_rank_entries() {
 
 void process_new_rank_entry() {
     long score = get_last_game_score();
+    reset_last_game_score();
     if (score == -1) return;
     short pos = -1;
     for (short i = 0; i < 10; i++) {
