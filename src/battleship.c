@@ -98,8 +98,6 @@ BATTLESHIP* init_battleship(BATTLESHIP_CLASS class, BATTLESHIP_OWNER owner, floa
 
         y = (battleship->owner == BATTLESHIP_OWNER_OPPONENT) ? DISPLAY_H - 90 : 90;
 
-        //battleship->ll = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)? battleship->dx - 100 : battleship->dx + 100 ;
-        //battleship->lr = (battleship->owner == BATTLESHIP_OWNER_OPPONENT)? battleship->dx + 100 : battleship->dx - 100 ;
         battleship->ll = battleship->dx - 100;
         battleship->lr = battleship->dx + 100;
 
@@ -171,7 +169,6 @@ bool move_ship(BATTLESHIP *battleship, float target_dx) {
     //const float dvx = 0.8;
     //float dvx;
     double dist_r, dist_l;
-    //float dx = ,dy,vx=4,vy=1;
 
     int bsw = al_get_bitmap_width(battleship->bmp);
     int bsh = al_get_bitmap_height(battleship->bmp);
@@ -192,7 +189,6 @@ bool move_ship(BATTLESHIP *battleship, float target_dx) {
         case BATTLESHIP_MOVE_STATE_DEMO:
             dist_r = (DISPLAY_W-(battleship->dx+bsw/2)<=0)?1:DISPLAY_W-(battleship->dx+bsw/2);
             dist_l = (battleship->dx-bsw/2<=0)?1:battleship->dx-bsw/2;
-            //static int turning_frame = 0;
 
             // Calcula chance de inverter velocidade horizontal
             prob=(battleship->vx>0)?(1.0/pow(dist_r,7.0/8.0))+mod:(1.0/pow(dist_l,7.0/8.0))+mod;
@@ -256,12 +252,19 @@ bool move_ship(BATTLESHIP *battleship, float target_dx) {
 
             calculate_ship_turn_frame(battleship);
 
-            battleship->dx += battleship->vx;
+            battleship->m = (battleship->dy - y) / (battleship->dx - target_dx);
 
             if (battleship->owner == BATTLESHIP_OWNER_PLAYER) {
                 battleship->dy = (get_top_dy(battleship) >= game_bs_host_limit) ? battleship->dy - battleship->vy : battleship->dy;
             }else if(battleship->owner == BATTLESHIP_OWNER_OPPONENT) {
                 battleship->dy = (get_bottom_dy(battleship) <= game_bs_client_limit) ? battleship->dy + battleship->vy : battleship->dy;
+            }
+
+            if(battleship->class == BATTLESHIP_CLASS_MISSILE && (y - get_bottom_dy(battleship)) < 300 ) {
+                battleship->dx = (((battleship->dy - y) / battleship->m) + target_dx) * battleship->vx;
+
+            }else{
+                battleship->dx += battleship->vx;
             }
 
             if (!battleship->exploding) {
@@ -346,7 +349,7 @@ void draw_debug(BATTLESHIP *battleship) {
         if (current_game_state == GAME_STATE_IN_GAME_SINGLE_PLAYER ||
             current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_HOST ||
             current_game_state == GAME_STATE_IN_GAME_MULTIPLAYER_CLIENT) {
-            //printf("x:%f\n\ny:%f\n\ndxt:%f\n\ndyt:%f\n\nm:%f\n\n", x, y, battleship->dx, battleship->dy, m);
+
             dyp += 0.5;
             dxp = ((dyp - y) / m) + x;
             dxe = ((dyp - y) / me) + x;
@@ -428,17 +431,6 @@ void draw_target_lock(BATTLESHIP *battleship){
 
     int outer_margin = 4;
 
-//    float ldx = get_left_dx(battleship) - outer_margin;
-//    float tdy = get_top_dy(battleship) - outer_margin;
-//    float rdx = get_righ_dx(battleship) + outer_margin;
-//    float bdy = get_bottom_dy(battleship) + outer_margin;
-//
-//    int bsw = get_battleship_width(battleship->class);
-//    int bsh = get_battleship_height(battleship->class);
-//
-//    float stop_x = (bsw+2*outer_margin) / 6.0f;
-//    float stop_y = (bsh+2*outer_margin) / 6.0f;
-
     int bsw = get_battleship_width(battleship->class);
     int bsh = get_battleship_height(battleship->class);
 
@@ -491,24 +483,6 @@ void draw_target_lock(BATTLESHIP *battleship){
     al_draw_line(rdx - stop_x * 1, tdy + stop_y * 2,
                  rdx - stop_x * 1, bdy - stop_y * 2,
                  color,2);
-
-//    // inner lines
-//    al_draw_line(ldx + stop_x * 3, tdy + stop_y * 2,
-//                 rdx - stop_x * 3, tdy + stop_y * 2,
-//                 color,2);
-//
-//    al_draw_line(ldx + stop_x * 3, bdy - stop_y * 2,
-//                 rdx - stop_x * 3, bdy - stop_y * 2,
-//                 color,2);
-//
-//    al_draw_line(ldx + stop_x * 2, tdy + stop_y * 3,
-//                 ldx + stop_x * 2, bdy - stop_y * 3,
-//                 color,2);
-//
-//    al_draw_line(rdx - stop_x * 2, tdy + stop_y * 3,
-//                 rdx - stop_x * 2, bdy - stop_y * 3,
-//                 color,2);
-
 
     //cross lines
     al_draw_line(ldx + stop_x * 1, dy,

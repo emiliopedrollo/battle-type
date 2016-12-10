@@ -42,19 +42,18 @@ typedef struct {
     BATTLESHIP_OWNER owner;
     bool active;
     int turning_frame;
-    float dx, dy;
-    float dxi, dyi;
-    float vx, vy;
-    float vxi, vyi;
-    float mr, ml;
-    float lr, ll;
+    float dx,dy;
+    float dxi,dyi;
+    float vx,vy;
+    float vxi,vyi;
+    float mr,ml,m;
+    float lr,ll;
     float limit;
     bool push_back_ended;
     bool push_back_done;
     bool push_back_set_speed;
     int push_back_frame;
     int push_back_k;
-
     void (*push_back_callback)(void);
 
     char *word;
