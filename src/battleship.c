@@ -1,10 +1,4 @@
-//
-// Created by ubuntu on 10/19/16.
-//
-
 #include "battleship.h"
-
-#include <stdio.h>
 #include <math.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_primitives.h>
@@ -39,13 +33,10 @@ void load_resources_battleship(){
 }
 
 void unload_resources_battleship(){
-    int i=0;
-
     al_destroy_bitmap(bmp_spaceship_blue);
     al_destroy_bitmap(bmp_spaceship_red);
     al_destroy_bitmap(bmp_missile_blue);
     al_destroy_bitmap(bmp_missile_red);
-
 }
 
 int get_battleship_height(BATTLESHIP_CLASS class){
@@ -174,7 +165,9 @@ void update_ship_frame_count(BATTLESHIP *battleship){
 
 bool move_ship(BATTLESHIP *battleship, float target_dx) {
 
-    float dvx;
+    //static TURNING_DIRECTION turning_direction = TURNING_DIRECTION_NONE;
+    //const float dvx = 0.8;
+    //float dvx;
     double dist_r, dist_l;
 
     int bsw = al_get_bitmap_width(battleship->bmp);
@@ -333,11 +326,6 @@ float get_bottom_dy(BATTLESHIP *battleship){
 void draw_debug(BATTLESHIP *battleship) {
     int bsh = get_battleship_height(battleship->class);
     int bsw = get_battleship_width(battleship->class);
-
-    float dx, dy;
-
-    dx = get_normalized_dx(battleship);
-    dy = get_normalized_dy(battleship);
 
     static bool started = false;
 
@@ -522,13 +510,7 @@ void draw_target_lock(BATTLESHIP *battleship){
 
 void draw_ship(BATTLESHIP *battleship) {
 
-    int bsh = get_battleship_height(battleship->class);
-    int bsw = get_battleship_width(battleship->class);
-
     int flags;
-
-    float dx = get_normalized_dx(battleship);
-    float dy = get_normalized_dy(battleship);
 
     bool draw_ship = true;
 
@@ -545,6 +527,8 @@ void draw_ship(BATTLESHIP *battleship) {
     if (!draw_ship) return;
 
     al_draw_bitmap(battleship->bmp, get_left_dx(battleship), get_top_dy(battleship),flags);
+
+    if (DEBUG) draw_debug(battleship);
 
     if (battleship->exploding && battleship->explosion_frame >= 0) {
 

@@ -1,7 +1,3 @@
-//
-// Created by ubuntu on 10/19/16.
-//
-
 #include <stdbool.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_font.h>
@@ -42,13 +38,16 @@ extern ALLEGRO_BITMAP *bmp_background;
 extern ALLEGRO_FONT *main_font_size_60;
 extern ALLEGRO_FONT *main_font_size_45;
 extern ALLEGRO_FONT *main_font_size_25;
+extern int main_font_size_60_height;
 extern int main_font_size_45_height;
 extern int main_font_size_25_height;
 
-void load_font(ALLEGRO_FONT* *font, ALLEGRO_FILE* *file,int size, int flags);
-void load_bitmap(ALLEGRO_BITMAP* *bitmap, ALLEGRO_FILE* *file, char* ident);
+void load_font(ALLEGRO_FONT **font, ALLEGRO_FILE **file, int size, int flags);
+
+void load_bitmap(ALLEGRO_BITMAP **bitmap, ALLEGRO_FILE **file, char *ident);
 
 void change_game_state(GAME_STATE state);
+
 void check_game_state_complete();
 
 #endif //BATTLE_TYPE_MAIN_H

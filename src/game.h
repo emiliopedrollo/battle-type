@@ -1,7 +1,3 @@
-//
-// Created by ubuntu on 10/20/16.
-//
-
 #ifndef BATTLE_TYPE_GAME_H
 #define BATTLE_TYPE_GAME_H
 
@@ -13,22 +9,37 @@
 ALLEGRO_BITMAP *rsc_explosion[16];
 
 void init_game();
+
 void on_redraw_game();
+
 void load_resources_game();
+
 void unload_resources_game();
+
 bool is_single_player();
+
 bool is_multiplayer_host();
+
 bool is_multiplayer_client();
+
 bool is_multiplayer();
+
 bool is_game_paused();
+
 void on_timer_game();
+
 bool is_game_ending();
+
 long get_last_game_score();
+
 void on_mouse_move_game(int x, int y);
+
 void on_mouse_up_game(int x, int y);
+
 void on_mouse_down_game(int x, int y);
 
 void on_key_press_game(ALLEGRO_KEYBOARD_EVENT event);
+
 void process_key_press(int keycode, PLAYER player);
 
 typedef struct {
@@ -38,7 +49,7 @@ typedef struct {
     bool exploding;
     bool exploding_with_lasers;
     char explosion_frame;
-    float dx,dy;
+    float dx, dy;
     char word[30];
 } SERIAL_BATTLESHIP;
 
