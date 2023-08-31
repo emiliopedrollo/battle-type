@@ -70,6 +70,8 @@ int const BTN_PURCHASE_NO = 1;
 
 GAME_SNAPSHOT game;
 
+ALLEGRO_BITMAP *rsc_explosion[16];
+
 int game_bs_host_limit;
 int game_bs_client_limit;
 

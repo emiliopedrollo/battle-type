@@ -24,7 +24,7 @@ bool server_running = false;
 bool server_set_to_stop = false;
 pthread_t server_thread;
 ENetHost *host;
-ENetPeer *client;
+ENetPeer *server_client;
 
 void (*on_server_client_connect)(void);
 
@@ -60,7 +60,7 @@ void stop_server() {
 
     pthread_join(server_thread, NULL);
 
-    if (client != NULL) enet_peer_disconnect_now(client, 0);
+    if (server_client != NULL) enet_peer_disconnect_now(server_client, 0);
     if (host != NULL) enet_host_destroy(host);
     host = NULL;
     enet_deinitialize();
@@ -75,7 +75,7 @@ void server_send_receive() {
     while (enet_host_service(host, &event, 0) > 0) {
         switch (event.type) {
             case ENET_EVENT_TYPE_CONNECT:
-                client = event.peer;
+                server_client = event.peer;
                 printf("Server: A new client connected from %x:%hu.\n",
                        event.peer->address.host,
                        event.peer->address.port);
@@ -101,7 +101,7 @@ void server_send_receive() {
 
 void update_game() {
 
-    if (client == NULL) return;
+    if (server_client == NULL) return;
 
     // notify all clients of this player's new position
     SERVER_MESSAGE msg;

@@ -6,7 +6,7 @@
 
 #define NUMBER_OF_SHIPS_PER_PLAYER 10
 
-ALLEGRO_BITMAP *rsc_explosion[16];
+extern ALLEGRO_BITMAP *rsc_explosion[16];
 
 void init_game();
 

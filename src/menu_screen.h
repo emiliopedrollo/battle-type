@@ -46,8 +46,6 @@ typedef enum {
     MENU_SCREEN_MULTIPLAYER_HOST,
 } MENU_SCREEN;
 
-MENU_SCREEN current_menu_screen;
-
 
 #endif /* ALLEGRO1_H */
 

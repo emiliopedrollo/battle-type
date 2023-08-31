@@ -8,7 +8,7 @@
 #include "game.h"
 
 int shortcut_key_pressed_rank = -1;
-Button buttons[1];
+Button rank_buttons[1];
 RANK_ENTRY rank[10];
 bool is_mouse_down_rank = false;
 bool is_mouse_down_on_button_rank = false;
@@ -34,7 +34,7 @@ void persist_rank_entries();
 bool is_valid_rank_file(FILE *rank);
 
 void init_buttons_rank() {
-    buttons[0] = init_button(main_font_size_45, "Voltar ao &menu", DISPLAY_W / 2, 700, 380);
+    rank_buttons[0] = init_button(main_font_size_45, "Voltar ao &menu", DISPLAY_W / 2, 700, 380);
 }
 
 void load_rank_entries() {
@@ -355,9 +355,9 @@ void on_key_press_rank(ALLEGRO_KEYBOARD_EVENT event) {
 }
 
 void draw_buttons() {
-    int total_buttons = sizeof(buttons) / sizeof(buttons[0]);
+    int total_buttons = sizeof(rank_buttons) / sizeof(rank_buttons[0]);
     for (int i = 0; i < total_buttons; i++) {
-        draw_button(buttons[i]);
+        draw_button(rank_buttons[i]);
     }
 }
 
@@ -365,16 +365,16 @@ void on_mouse_move_rank(int x, int y) {
     bool is_over_button = false;
 
     if (!is_mouse_down_rank) {
-        int total_buttons = sizeof(buttons) / sizeof(buttons[0]);
+        int total_buttons = sizeof(rank_buttons) / sizeof(rank_buttons[0]);
         for (int i = 0; i < total_buttons; i++) {
-            if (!buttons[i].visible) continue;
-            if (is_coordinate_inside_button(buttons[i], x, y)) {
+            if (!rank_buttons[i].visible) continue;
+            if (is_coordinate_inside_button(rank_buttons[i], x, y)) {
                 is_over_button = true;
-                buttons[i].state = (buttons[i].state != BUTTON_STATE_ACTIVE) ?
-                                   BUTTON_STATE_HOVER : buttons[i].state;
+                rank_buttons[i].state = (rank_buttons[i].state != BUTTON_STATE_ACTIVE) ?
+                                   BUTTON_STATE_HOVER : rank_buttons[i].state;
             } else
-                buttons[i].state = (buttons[i].state == BUTTON_STATE_HOVER) ?
-                                   BUTTON_STATE_NORMAL : buttons[i].state;
+                rank_buttons[i].state = (rank_buttons[i].state == BUTTON_STATE_HOVER) ?
+                                   BUTTON_STATE_NORMAL : rank_buttons[i].state;
         }
     }
 
@@ -387,11 +387,11 @@ void on_mouse_move_rank(int x, int y) {
 }
 
 void on_mouse_down_rank(int x, int y) {
-    int total_buttons = sizeof(buttons) / sizeof(buttons[0]);
+    int total_buttons = sizeof(rank_buttons) / sizeof(rank_buttons[0]);
     for (int i = 0; i < total_buttons; i++) {
-        if (buttons[i].visible && is_coordinate_inside_button(buttons[i], x, y)) {
+        if (rank_buttons[i].visible && is_coordinate_inside_button(rank_buttons[i], x, y)) {
             is_mouse_down_on_button_rank = true;
-            buttons[i].state = BUTTON_STATE_ACTIVE;
+            rank_buttons[i].state = BUTTON_STATE_ACTIVE;
             break;
         }
     }
@@ -399,14 +399,14 @@ void on_mouse_down_rank(int x, int y) {
 }
 
 void on_mouse_up_rank(int x, int y) {
-    int total_buttons = sizeof(buttons) / sizeof(buttons[0]);
+    int total_buttons = sizeof(rank_buttons) / sizeof(rank_buttons[0]);
     for (int i = 0; i < total_buttons; i++) {
-        if (buttons[i].visible && buttons[i].state == BUTTON_STATE_ACTIVE) {
-            if (is_coordinate_inside_button(buttons[i], x, y)) {
-                buttons[i].state = BUTTON_STATE_HOVER;
+        if (rank_buttons[i].visible && rank_buttons[i].state == BUTTON_STATE_ACTIVE) {
+            if (is_coordinate_inside_button(rank_buttons[i], x, y)) {
+                rank_buttons[i].state = BUTTON_STATE_HOVER;
                 on_button_click_rank(i);
             } else {
-                buttons[i].state = BUTTON_STATE_NORMAL;
+                rank_buttons[i].state = BUTTON_STATE_NORMAL;
             }
             break;
         }
@@ -426,11 +426,11 @@ void on_timer_rank() {
     switch (frame_count++) {
         case 0:
             on_mouse_down_rank(
-                    buttons[shortcut_key_pressed_rank].x + 1, buttons[shortcut_key_pressed_rank].y + 1);
+                    rank_buttons[shortcut_key_pressed_rank].x + 1, rank_buttons[shortcut_key_pressed_rank].y + 1);
             break;
         case 10:
             on_mouse_up_rank(
-                    buttons[shortcut_key_pressed_rank].x + 1, buttons[shortcut_key_pressed_rank].y + 1);
+                    rank_buttons[shortcut_key_pressed_rank].x + 1, rank_buttons[shortcut_key_pressed_rank].y + 1);
             frame_count = 0;
             shortcut_key_pressed_rank = -1;
             break;

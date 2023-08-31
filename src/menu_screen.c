@@ -18,6 +18,8 @@ Button buttons[10];
 
 BATTLESHIP *demo_ship;
 
+MENU_SCREEN current_menu_screen;
+
 void init_menu_buttons();
 
 void init_demo_ship();
