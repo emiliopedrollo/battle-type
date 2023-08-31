@@ -12,10 +12,10 @@ Primeiro é necessário habilitar as fonte de software 'universe':
 Agora iremos instalar todas nossas dependências:
 
 ```sh
-# apt-get install -y liballegro5.0 liballegro5-dev libenet7 libenet-dev git cmake
+# apt-get install -y liballegro5.2 liballegro5-dev libenet7 libenet-dev git cmake
 ```
 
-Obs.: Para a versão `16.10` do Ubuntu é necessário instalar a versão 5.2 do allegro substituindo `liballegro5.0` por `liballegro5.2` na linha acima.
+Obs.: Para a versão `16.04` do Ubuntu ou anterior é necessário instalar a versão 5.0 do allegro substituindo `liballegro5.2` por `liballegro5.0` na linha acima.
 ## Fazendo Checkout
 
 Execute as seguintes linhas para fazer uma cópia local dos fontes no seu computador 
