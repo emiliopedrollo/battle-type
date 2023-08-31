@@ -55,7 +55,7 @@ bool DEBUG = false;
 // Variavel que altera de leve o comportamento do
 // jogo quando `true` para este se enquadrar nas
 // especificações do jogo
-bool PITTHAN_MODE = false;
+bool PITTHAN_MODE = true;
 
 int the_game();
 
